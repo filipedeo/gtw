@@ -12,7 +12,7 @@ import { useThemeStore } from './stores/themeStore'
 function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showAudioControls, setShowAudioControls] = useState(false)
-  const { stringCount } = useGuitarStore()
+  const { stringCount, setStringCount } = useGuitarStore()
   const { currentExercise } = useExerciseStore()
   const { setTheme, theme } = useThemeStore()
 
@@ -118,12 +118,15 @@ function App() {
                 Guitar Theory
               </h1>
             </div>
-            <span 
-              className="text-xs px-2 py-1 rounded-full font-mono"
+            <button 
+              onClick={() => setStringCount(stringCount === 6 ? 7 : 6)}
+              className="text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+              title={`Click to switch to ${stringCount === 6 ? 7 : 6}-string guitar`}
+              aria-label={`Currently ${stringCount}-string guitar. Click to switch to ${stringCount === 6 ? 7 : 6}-string`}
             >
               {stringCount}-string
-            </span>
+            </button>
           </div>
           
           <div className="flex items-center gap-2">
