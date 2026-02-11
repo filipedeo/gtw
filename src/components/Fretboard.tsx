@@ -24,6 +24,7 @@ const Fretboard: React.FC<FretboardProps> = ({
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
   const [clickedPosition, setClickedPosition] = useState<FretPosition | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<FretPosition | null>(null);
   
   const {
     stringCount,
@@ -230,10 +231,14 @@ const Fretboard: React.FC<FretboardProps> = ({
       ctx.fillText(noteName.replace(/\d/, ''), PADDING_X - 10, y);
     }
     
+    // Helper to check if a position is currently hovered
+    const isHovered = (pos: FretPosition): boolean =>
+      hoverPosition !== null && hoverPosition.string === pos.string && hoverPosition.fret === pos.fret;
+
     // Draw highlighted notes
     highlightedPositions.forEach(pos => {
       const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
-      drawNote(ctx, pos, true, shouldShowName);
+      drawNote(ctx, pos, true, shouldShowName, false, false, isHovered(pos));
     });
 
     // Draw secondary highlighted notes (lighter color for scale notes outside shape)
@@ -241,7 +246,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       // Skip if already drawn as primary highlight
       if (!highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)) {
         const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
-        drawNote(ctx, pos, false, shouldShowName, false, true); // isSecondary = true
+        drawNote(ctx, pos, false, shouldShowName, false, true, isHovered(pos)); // isSecondary = true
       }
     });
 
@@ -249,7 +254,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     if (clickedPosition && !highlightedPositions.some(p => p.string === clickedPosition.string && p.fret === clickedPosition.fret)) {
       drawNote(ctx, clickedPosition, true, true, true); // isClicked = true for special styling
     }
-    
+
     // Draw all notes if enabled
     if (showAllNotes) {
       for (let string = 0; string < stringCount; string++) {
@@ -257,12 +262,12 @@ const Fretboard: React.FC<FretboardProps> = ({
           const pos = { string, fret };
           const isClickedPos = clickedPosition && clickedPosition.string === string && clickedPosition.fret === fret;
           if (!highlightedPositions.some(p => p.string === string && p.fret === fret) && !isClickedPos) {
-            drawNote(ctx, pos, false, !hideNoteNames);
+            drawNote(ctx, pos, false, !hideNoteNames, false, false, isHovered(pos));
           }
         }
       }
     }
-  }, [stringCount, tuning, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote]);
+  }, [stringCount, tuning, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D,
@@ -270,33 +275,55 @@ const Fretboard: React.FC<FretboardProps> = ({
     highlighted: boolean,
     showName: boolean = true,
     isClicked: boolean = false,
-    isSecondary: boolean = false
+    isSecondary: boolean = false,
+    isHover: boolean = false
   ) => {
     const { string, fret } = position;
-    const x = fret === 0 
-      ? PADDING_X + NUT_WIDTH / 2 
+    const x = fret === 0
+      ? PADDING_X + NUT_WIDTH / 2
       : PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
     // Convert string index to visual row for Y position
     // string index 0 = low E = visual row at bottom
     // string index 5 = high E = visual row at top
     const visualRow = stringIndexToVisualRow(string);
     const y = PADDING_Y + visualRow * STRING_SPACING;
-    
+
     const note = getNoteAtPosition(position, tuning, stringCount);
     // Normalize note name to use sharps (e.g., Gb -> F#) for consistent display
     const noteName = normalizeNoteName(note.replace(/\d/, ''));
     const isRoot = rootNote && noteName === normalizeNoteName(rootNote);
-    
-    // Draw shadow
+
+    // Reset shadow offsets to prevent leak from nut drawing or prior draw calls
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+
+    // Draw hover glow effect behind the note circle
+    if (isHover) {
+      ctx.save();
+      ctx.shadowColor = isRoot ? 'rgba(248, 113, 113, 0.7)' : 'rgba(96, 165, 250, 0.7)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.beginPath();
+      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.01)'; // nearly invisible fill to trigger shadow
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Draw drop shadow for the note circle
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 2;
-    
-    // Draw circle with slightly larger size for clicked notes
-    const radius = isClicked ? 15 : 13;
+
+    // Draw circle with slightly larger size for clicked or hovered notes
+    const radius = isClicked ? 15 : isHover ? 15 : 13;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
-    
+
     if (isClicked) {
       // Bright green/teal for clicked notes - stands out clearly
       ctx.fillStyle = '#10b981';
@@ -310,15 +337,19 @@ const Fretboard: React.FC<FretboardProps> = ({
       ctx.fillStyle = colors.noteDefault;
     }
     ctx.fill();
-    
+
+    // Reset all shadow state after drawing the circle
     ctx.shadowColor = 'transparent';
-    
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
     // Draw note name or question mark
     ctx.fillStyle = highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     if (!showName && highlighted) {
       // Show question mark for hidden notes
       ctx.fillText('?', x, y);
@@ -351,12 +382,17 @@ const Fretboard: React.FC<FretboardProps> = ({
     await initAudio();
     
     const rect = canvas.getBoundingClientRect();
-    // Use logical coordinates (CSS pixels), not physical canvas pixels
-    // The canvas is scaled by DPR for sharp rendering, but ctx.scale(dpr, dpr) 
-    // means all drawing uses logical coordinates. Click detection should match.
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
+    // Scale click coordinates from rendered CSS size to logical canvas coordinates.
+    // The canvas may be rendered smaller than canvasWidth/canvasHeight due to
+    // CSS constraints (e.g., maxWidth: 100%), so we must map accordingly.
+    const scaleX = canvasWidth / rect.width;
+    const scaleY = canvasHeight / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    // Ignore clicks in the label region left of the nut
+    if (x < PADDING_X) return;
+
     // Calculate which fret was clicked
     let fret = 0;
     if (x > PADDING_X + NUT_WIDTH) {
@@ -392,7 +428,56 @@ const Fretboard: React.FC<FretboardProps> = ({
         onNoteClick(position, note);
       }
     }
-  }, [interactive, stringCount, fretCount, tuning, masterVolume, onNoteClick, FRET_WIDTH]);
+  }, [interactive, stringCount, fretCount, tuning, masterVolume, onNoteClick, FRET_WIDTH, canvasWidth, canvasHeight]);
+
+  const handleCanvasMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!interactive) {
+      setHoverPosition(null);
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvasWidth / rect.width;
+    const scaleY = canvasHeight / rect.height;
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    // Ignore hover in the label region left of the nut
+    if (x < PADDING_X) {
+      setHoverPosition(null);
+      return;
+    }
+
+    let fret = 0;
+    if (x > PADDING_X + NUT_WIDTH) {
+      fret = Math.floor((x - PADDING_X - NUT_WIDTH) / FRET_WIDTH) + 1;
+    }
+
+    const visualRow = Math.round((y - PADDING_Y) / STRING_SPACING);
+    const string = visualRowToStringIndex(visualRow);
+
+    if (string >= 0 && string < stringCount && fret >= 0 && fret <= fretCount) {
+      const pos: FretPosition = { string, fret };
+      // Only show hover effect if this position has a highlighted note
+      const isHighlighted = highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)
+        || secondaryHighlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)
+        || showAllNotes;
+      if (isHighlighted) {
+        setHoverPosition(pos);
+      } else {
+        setHoverPosition(null);
+      }
+    } else {
+      setHoverPosition(null);
+    }
+  }, [interactive, stringCount, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, FRET_WIDTH, canvasWidth, canvasHeight]);
+
+  const handleCanvasMouseLeave = useCallback(() => {
+    setHoverPosition(null);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -432,10 +517,13 @@ const Fretboard: React.FC<FretboardProps> = ({
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseLeave={handleCanvasMouseLeave}
         className={`${interactive ? 'cursor-pointer' : ''} rounded-lg`}
         style={{
           maxWidth: '100%',
-          height: 'auto',
+          height: `${canvasHeight}px`,
+          aspectRatio: `${canvasWidth} / ${canvasHeight}`,
         }}
         role="img"
         aria-label={`Guitar fretboard with ${stringCount} strings and ${fretCount} frets. ${getHighlightedNotesDescription()}`}

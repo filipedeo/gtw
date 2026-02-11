@@ -276,7 +276,7 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
 
       {/* Answer Options */}
       <div 
-        className="grid grid-cols-2 gap-3 max-w-md mx-auto"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto"
         role="group"
         aria-label={`Answer options. Press number keys 1 through ${options.length} to select an answer`}
       >
