@@ -1,21 +1,129 @@
-import create from 'zustand';
-import { Exercise, ExerciseState } from '../types/exercise';
+import { create } from 'zustand';
+import { Exercise, ExerciseContent, ExerciseResult } from '../types/exercise';
 
-interface ExerciseStoreState {
-    exerciseState: ExerciseState;
-    setExercise: (exercise: Exercise | null) => void;
-    completeExercise: (exercise: Exercise) => void;
+interface ExerciseState {
+  // Current exercise
+  currentExercise: Exercise | null;
+  currentContent: ExerciseContent | null;
+  exerciseIndex: number;
+  
+  // Exercise list
+  exercises: Exercise[];
+  
+  // Session state
+  isActive: boolean;
+  startTime: number | null;
+  attempts: number;
+  correctAnswers: number;
+  
+  // Results
+  sessionResults: ExerciseResult[];
+  
+  // Actions
+  setExercises: (exercises: Exercise[]) => void;
+  setCurrentExercise: (exercise: Exercise | null, content?: ExerciseContent | null) => void;
+  startExercise: () => void;
+  endExercise: (result: ExerciseResult) => void;
+  recordAttempt: (correct: boolean) => void;
+  nextExercise: () => void;
+  previousExercise: () => void;
+  goToExercise: (index: number) => void;
+  resetSession: () => void;
 }
 
-export const useExerciseStore = create<ExerciseStoreState>((set) => ({
-    exerciseState: { currentExercise: null, completedExercises: [] },
-    setExercise: (exercise) => set((state) => ({
-        exerciseState: { ...state.exerciseState, currentExercise: exercise }
-    })),
-    completeExercise: (exercise) => set((state) => ({
-        exerciseState: {
-            ...state.exerciseState,
-            completedExercises: [...state.exerciseState.completedExercises, exercise]
-        }
-    }))
+export const useExerciseStore = create<ExerciseState>((set, get) => ({
+  // Initial state
+  currentExercise: null,
+  currentContent: null,
+  exerciseIndex: 0,
+  exercises: [],
+  isActive: false,
+  startTime: null,
+  attempts: 0,
+  correctAnswers: 0,
+  sessionResults: [],
+  
+  // Actions
+  setExercises: (exercises) => set({ exercises }),
+  
+  setCurrentExercise: (exercise, content = null) => set({
+    currentExercise: exercise,
+    currentContent: content,
+    attempts: 0,
+    correctAnswers: 0,
+    isActive: false,
+    startTime: null,
+  }),
+  
+  startExercise: () => set({
+    isActive: true,
+    startTime: Date.now(),
+    attempts: 0,
+    correctAnswers: 0,
+  }),
+  
+  endExercise: (result) => set((state) => ({
+    isActive: false,
+    sessionResults: [...state.sessionResults, result],
+  })),
+  
+  recordAttempt: (correct) => set((state) => ({
+    attempts: state.attempts + 1,
+    correctAnswers: correct ? state.correctAnswers + 1 : state.correctAnswers,
+  })),
+  
+  nextExercise: () => {
+    const { exercises, exerciseIndex } = get();
+    if (exerciseIndex < exercises.length - 1) {
+      const newIndex = exerciseIndex + 1;
+      set({
+        exerciseIndex: newIndex,
+        currentExercise: exercises[newIndex],
+        currentContent: null,
+        isActive: false,
+        attempts: 0,
+        correctAnswers: 0,
+      });
+    }
+  },
+  
+  previousExercise: () => {
+    const { exercises, exerciseIndex } = get();
+    if (exerciseIndex > 0) {
+      const newIndex = exerciseIndex - 1;
+      set({
+        exerciseIndex: newIndex,
+        currentExercise: exercises[newIndex],
+        currentContent: null,
+        isActive: false,
+        attempts: 0,
+        correctAnswers: 0,
+      });
+    }
+  },
+  
+  goToExercise: (index) => {
+    const { exercises } = get();
+    if (index >= 0 && index < exercises.length) {
+      set({
+        exerciseIndex: index,
+        currentExercise: exercises[index],
+        currentContent: null,
+        isActive: false,
+        attempts: 0,
+        correctAnswers: 0,
+      });
+    }
+  },
+  
+  resetSession: () => set({
+    currentExercise: null,
+    currentContent: null,
+    exerciseIndex: 0,
+    isActive: false,
+    startTime: null,
+    attempts: 0,
+    correctAnswers: 0,
+    sessionResults: [],
+  }),
 }));
