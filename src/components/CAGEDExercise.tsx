@@ -33,9 +33,11 @@ const CAGED_SHAPES: Record<string, {
   name: string;
   description: string;
   chordPositions: { string: number; fretOffset: number }[]; // Relative to barre position
+  minorChordPositions: { string: number; fretOffset: number }[];
   rootString: number; // Which string has the root note (tuning array index)
   baseKey: string; // The key this shape is based on (for calculating transposition)
   scalePattern: number[][]; // [string (tuning index), fret offset from barre position]
+  minorScalePattern: number[][];
 }> = {
   'C': {
     name: 'C Shape',
@@ -51,10 +53,22 @@ const CAGED_SHAPES: Record<string, {
       { string: 4, fretOffset: -2 }, // B string - C (fret 1)
       { string: 5, fretOffset: -3 }, // high E - E (open = fret 0)
     ],
+    minorChordPositions: [
+      { string: 1, fretOffset: 0 },  // A string - Root
+      { string: 2, fretOffset: -2 }, // D string - b3 (was -1 for major 3rd)
+      { string: 3, fretOffset: -3 }, // G string - 5th
+      { string: 4, fretOffset: -2 }, // B string - Root
+      { string: 5, fretOffset: -4 }, // high E - b3 (was -3 for major 3rd)
+    ],
     scalePattern: [
       [0, -3], [0, -2], [1, -3], [1, -1], [1, 0],
       [2, -3], [2, -1], [2, 0], [3, -3], [3, -1], [3, 1],
       [4, -3], [4, -2], [4, 0], [5, -3], [5, -2], [5, 0]
+    ],
+    minorScalePattern: [
+      [0, -2], [0, 0], [1, -2], [1, 0], [1, 2],
+      [2, -3], [2, -2], [2, 0], [3, -3], [3, -2], [3, 0],
+      [4, -2], [4, 0], [4, 1], [5, -2], [5, 0], [5, 1]
     ]
   },
   'A': {
@@ -70,10 +84,22 @@ const CAGED_SHAPES: Record<string, {
       { string: 4, fretOffset: 2 }, // B string - C# (fret 2)
       { string: 5, fretOffset: 0 }, // high E - E (open)
     ],
+    minorChordPositions: [
+      { string: 1, fretOffset: 0 }, // A string - Root
+      { string: 2, fretOffset: 2 }, // D string - 5th
+      { string: 3, fretOffset: 2 }, // G string - Root
+      { string: 4, fretOffset: 1 }, // B string - b3 (flatten 3rd by 1 semitone)
+      { string: 5, fretOffset: 0 }, // high E - 5th
+    ],
     scalePattern: [
       [0, 0], [0, 2], [0, 4], [1, 0], [1, 2], [1, 4],
       [2, 0], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
       [4, 0], [4, 2], [4, 3], [5, 0], [5, 2], [5, 4]
+    ],
+    minorScalePattern: [
+      [0, 0], [0, 1], [0, 3], [1, 0], [1, 2], [1, 3],
+      [2, 0], [2, 2], [2, 3], [3, 0], [3, 2], [3, 4],
+      [4, 0], [4, 1], [4, 3], [5, 0], [5, 1], [5, 3]
     ]
   },
   'G': {
@@ -90,10 +116,23 @@ const CAGED_SHAPES: Record<string, {
       { string: 4, fretOffset: -3 }, // B string - B (open)
       { string: 5, fretOffset: 0 },  // high E - G (fret 3)
     ],
+    minorChordPositions: [
+      { string: 0, fretOffset: 0 },  // low E - Root
+      { string: 1, fretOffset: -2 }, // A string - b3 (flatten 3rd by 1 semitone)
+      { string: 2, fretOffset: -3 }, // D string - 5th
+      { string: 3, fretOffset: -3 }, // G string - Root
+      { string: 4, fretOffset: -4 }, // B string - b3 (was -3 for major 3rd)
+      { string: 5, fretOffset: 0 },  // high E - Root
+    ],
     scalePattern: [
       [0, -3], [0, -1], [0, 0], [1, -3], [1, -1], [1, 0],
       [2, -3], [2, -1], [2, 1], [3, -3], [3, -1], [3, 1],
       [4, -3], [4, -2], [4, 0], [5, -3], [5, -1], [5, 0]
+    ],
+    minorScalePattern: [
+      [0, -2], [0, 0], [0, 2], [1, -3], [1, -2], [1, 0],
+      [2, -3], [2, -2], [2, 0], [3, -3], [3, -1], [3, 0],
+      [4, -2], [4, 0], [4, 1], [5, -2], [5, 0], [5, 2]
     ]
   },
   'E': {
@@ -110,10 +149,23 @@ const CAGED_SHAPES: Record<string, {
       { string: 4, fretOffset: 0 }, // B string - B (open)
       { string: 5, fretOffset: 0 }, // high E - E (open)
     ],
+    minorChordPositions: [
+      { string: 0, fretOffset: 0 }, // low E - Root
+      { string: 1, fretOffset: 2 }, // A string - 5th
+      { string: 2, fretOffset: 2 }, // D string - Root
+      { string: 3, fretOffset: 0 }, // G string - b3 (flatten 3rd by 1 semitone)
+      { string: 4, fretOffset: 0 }, // B string - 5th
+      { string: 5, fretOffset: 0 }, // high E - Root
+    ],
     scalePattern: [
       [0, 0], [0, 2], [0, 4], [1, 0], [1, 2], [1, 4],
       [2, 1], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
       [4, 0], [4, 2], [4, 4], [5, 0], [5, 2], [5, 4]
+    ],
+    minorScalePattern: [
+      [0, 0], [0, 2], [0, 3], [1, 0], [1, 2], [1, 3],
+      [2, 0], [2, 2], [2, 4], [3, 0], [3, 2], [3, 4],
+      [4, 0], [4, 1], [4, 3], [5, 0], [5, 2], [5, 3]
     ]
   },
   'D': {
@@ -128,10 +180,21 @@ const CAGED_SHAPES: Record<string, {
       { string: 4, fretOffset: 3 }, // B string - D (fret 3)
       { string: 5, fretOffset: 2 }, // high E - F# (fret 2)
     ],
+    minorChordPositions: [
+      { string: 2, fretOffset: 0 }, // D string - Root
+      { string: 3, fretOffset: 2 }, // G string - 5th
+      { string: 4, fretOffset: 3 }, // B string - Root
+      { string: 5, fretOffset: 1 }, // high E - b3 (flatten 3rd by 1 semitone)
+    ],
     scalePattern: [
       [1, 0], [1, 2], [1, 4], [2, 0], [2, 2], [2, 4],
       [3, 0], [3, 2], [3, 4], [4, 0], [4, 2], [4, 3],
       [5, 0], [5, 2], [5, 3]
+    ],
+    minorScalePattern: [
+      [1, 0], [1, 1], [1, 3], [2, 0], [2, 2], [2, 3],
+      [3, 0], [3, 2], [3, 3], [4, 1], [4, 3], [4, 5],
+      [5, 0], [5, 1], [5, 3]
     ]
   }
 };
@@ -148,19 +211,28 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
   // but on 7-string, 0=low B and 1=low E
   const stringOffset = stringCount === 7 ? 1 : 0;
   
+  type ScaleType = 'major' | 'minor';
   const [selectedShape, setSelectedShape] = useState<string>('C');
   const [selectedKey, setSelectedKey] = useState<string>('C');
+  const [scaleType, setScaleType] = useState<ScaleType>('major');
   const [showChord, setShowChord] = useState(true);
   const [showScale, setShowScale] = useState(false);
   const [showRoots, setShowRoots] = useState(true);
 
   // Get the shape based on exercise ID
   useEffect(() => {
-    if (exercise.id.includes('caged-1')) setSelectedShape('C');
-    else if (exercise.id.includes('caged-2')) setSelectedShape('A');
-    else if (exercise.id.includes('caged-3')) setSelectedShape('G');
-    else if (exercise.id.includes('caged-4')) setSelectedShape('E');
-    else if (exercise.id.includes('caged-5')) setSelectedShape('D');
+    if (exercise.id === 'caged-1') { setSelectedShape('C'); setScaleType('major'); }
+    else if (exercise.id === 'caged-2') { setSelectedShape('A'); setScaleType('major'); }
+    else if (exercise.id === 'caged-3') { setSelectedShape('G'); setScaleType('major'); }
+    else if (exercise.id === 'caged-4') { setSelectedShape('E'); setScaleType('major'); }
+    else if (exercise.id === 'caged-5') { setSelectedShape('D'); setScaleType('major'); }
+    else if (exercise.id === 'caged-6') { setScaleType('major'); }
+    else if (exercise.id === 'caged-7') { setSelectedShape('C'); setScaleType('minor'); }
+    else if (exercise.id === 'caged-8') { setSelectedShape('A'); setScaleType('minor'); }
+    else if (exercise.id === 'caged-9') { setSelectedShape('G'); setScaleType('minor'); }
+    else if (exercise.id === 'caged-10') { setSelectedShape('E'); setScaleType('minor'); }
+    else if (exercise.id === 'caged-11') { setSelectedShape('D'); setScaleType('minor'); }
+    else if (exercise.id === 'caged-12') { setScaleType('minor'); }
   }, [exercise.id]);
 
   // Calculate the barre/root fret position for the selected key
@@ -191,8 +263,12 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     const chordPositions: FretPosition[] = [];
     const scalePositions: FretPosition[] = [];
 
+    // Select chord/scale data based on scale type
+    const chordData = scaleType === 'minor' ? shapeData.minorChordPositions : shapeData.chordPositions;
+    const scaleData = scaleType === 'minor' ? shapeData.minorScalePattern : shapeData.scalePattern;
+
     // Always compute chord positions
-    shapeData.chordPositions.forEach(pos => {
+    chordData.forEach(pos => {
       const fret = rootFret + pos.fretOffset;
       const adjustedString = pos.string + stringOffset;
       if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
@@ -201,7 +277,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     });
 
     // Always compute scale positions
-    shapeData.scalePattern.forEach(([string, fretOffset]) => {
+    scaleData.forEach(([string, fretOffset]) => {
       const fret = rootFret + fretOffset;
       const adjustedString = string + stringOffset;
       if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
@@ -228,7 +304,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     }
 
     setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
-  }, [selectedShape, selectedKey, showChord, showScale, showRoots, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
+  }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {
@@ -256,31 +332,41 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
 
   const handlePlayChord = async () => {
     await initAudio();
-    // Play a simple major chord with proper octave handling
     const rootMidi = 48 + KEYS.indexOf(selectedKey); // C3 = MIDI 48
-    const thirdMidi = rootMidi + 4;
+    const thirdMidi = rootMidi + (scaleType === 'minor' ? 3 : 4);
     const fifthMidi = rootMidi + 7;
     const midiToNote = (midi: number) => `${KEYS[midi % 12]}${Math.floor(midi / 12) - 1}`;
     playChord([midiToNote(rootMidi), midiToNote(thirdMidi), midiToNote(fifthMidi)], { duration: 2, velocity: 0.6 });
   };
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to explore the {CAGED_SHAPES[selectedShape]?.name || 'CAGED'} shape.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Learn chord shapes and scale patterns across the fretboard.
-        </p>
-      </div>
-    );
-  }
-
   const shapeData = CAGED_SHAPES[selectedShape];
 
   return (
     <div className="space-y-6">
+      {/* Scale Type Toggle */}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          Scale Type
+        </label>
+        <div className="flex gap-2">
+          {(['major', 'minor'] as ScaleType[]).map(type => (
+            <button
+              key={type}
+              onClick={() => setScaleType(type)}
+              className={`flex-1 py-2 rounded-lg font-medium transition-all ${
+                scaleType === type ? 'btn-primary' : ''
+              }`}
+              style={scaleType !== type ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {type === 'major' ? 'Major' : 'Minor'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Shape & Key Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -305,7 +391,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
             ))}
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
             Key
@@ -321,7 +407,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
             }}
           >
             {KEYS.map(key => (
-              <option key={key} value={key}>{key} Major</option>
+              <option key={key} value={key}>{key} {scaleType === 'major' ? 'Major' : 'Minor'}</option>
             ))}
           </select>
         </div>
@@ -333,7 +419,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
         style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
       >
         <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {shapeData.name} - {selectedKey} Major
+          {shapeData.name} - {selectedKey} {scaleType === 'major' ? 'Major' : 'Minor'}
         </h4>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           {shapeData.description}

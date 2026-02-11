@@ -75,19 +75,6 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
     }
   };
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-          Click "Start Exercise" to begin practicing modes.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          You'll be able to select a mode and key, then practice with a drone backing.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Mode Selection */}

@@ -329,19 +329,6 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     setTimeout(() => setIsPlayingScale(false), sorted.length * noteDelay * 1000 + 500);
   };
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to explore pentatonic shapes.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          {scaleType === 'minor' ? 'Minor' : 'Major'} pentatonic — the foundation of guitar soloing.
-        </p>
-      </div>
-    );
-  }
-
   const extNames = getExtensionNoteNames();
   const startNote = getBoxStartNote();
 
