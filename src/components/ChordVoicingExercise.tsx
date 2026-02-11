@@ -5,6 +5,7 @@ import { useGuitarStore } from '../stores/guitarStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { playChord, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
+import DisplayModeToggle from './DisplayModeToggle';
 
 interface ChordVoicingExerciseProps {
   exercise: Exercise;
@@ -308,6 +309,11 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
               {interval}
             </span>
           ))}
+        </div>
+        {/* Display Mode */}
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Display:</span>
+          <DisplayModeToggle compact />
         </div>
       </div>
 

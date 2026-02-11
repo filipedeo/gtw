@@ -1,6 +1,7 @@
 import React from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
+import SessionPlanner from './SessionPlanner';
 
 const ProgressDashboard: React.FC = () => {
   const { progress, getNextReviews } = useProgressStore();
@@ -26,6 +27,9 @@ const ProgressDashboard: React.FC = () => {
     : 0;
 
   return (
+    <>
+    <SessionPlanner />
+
     <div className="card">
       <h3 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
         Progress
@@ -177,6 +181,7 @@ const ProgressDashboard: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

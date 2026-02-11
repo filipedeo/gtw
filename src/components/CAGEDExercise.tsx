@@ -6,6 +6,7 @@ import { useAudioStore } from '../stores/audioStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { startDrone, stopDrone, playChord, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
+import DisplayModeToggle from './DisplayModeToggle';
 
 interface CAGEDExerciseProps {
   exercise: Exercise;
@@ -138,7 +139,7 @@ const CAGED_SHAPES: Record<string, {
 const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
-  const { stringCount, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
   
@@ -184,41 +185,50 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
   // Update fretboard when shape/key changes
   useEffect(() => {
     if (!isActive) return;
-    
+
     const shapeData = CAGED_SHAPES[selectedShape];
     const rootFret = getRootFret();
-    const positions: FretPosition[] = [];
-    
-    if (showChord) {
-      shapeData.chordPositions.forEach(pos => {
-        const fret = rootFret + pos.fretOffset;
-        // Apply string offset for 7-string guitars
-        const adjustedString = pos.string + stringOffset;
-        // Only include if fret and string are valid
-        if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
-          positions.push({
-            string: adjustedString,
-            fret: fret
-          });
-        }
-      });
+    const chordPositions: FretPosition[] = [];
+    const scalePositions: FretPosition[] = [];
+
+    // Always compute chord positions
+    shapeData.chordPositions.forEach(pos => {
+      const fret = rootFret + pos.fretOffset;
+      const adjustedString = pos.string + stringOffset;
+      if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
+        chordPositions.push({ string: adjustedString, fret });
+      }
+    });
+
+    // Always compute scale positions
+    shapeData.scalePattern.forEach(([string, fretOffset]) => {
+      const fret = rootFret + fretOffset;
+      const adjustedString = string + stringOffset;
+      if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
+        scalePositions.push({ string: adjustedString, fret });
+      }
+    });
+
+    if (showChord && showScale) {
+      // Chord = primary, scale-only = secondary
+      setHighlightedPositions(chordPositions);
+      const scaleOnly = scalePositions.filter(sp =>
+        !chordPositions.some(cp => cp.string === sp.string && cp.fret === sp.fret)
+      );
+      setSecondaryHighlightedPositions(scaleOnly);
+    } else if (showChord) {
+      setHighlightedPositions(chordPositions);
+      setSecondaryHighlightedPositions([]);
+    } else if (showScale) {
+      setHighlightedPositions(scalePositions);
+      setSecondaryHighlightedPositions([]);
+    } else {
+      setHighlightedPositions([]);
+      setSecondaryHighlightedPositions([]);
     }
-    
-    if (showScale) {
-      shapeData.scalePattern.forEach(([string, fretOffset]) => {
-        const fret = rootFret + fretOffset;
-        // Apply string offset for 7-string guitars
-        const adjustedString = string + stringOffset;
-        // Only include if fret and string are valid
-        if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
-          positions.push({ string: adjustedString, fret });
-        }
-      });
-    }
-    
-    setHighlightedPositions(positions);
+
     setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
-  }, [selectedShape, selectedKey, showChord, showScale, showRoots, isActive, setHighlightedPositions, setRootNote, stringOffset, stringCount]);
+  }, [selectedShape, selectedKey, showChord, showScale, showRoots, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {
@@ -331,7 +341,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Display Options */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 items-center">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
@@ -359,6 +369,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Highlight Roots</span>
         </label>
+        <DisplayModeToggle />
       </div>
 
       {/* Embedded Fretboard */}

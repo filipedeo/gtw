@@ -25,14 +25,15 @@ const Fretboard: React.FC<FretboardProps> = ({
   const [containerWidth, setContainerWidth] = useState(1200);
   const [clickedPosition, setClickedPosition] = useState<FretPosition | null>(null);
   
-  const { 
-    stringCount, 
-    tuning, 
-    fretCount, 
+  const {
+    stringCount,
+    tuning,
+    fretCount,
     displayMode,
-    highlightedPositions, 
+    highlightedPositions,
+    secondaryHighlightedPositions,
     rootNote,
-    showAllNotes 
+    showAllNotes
   } = useGuitarStore();
   
   const { masterVolume } = useAudioStore();
@@ -67,7 +68,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     nut: '#4a5568',
     fret: '#718096',
     string: '#a0aec0',
-    dot: '#2d3748',
+    dot: 'rgba(148, 163, 184, 0.25)',
     text: '#e2e8f0',
     textMuted: '#718096',
     noteHighlight: '#60a5fa',
@@ -234,7 +235,16 @@ const Fretboard: React.FC<FretboardProps> = ({
       const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
       drawNote(ctx, pos, true, shouldShowName);
     });
-    
+
+    // Draw secondary highlighted notes (lighter color for scale notes outside shape)
+    secondaryHighlightedPositions.forEach(pos => {
+      // Skip if already drawn as primary highlight
+      if (!highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)) {
+        const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
+        drawNote(ctx, pos, false, shouldShowName, false, true); // isSecondary = true
+      }
+    });
+
     // Draw clicked note (temporary highlight when user clicks to hear a note)
     if (clickedPosition && !highlightedPositions.some(p => p.string === clickedPosition.string && p.fret === clickedPosition.fret)) {
       drawNote(ctx, clickedPosition, true, true, true); // isClicked = true for special styling
@@ -252,14 +262,15 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
       }
     }
-  }, [stringCount, tuning, fretCount, highlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote]);
+  }, [stringCount, tuning, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote]);
 
   const drawNote = (
-    ctx: CanvasRenderingContext2D, 
-    position: FretPosition, 
+    ctx: CanvasRenderingContext2D,
+    position: FretPosition,
     highlighted: boolean,
     showName: boolean = true,
-    isClicked: boolean = false
+    isClicked: boolean = false,
+    isSecondary: boolean = false
   ) => {
     const { string, fret } = position;
     const x = fret === 0 
@@ -289,6 +300,8 @@ const Fretboard: React.FC<FretboardProps> = ({
     if (isClicked) {
       // Bright green/teal for clicked notes - stands out clearly
       ctx.fillStyle = '#10b981';
+    } else if (isSecondary) {
+      ctx.fillStyle = resolvedTheme === 'dark' ? 'rgba(96, 165, 250, 0.25)' : 'rgba(59, 130, 246, 0.2)';
     } else if (isRoot) {
       ctx.fillStyle = colors.noteRoot;
     } else if (highlighted) {
@@ -301,7 +314,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowColor = 'transparent';
     
     // Draw note name or question mark
-    ctx.fillStyle = highlighted || isRoot || isClicked ? '#fff' : colors.textMuted;
+    ctx.fillStyle = highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

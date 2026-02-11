@@ -6,6 +6,7 @@ import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
+import DisplayModeToggle from './DisplayModeToggle';
 
 interface NoteIdentificationExerciseProps {
   exercise: Exercise;
@@ -162,6 +163,9 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
           <span>|</span>
           <span>10 questions</span>
         </div>
+        <div className="flex justify-center mt-4">
+          <DisplayModeToggle />
+        </div>
       </div>
     );
   }
@@ -181,6 +185,10 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
             </span>
           )}
         </div>
+      </div>
+
+      <div className="flex justify-end mb-2">
+        <DisplayModeToggle compact />
       </div>
 
       {/* Embedded Fretboard for this exercise */}
