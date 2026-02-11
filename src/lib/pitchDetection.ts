@@ -21,7 +21,7 @@ export function detectPitch(buffer: Float32Array, sampleRate: number): PitchResu
     rms += buffer[i] * buffer[i];
   }
   rms = Math.sqrt(rms / buffer.length);
-  if (rms < 0.01) return null;
+  if (rms < 0.005) return null;
 
   // Autocorrelation
   const minLag = Math.floor(sampleRate / 1400); // ~1400 Hz upper bound
@@ -52,7 +52,7 @@ export function detectPitch(buffer: Float32Array, sampleRate: number): PitchResu
       if (correlations[lag] < 0.5) pastDip = true;
       continue;
     }
-    if (correlations[lag] > 0.9) {
+    if (correlations[lag] > 0.8) {
       // Walk forward to the actual local maximum
       while (lag + 1 <= maxLag && correlations[lag + 1] >= correlations[lag]) {
         lag++;
