@@ -6,6 +6,7 @@ import { useExerciseStore } from '../stores/exerciseStore';
 import { getScalePositions } from '../utils/fretboardCalculations';
 import { getModeNotes, MODES } from '../lib/theoryEngine';
 import { startDrone, stopDrone, initAudio } from '../lib/audioEngine';
+import { normalizeNoteName } from '../types/guitar';
 
 interface ModalPracticeExerciseProps {
   exercise: Exercise;
@@ -21,7 +22,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
   const [selectedKey, setSelectedKey] = useState('A');
   const [showCharacteristicNote, setShowCharacteristicNote] = useState(true);
 
-  const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const keys = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
   
   const currentModeInfo = MODES.find(m => m.name === selectedMode);
 
@@ -30,16 +31,17 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
     if (!isActive) return;
     
     try {
-      const scaleNotes = getModeNotes(selectedKey, selectedMode);
+      const normalizedKey = normalizeNoteName(selectedKey);
+      const scaleNotes = getModeNotes(normalizedKey, selectedMode);
       if (scaleNotes && scaleNotes.length > 0) {
         const positions = getScalePositions(scaleNotes, tuning, stringCount, 12);
         setHighlightedPositions(positions);
-        setRootNote(selectedKey);
+        setRootNote(normalizedKey);
       }
     } catch (e) {
       console.error('Error getting mode notes:', e);
     }
-  }, [selectedMode, selectedKey, isActive, stringCount, tuning, setHighlightedPositions, setRootNote]);
+  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning, setHighlightedPositions, setRootNote]);
 
   // Update drone when key changes
   useEffect(() => {
