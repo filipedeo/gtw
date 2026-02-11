@@ -16,17 +16,18 @@ const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
 
 const ExerciseContainer: React.FC = () => {
-  const { 
-    exercises, 
-    currentExercise, 
+  const {
+    exercises,
+    currentExercise,
     isActive,
-    setExercises, 
+    setExercises,
     setCurrentExercise,
     startExercise,
+    selectedCategory,
+    setSelectedCategory,
   } = useExerciseStore();
-  
+
   const { updateStreak } = useProgressStore();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showInstructions, setShowInstructions] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -191,7 +192,7 @@ const ExerciseContainer: React.FC = () => {
 
   return (
     <ErrorBoundary>
-    <div className="card">
+    <div className="card" data-exercise-container>
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
         <button

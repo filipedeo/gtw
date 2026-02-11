@@ -6,22 +6,26 @@ interface ExerciseState {
   currentExercise: Exercise | null;
   currentContent: ExerciseContent | null;
   exerciseIndex: number;
-  
+
   // Exercise list
   exercises: Exercise[];
-  
+
+  // Category filter (shared between ExerciseContainer and SessionPlanner)
+  selectedCategory: string;
+
   // Session state
   isActive: boolean;
   startTime: number | null;
   attempts: number;
   correctAnswers: number;
-  
+
   // Results
   sessionResults: ExerciseResult[];
-  
+
   // Actions
   setExercises: (exercises: Exercise[]) => void;
   setCurrentExercise: (exercise: Exercise | null, content?: ExerciseContent | null) => void;
+  setSelectedCategory: (category: string) => void;
   startExercise: () => void;
   endExercise: (result: ExerciseResult) => void;
   recordAttempt: (correct: boolean) => void;
@@ -37,6 +41,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   currentContent: null,
   exerciseIndex: 0,
   exercises: [],
+  selectedCategory: 'all',
   isActive: false,
   startTime: null,
   attempts: 0,
@@ -45,6 +50,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   
   // Actions
   setExercises: (exercises) => set({ exercises }),
+  setSelectedCategory: (category) => set({ selectedCategory: category }),
   
   setCurrentExercise: (exercise, content = null) => set({
     currentExercise: exercise,
