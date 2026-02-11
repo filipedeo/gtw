@@ -36,51 +36,66 @@ const ProgressDashboard: React.FC = () => {
         <div 
           className="flex items-center justify-between p-3 rounded-lg"
           style={{ backgroundColor: 'rgba(251, 146, 60, 0.1)' }}
+          role="region"
+          aria-label="Practice streak"
         >
           <div>
-            <p className="text-sm" style={{ color: 'var(--warning)' }}>Current Streak</p>
-            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>
-              {progress.currentStreak} days
+            <p className="text-sm" style={{ color: 'var(--warning)' }} id="streak-label">Current Streak</p>
+            <p 
+              className="text-2xl font-bold" 
+              style={{ color: 'var(--warning)' }}
+              aria-labelledby="streak-label"
+              aria-describedby="streak-value"
+            >
+              <span id="streak-value">{progress.currentStreak} days</span>
             </p>
           </div>
-          <div className="text-3xl">🔥</div>
+          <div className="text-3xl" aria-hidden="true">🔥</div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" role="group" aria-label="Practice statistics">
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+            role="region"
+            aria-label={`Exercises completed: ${progress.totalExercisesCompleted}`}
           >
             <p className="text-xs" style={{ color: 'var(--accent-primary)' }}>Exercises Done</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+            <p className="text-xl font-bold" style={{ color: 'var(--accent-primary)' }} aria-hidden="true">
               {progress.totalExercisesCompleted}
             </p>
           </div>
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
+            role="region"
+            aria-label={`Time practiced: ${formatTime(progress.totalTimeSpent)}`}
           >
             <p className="text-xs" style={{ color: 'var(--success)' }}>Time Practiced</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--success)' }}>
+            <p className="text-xl font-bold" style={{ color: 'var(--success)' }} aria-hidden="true">
               {formatTime(progress.totalTimeSpent)}
             </p>
           </div>
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+            role="region"
+            aria-label={`Best streak: ${progress.longestStreak} days`}
           >
             <p className="text-xs" style={{ color: '#8b5cf6' }}>Best Streak</p>
-            <p className="text-xl font-bold" style={{ color: '#8b5cf6' }}>
+            <p className="text-xl font-bold" style={{ color: '#8b5cf6' }} aria-hidden="true">
               {progress.longestStreak} days
             </p>
           </div>
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'var(--bg-tertiary)' }}
+            role="region"
+            aria-label={`Last practice: ${formatDate(progress.lastPracticeDate)}`}
           >
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Last Practice</p>
-            <p className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }} aria-hidden="true">
               {formatDate(progress.lastPracticeDate)}
             </p>
           </div>
@@ -91,6 +106,8 @@ const ProgressDashboard: React.FC = () => {
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'var(--bg-tertiary)' }}
+            role="region"
+            aria-label={`This session: ${sessionResults.length} exercises completed with ${sessionAccuracy}% accuracy`}
           >
             <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               This Session
@@ -107,11 +124,13 @@ const ProgressDashboard: React.FC = () => {
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)' }}
+            role="alert"
+            aria-label={`${nextReviews.length} exercises due for review`}
           >
             <p className="text-sm font-medium mb-2" style={{ color: 'var(--warning)' }}>
               Due for Review
             </p>
-            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>
+            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }} aria-hidden="true">
               {nextReviews.length} exercises
             </p>
           </div>
@@ -119,41 +138,41 @@ const ProgressDashboard: React.FC = () => {
 
         {/* Weak Areas */}
         {progress.weakAreas.length > 0 && (
-          <div>
+          <div role="region" aria-label="Areas to improve">
             <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Areas to Improve
             </p>
-            <div className="flex flex-wrap gap-2">
+            <ul className="flex flex-wrap gap-2 list-none p-0 m-0" aria-label={`${progress.weakAreas.length} areas need improvement`}>
               {progress.weakAreas.map((area, idx) => (
-                <span 
+                <li 
                   key={idx} 
                   className="text-xs px-2 py-1 rounded"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)' }}
                 >
                   {area}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 
         {/* Strong Areas */}
         {progress.strongAreas.length > 0 && (
-          <div>
+          <div role="region" aria-label="Strengths">
             <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Strengths
             </p>
-            <div className="flex flex-wrap gap-2">
+            <ul className="flex flex-wrap gap-2 list-none p-0 m-0" aria-label={`${progress.strongAreas.length} strength areas`}>
               {progress.strongAreas.map((area, idx) => (
-                <span 
+                <li 
                   key={idx} 
                   className="text-xs px-2 py-1 rounded"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}
                 >
                   {area}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
       </div>

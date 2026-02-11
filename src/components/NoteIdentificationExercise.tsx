@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Exercise } from '../types/exercise';
 import { FretPosition, NOTE_NAMES, normalizeNoteName, areNotesEqual } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
-import { useExerciseStore } from '../stores/exerciseStore';
-import { useProgressStore } from '../stores/progressStore';
+import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
@@ -14,8 +13,10 @@ interface NoteIdentificationExerciseProps {
 
 const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({ exercise }) => {
   const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
-  const { isActive, recordAttempt, endExercise, startTime } = useExerciseStore();
-  const { recordExerciseCompletion, updateReviewItem } = useProgressStore();
+  const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
+    exerciseId: exercise.id,
+    totalQuestions: 10,
+  });
   
   const [currentPosition, setCurrentPosition] = useState<FretPosition | null>(null);
   const [correctNote, setCorrectNote] = useState<string>('');
@@ -23,9 +24,33 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   const [options, setOptions] = useState<string[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
   const [showFeedback, setShowFeedback] = useState(false);
   const [revealedPositions, setRevealedPositions] = useState<FretPosition[]>([]);
+
+  // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isActive || selectedAnswer !== null) return;
+      
+      const keyMap: { [key: string]: number } = {
+        '1': 0,
+        '2': 1,
+        '3': 2,
+        '4': 3,
+      };
+      
+      if (e.key in keyMap) {
+        const index = keyMap[e.key];
+        if (index < options.length) {
+          e.preventDefault();
+          handleAnswer(options[index]);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, selectedAnswer, options]);
 
   // Determine max fret based on difficulty
   const maxFret = exercise.difficulty <= 1 ? 5 : exercise.difficulty <= 2 ? 12 : 22;
@@ -104,33 +129,15 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     // Reveal the note on the fretboard
     setRevealedPositions([currentPosition]);
     
-    recordAttempt(correct);
-    setScore(prev => ({
-      correct: prev.correct + (correct ? 1 : 0),
-      total: prev.total + 1
-    }));
+    // Record answer using the hook (handles scoring, completion, and progress tracking)
+    recordAnswer(correct);
     
     // Play the note again to reinforce
     playNote(fullNote, { duration: 1, velocity: 0.6 });
     
-    // Move to next question after delay
+    // Move to next question after delay (hook handles completion check)
     setTimeout(() => {
-      if (score.total + 1 >= 10) {
-        // End exercise after 10 questions
-        const finalScore = (score.correct + (correct ? 1 : 0)) / (score.total + 1);
-        const timeSpent = startTime ? (Date.now() - startTime) / 1000 : 0;
-        
-        recordExerciseCompletion(exercise.id, finalScore, timeSpent);
-        updateReviewItem(exercise.id, finalScore >= 0.8 ? 5 : finalScore >= 0.6 ? 3 : 1);
-        
-        endExercise({
-          exerciseId: exercise.id,
-          score: finalScore,
-          timeSpent,
-          attempts: score.total + 1,
-          completedAt: new Date(),
-        });
-      } else {
+      if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2000);
@@ -158,13 +165,13 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
       {/* Score Display */}
       <div className="flex justify-between items-center">
         <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Question {score.total + 1} of 10
+          Question {questionNumber} of 10
         </div>
         <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Score: {score.correct}/{score.total}
           {score.total > 0 && (
             <span style={{ color: 'var(--text-muted)' }} className="ml-2">
-              ({Math.round((score.correct / score.total) * 100)}%)
+              ({scorePercentage}%)
             </span>
           )}
         </div>
@@ -187,7 +194,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
         <div className="flex items-center justify-center gap-4">
           {currentPosition && (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              String {stringCount - currentPosition.string}, Fret {currentPosition.fret}
+              String {currentPosition.string + 1}, Fret {currentPosition.fret}
             </p>
           )}
           <button
@@ -201,8 +208,12 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
       </div>
 
       {/* Answer Options */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
-        {options.map((option) => {
+      <div 
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
+        role="group"
+        aria-label="Answer options. Press 1, 2, 3, or 4 to select an answer"
+      >
+        {options.map((option, index) => {
           let buttonStyle: React.CSSProperties = {
             padding: '1rem 1.5rem',
             borderRadius: '0.5rem',
@@ -234,13 +245,21 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
               onClick={() => handleAnswer(option)}
               disabled={selectedAnswer !== null}
               style={buttonStyle}
-              className="hover:opacity-90"
+              className="hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              aria-label={`Option ${index + 1}: ${option}. Press ${index + 1} to select`}
+              aria-pressed={selectedAnswer === option}
             >
+              <span className="sr-only">{index + 1}: </span>
               {option}
             </button>
           );
         })}
       </div>
+      {/* Keyboard hint */}
+      <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+        <span aria-hidden="true">Tip: Press 1, 2, 3, or 4 to quickly select an answer</span>
+        <span className="sr-only">Use number keys 1 through 4 to select answers</span>
+      </p>
 
       {/* Feedback */}
       {showFeedback && (
@@ -249,15 +268,18 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
           style={{ 
             backgroundColor: isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
           }}
+          role="alert"
+          aria-live="assertive"
         >
           <p 
             className="font-medium text-lg"
             style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
           >
-            {isCorrect ? '✓ Correct!' : `✗ Incorrect. The answer was ${correctNote}`}
+            <span aria-hidden="true">{isCorrect ? '✓' : '✗'}</span>
+            {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctNote}`}
           </p>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            {fullNote} - String {currentPosition ? stringCount - currentPosition.string : ''}, Fret {currentPosition?.fret}
+            {fullNote} - String {currentPosition ? currentPosition.string + 1 : ''}, Fret {currentPosition?.fret}
           </p>
         </div>
       )}

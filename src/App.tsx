@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Fretboard from './components/Fretboard'
 import ExerciseContainer from './components/ExerciseContainer'
 import AudioControls from './components/AudioControls'
@@ -14,12 +14,97 @@ function App() {
   const [showAudioControls, setShowAudioControls] = useState(false)
   const { stringCount } = useGuitarStore()
   const { currentExercise } = useExerciseStore()
-  const { resolvedTheme, setTheme, theme } = useThemeStore()
+  const { setTheme, theme } = useThemeStore()
+
+  // Refs for focus management
+  const settingsButtonRef = useRef<HTMLButtonElement>(null)
+  const audioButtonRef = useRef<HTMLButtonElement>(null)
+  const settingsModalRef = useRef<HTMLDivElement>(null)
+  const audioModalRef = useRef<HTMLDivElement>(null)
 
   // Initialize theme on mount
   useEffect(() => {
     setTheme(theme)
   }, [])
+
+  // Handle Escape key to close modals
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      if (showSettings) setShowSettings(false)
+      if (showAudioControls) setShowAudioControls(false)
+    }
+  }, [showSettings, showAudioControls])
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
+
+  // Focus first element when settings modal opens
+  useEffect(() => {
+    if (showSettings && settingsModalRef.current) {
+      const focusable = settingsModalRef.current.querySelectorAll<HTMLElement>(
+        'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length > 0) {
+        focusable[0].focus()
+      }
+    }
+  }, [showSettings])
+
+  // Focus first element when audio modal opens
+  useEffect(() => {
+    if (showAudioControls && audioModalRef.current) {
+      const focusable = audioModalRef.current.querySelectorAll<HTMLElement>(
+        'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length > 0) {
+        focusable[0].focus()
+      }
+    }
+  }, [showAudioControls])
+
+  // Return focus when settings modal closes
+  useEffect(() => {
+    if (!showSettings && settingsButtonRef.current) {
+      settingsButtonRef.current.focus()
+    }
+  }, [showSettings])
+
+  // Return focus when audio modal closes
+  useEffect(() => {
+    if (!showAudioControls && audioButtonRef.current) {
+      audioButtonRef.current.focus()
+    }
+  }, [showAudioControls])
+
+  // Handle focus trapping within modals
+  const handleModalKeyDown = (e: React.KeyboardEvent, modalRef: React.RefObject<HTMLDivElement | null>) => {
+    if (e.key !== 'Tab' || !modalRef.current) return
+
+    const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+      'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusable.length === 0) return
+
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
+  // Close modal when clicking backdrop
+  const handleBackdropClick = (e: React.MouseEvent, closeModal: () => void) => {
+    if (e.target === e.currentTarget) {
+      closeModal()
+    }
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-secondary)' }}>
@@ -44,15 +129,23 @@ function App() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
+              ref={audioButtonRef}
               onClick={() => setShowAudioControls(!showAudioControls)}
               className="btn-secondary flex items-center gap-2"
+              aria-label="Toggle audio controls"
+              aria-expanded={showAudioControls}
+              aria-haspopup="dialog"
             >
               <span>🔊</span>
               <span className="hidden sm:inline">Audio</span>
             </button>
             <button
+              ref={settingsButtonRef}
               onClick={() => setShowSettings(!showSettings)}
               className="btn-secondary flex items-center gap-2"
+              aria-label="Toggle settings"
+              aria-expanded={showSettings}
+              aria-haspopup="dialog"
             >
               <span>⚙️</span>
               <span className="hidden sm:inline">Settings</span>
@@ -124,12 +217,20 @@ function App() {
 
       {/* Audio Controls Slide-out */}
       {showAudioControls && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div 
+          className="fixed inset-0 z-50 flex justify-end"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Audio Controls"
+          onKeyDown={(e) => handleModalKeyDown(e, audioModalRef)}
+        >
           <div 
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 cursor-pointer"
+            aria-hidden="true"
             onClick={() => setShowAudioControls(false)}
           />
           <div 
+            ref={audioModalRef}
             className="relative w-full max-w-md h-full overflow-y-auto animate-fade-in"
             style={{ backgroundColor: 'var(--bg-primary)' }}
           >
@@ -140,8 +241,9 @@ function App() {
                 </h2>
                 <button
                   onClick={() => setShowAudioControls(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="p-2 rounded-lg transition-colors"
                   style={{ color: 'var(--text-muted)' }}
+                  aria-label="Close audio controls"
                 >
                   ✕
                 </button>
@@ -154,10 +256,19 @@ function App() {
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => handleBackdropClick(e, () => setShowSettings(false))}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Settings"
+          onKeyDown={(e) => handleModalKeyDown(e, settingsModalRef)}
+        >
           <div 
+            ref={settingsModalRef}
             className="rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-fade-in"
             style={{ backgroundColor: 'var(--bg-primary)' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -165,8 +276,9 @@ function App() {
               </h2>
               <button
                 onClick={() => setShowSettings(false)}
-                className="p-2 rounded-lg"
+                className="p-2 rounded-lg transition-colors"
                 style={{ color: 'var(--text-muted)' }}
+                aria-label="Close settings"
               >
                 ✕
               </button>

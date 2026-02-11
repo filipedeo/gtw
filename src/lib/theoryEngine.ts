@@ -32,7 +32,7 @@ export function getAllScaleNames(): string[] {
 
 // Mode utilities
 export const MODES = [
-  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: '4' },
+  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: 'M7' },
   { name: 'dorian', displayName: 'Dorian', characteristicNote: '6' },
   { name: 'phrygian', displayName: 'Phrygian', characteristicNote: 'b2' },
   { name: 'lydian', displayName: 'Lydian', characteristicNote: '#4' },
@@ -59,7 +59,12 @@ export function detectChord(notes: string[]): string[] {
 }
 
 export function getAllChordNames(): string[] {
-  return Chord.names();
+  // Return common chord types
+  return [
+    'maj', 'min', 'dim', 'aug', '7', 'maj7', 'min7', 'dim7',
+    'sus2', 'sus4', 'add9', '6', 'min6', '9', 'maj9', 'min9',
+    '11', '13', 'maj13', 'min11', '7sus4', '7b5', '7#5'
+  ];
 }
 
 // Interval utilities
@@ -99,7 +104,7 @@ export function getKeyInfo(keyName: string) {
 
 export function getKeyChords(keyName: string): string[] {
   const key = Key.majorKey(keyName);
-  return key.chords;
+  return [...key.chords];
 }
 
 // Note name utilities

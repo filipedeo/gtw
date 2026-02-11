@@ -11,7 +11,8 @@ interface ModalPracticeExerciseProps {
   exercise: Exercise;
 }
 
-const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise }) => {
+const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise: _exercise }) => {
+  void _exercise; // Exercise prop available for future use (e.g., difficulty-based mode selection)
   const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
@@ -74,10 +75,10 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
   if (!isActive) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600 mb-4">
+        <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
           Click "Start Exercise" to begin practicing modes.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
           You'll be able to select a mode and key, then practice with a drone backing.
         </p>
       </div>
@@ -89,11 +90,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
       {/* Mode Selection */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Mode</label>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Mode</label>
           <select
             value={selectedMode}
             onChange={(e) => setSelectedMode(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
           >
             {MODES.map((mode) => (
               <option key={mode.name} value={mode.name}>
@@ -104,11 +106,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Key</label>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
           <select
             value={selectedKey}
             onChange={(e) => setSelectedKey(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
           >
             {keys.map((key) => (
               <option key={key} value={key}>
@@ -121,12 +124,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
 
       {/* Mode Info */}
       {currentModeInfo && (
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">{currentModeInfo.displayName}</h4>
-          <p className="text-sm text-blue-800">
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>{currentModeInfo.displayName}</h4>
+          <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
             <strong>Characteristic Note:</strong> {currentModeInfo.characteristicNote}
           </p>
-          <p className="text-sm text-blue-700 mt-2">
+          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
             Focus on emphasizing the characteristic note in your playing. 
             This is what gives the mode its unique sound.
           </p>
@@ -134,20 +137,17 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
       )}
 
       {/* Drone Control */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
         <div>
-          <h4 className="font-medium text-gray-900">Drone</h4>
-          <p className="text-sm text-gray-600">
+          <h4 className="font-medium" style={{ color: 'var(--text-primary)' }}>Drone</h4>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Play a {selectedKey} drone to practice over
           </p>
         </div>
         <button
           onClick={handleToggleDrone}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            isDroneActive
-              ? 'bg-red-500 hover:bg-red-600 text-white'
-              : 'bg-green-500 hover:bg-green-600 text-white'
-          }`}
+          className="px-6 py-2 rounded-lg font-medium transition-colors text-white"
+          style={{ backgroundColor: isDroneActive ? 'var(--error)' : 'var(--success)' }}
         >
           {isDroneActive ? 'Stop Drone' : 'Start Drone'}
         </button>
@@ -155,7 +155,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
 
       {/* Display Options */}
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showCharacteristicNote}
@@ -167,9 +167,9 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 bg-yellow-50 rounded-lg">
-        <h4 className="font-medium text-yellow-900 mb-2">Practice Tips</h4>
-        <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--warning)' }}>
+        <h4 className="font-medium mb-2" style={{ color: 'var(--warning)' }}>Practice Tips</h4>
+        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           <li>Start and end your phrases on the root note ({selectedKey})</li>
           <li>Emphasize the characteristic note ({currentModeInfo?.characteristicNote})</li>
           <li>Try playing the scale ascending and descending</li>

@@ -1,4 +1,4 @@
-import { FretPosition, Tuning, NOTE_NAMES } from '../types/guitar';
+import { FretPosition, Tuning } from '../types/guitar';
 import { Note } from 'tonal';
 
 /**
@@ -7,16 +7,15 @@ import { Note } from 'tonal';
 export function getNoteAtPosition(
   position: FretPosition, 
   tuning: Tuning, 
-  stringCount: number
+  _stringCount: number
 ): string {
   const { string, fret } = position;
   
-  // Get the open string note (strings are 0-indexed from high to low in our system)
-  const openStringNote = tuning.notes[stringCount - 1 - string];
+  // Get the open string note
+  // String index directly maps to tuning array: index 0 = low E (tuning[0]), index 5 = high E (tuning[5])
+  // The Fretboard component handles visual row conversion separately
+  const openStringNote = tuning.notes[string];
   if (!openStringNote) return '';
-  
-  // Transpose by the number of frets
-  const transposed = Note.transpose(openStringNote, `${fret}m2`.replace('0m2', '1P'));
   
   // For fret 0, return the open string note
   if (fret === 0) return openStringNote;
@@ -126,14 +125,15 @@ export function getRandomPosition(
  * Get all notes for a given scale in a specific position range
  */
 export function getAllNotesForScale(
-  root: string,
-  scaleType: string,
-  tuning: Tuning,
-  stringCount: number,
-  startFret: number = 0,
-  endFret: number = 12
+  _root: string,
+  _scaleType: string,
+  _tuning: Tuning,
+  _stringCount: number,
+  _startFret: number = 0,
+  _endFret: number = 12
 ): FretPosition[] {
   // This would use tonal.js to get scale notes
   // For now, return empty array - will be implemented with theoryEngine
+  // Parameters prefixed with _ to indicate intentionally unused
   return [];
 }

@@ -1,12 +1,19 @@
 import { UserProgress, SpacedRepetitionData } from '../types/progress';
 
 let userProgress: UserProgress = {
-    exercisesCompleted: 0,
-    lastSessionDate: new Date()
+    totalExercisesCompleted: 0,
+    lastPracticeDate: new Date(),
+    totalTimeSpent: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    exerciseProgress: {},
+    weakAreas: [],
+    strongAreas: []
 };
 
 let spacedRepetitionData: SpacedRepetitionData = {
-    reviewItems: []
+    items: {},
+    lastReviewDate: null
 };
 
 export function getUserProgress(): Promise<UserProgress> {

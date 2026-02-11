@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useAudioStore } from '../stores/audioStore';
 import { useThemeStore } from '../stores/themeStore';
-import { FretPosition, NOTE_NAMES } from '../types/guitar';
+import { FretPosition, NOTE_NAMES, normalizeNoteName } from '../types/guitar';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 
@@ -22,6 +22,7 @@ const Fretboard: React.FC<FretboardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
+  const [clickedPosition, setClickedPosition] = useState<FretPosition | null>(null);
   
   const { 
     stringCount, 
@@ -43,6 +44,12 @@ const Fretboard: React.FC<FretboardProps> = ({
   const PADDING_X = 50;
   const DOT_FRETS = [3, 5, 7, 9, 12, 15, 17, 19, 21];
   const DOUBLE_DOT_FRETS = [12, 24];
+
+  // Convert between visual row (Y position) and tuning array index
+  // Visual: row 0 (top) = high E, row 5 (bottom) = low E
+  // Tuning array: index 0 = low E, index 5 = high E
+  const visualRowToStringIndex = (visualRow: number) => stringCount - 1 - visualRow;
+  const stringIndexToVisualRow = (stringIndex: number) => stringCount - 1 - stringIndex;
 
   // Calculate fret width based on container width
   const availableWidth = containerWidth - PADDING_X * 2 - NUT_WIDTH;
@@ -173,9 +180,11 @@ const Fretboard: React.FC<FretboardProps> = ({
     }
     
     // Draw strings with thickness variation
-    for (let string = 0; string < stringCount; string++) {
-      const y = PADDING_Y + string * STRING_SPACING;
-      const thickness = 1 + (stringCount - 1 - string) * 0.4;
+    // Visual row 0 (top) = high E (thinnest), row 5 (bottom) = low E (thickest)
+    for (let visualRow = 0; visualRow < stringCount; visualRow++) {
+      const y = PADDING_Y + visualRow * STRING_SPACING;
+      // Thickness increases as we go down (higher visual row = thicker string)
+      const thickness = 1 + visualRow * 0.4;
       
       // String shadow
       ctx.strokeStyle = 'rgba(0,0,0,0.3)';
@@ -196,21 +205,23 @@ const Fretboard: React.FC<FretboardProps> = ({
     
     // Draw fret numbers
     ctx.fillStyle = colors.textMuted;
-    ctx.font = '11px Inter, system-ui, sans-serif';
+    ctx.font = '12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     for (let fret = 1; fret <= fretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
-      ctx.fillText(fret.toString(), x, height - 12);
+      ctx.fillText(fret.toString(), x, height - 10);
     }
     
     // Draw string labels (tuning)
+    // Visual row 0 (top) = high E (thinnest), row 5 (bottom) = low E (thickest)
     ctx.fillStyle = colors.text;
-    ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+    ctx.font = 'bold 14px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
-    for (let string = 0; string < stringCount; string++) {
-      const y = PADDING_Y + string * STRING_SPACING + 4;
-      const noteName = tuning.notes[stringCount - 1 - string] || '';
-      ctx.fillText(noteName.replace(/\d/, ''), PADDING_X - 12, y);
+    for (let visualRow = 0; visualRow < stringCount; visualRow++) {
+      const y = PADDING_Y + visualRow * STRING_SPACING + 5;
+      const stringIndex = visualRowToStringIndex(visualRow);
+      const noteName = tuning.notes[stringIndex] || '';
+      ctx.fillText(noteName.replace(/\d/, ''), PADDING_X - 10, y);
     }
     
     // Draw highlighted notes
@@ -219,45 +230,61 @@ const Fretboard: React.FC<FretboardProps> = ({
       drawNote(ctx, pos, true, shouldShowName);
     });
     
+    // Draw clicked note (temporary highlight when user clicks to hear a note)
+    if (clickedPosition && !highlightedPositions.some(p => p.string === clickedPosition.string && p.fret === clickedPosition.fret)) {
+      drawNote(ctx, clickedPosition, true, true, true); // isClicked = true for special styling
+    }
+    
     // Draw all notes if enabled
     if (showAllNotes) {
       for (let string = 0; string < stringCount; string++) {
         for (let fret = 0; fret <= Math.min(fretCount, 12); fret++) {
           const pos = { string, fret };
-          if (!highlightedPositions.some(p => p.string === string && p.fret === fret)) {
+          const isClickedPos = clickedPosition && clickedPosition.string === string && clickedPosition.fret === fret;
+          if (!highlightedPositions.some(p => p.string === string && p.fret === fret) && !isClickedPos) {
             drawNote(ctx, pos, false, !hideNoteNames);
           }
         }
       }
     }
-  }, [stringCount, tuning, fretCount, highlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme]);
+  }, [stringCount, tuning, fretCount, highlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D, 
     position: FretPosition, 
     highlighted: boolean,
-    showName: boolean = true
+    showName: boolean = true,
+    isClicked: boolean = false
   ) => {
     const { string, fret } = position;
     const x = fret === 0 
       ? PADDING_X + NUT_WIDTH / 2 
       : PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
-    const y = PADDING_Y + (stringCount - 1 - string) * STRING_SPACING;
+    // Convert string index to visual row for Y position
+    // string index 0 = low E = visual row at bottom
+    // string index 5 = high E = visual row at top
+    const visualRow = stringIndexToVisualRow(string);
+    const y = PADDING_Y + visualRow * STRING_SPACING;
     
     const note = getNoteAtPosition(position, tuning, stringCount);
-    const noteName = note.replace(/\d/, '');
-    const isRoot = rootNote && noteName === rootNote;
+    // Normalize note name to use sharps (e.g., Gb -> F#) for consistent display
+    const noteName = normalizeNoteName(note.replace(/\d/, ''));
+    const isRoot = rootNote && noteName === normalizeNoteName(rootNote);
     
     // Draw shadow
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
     
-    // Draw circle
+    // Draw circle with slightly larger size for clicked notes
+    const radius = isClicked ? 15 : 13;
     ctx.beginPath();
-    ctx.arc(x, y, 13, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     
-    if (isRoot) {
+    if (isClicked) {
+      // Bright green/teal for clicked notes - stands out clearly
+      ctx.fillStyle = '#10b981';
+    } else if (isRoot) {
       ctx.fillStyle = colors.noteRoot;
     } else if (highlighted) {
       ctx.fillStyle = colors.noteHighlight;
@@ -269,8 +296,8 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowColor = 'transparent';
     
     // Draw note name or question mark
-    ctx.fillStyle = highlighted || isRoot ? '#fff' : colors.textMuted;
-    ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+    ctx.fillStyle = highlighted || isRoot || isClicked ? '#fff' : colors.textMuted;
+    ctx.font = 'bold 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -278,10 +305,11 @@ const Fretboard: React.FC<FretboardProps> = ({
       // Show question mark for hidden notes
       ctx.fillText('?', x, y);
     } else if (showName) {
-      let displayText = noteName;
+      let displayText: string = noteName;
       if (displayMode === 'intervals' && rootNote) {
-        const rootIndex = NOTE_NAMES.indexOf(rootNote as any);
-        const noteIndex = NOTE_NAMES.indexOf(noteName as any);
+        const normalizedRoot = normalizeNoteName(rootNote);
+        const rootIndex = NOTE_NAMES.indexOf(normalizedRoot);
+        const noteIndex = NOTE_NAMES.indexOf(noteName);
         if (rootIndex !== -1 && noteIndex !== -1) {
           const interval = (noteIndex - rootIndex + 12) % 12;
           const intervalNames = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
@@ -301,10 +329,11 @@ const Fretboard: React.FC<FretboardProps> = ({
     await initAudio();
     
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
+    // Use logical coordinates (CSS pixels), not physical canvas pixels
+    // The canvas is scaled by DPR for sharp rendering, but ctx.scale(dpr, dpr) 
+    // means all drawing uses logical coordinates. Click detection should match.
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
     
     // Calculate which fret was clicked
     let fret = 0;
@@ -313,15 +342,24 @@ const Fretboard: React.FC<FretboardProps> = ({
     }
     
     // Calculate which string was clicked
-    const stringIndex = Math.round((y - PADDING_Y) / STRING_SPACING);
-    const string = stringCount - 1 - stringIndex;
+    // First get the visual row (0 = top = high E), then convert to string index
+    const visualRow = Math.round((y - PADDING_Y) / STRING_SPACING);
+    const string = visualRowToStringIndex(visualRow);
     
     if (string >= 0 && string < stringCount && fret >= 0 && fret <= fretCount) {
       const position: FretPosition = { string, fret };
       const note = getNoteAtPosition(position, tuning, stringCount);
       
+      // Show the clicked note temporarily
+      setClickedPosition(position);
+      
       // Play the note
       playNote(note, { duration: 1.5, velocity: masterVolume * 0.8 });
+      
+      // Clear the clicked position after the note finishes playing
+      setTimeout(() => {
+        setClickedPosition(null);
+      }, 1500);
       
       // Callback
       if (onNoteClick) {
@@ -348,6 +386,21 @@ const Fretboard: React.FC<FretboardProps> = ({
     drawFretboard(ctx);
   }, [drawFretboard, canvasWidth, canvasHeight]);
 
+  // Generate description of highlighted notes for screen readers
+  const getHighlightedNotesDescription = (): string => {
+    if (highlightedPositions.length === 0) {
+      return 'No notes highlighted';
+    }
+    const noteDescriptions = highlightedPositions.map(pos => {
+      const note = getNoteAtPosition(pos, tuning, stringCount);
+      const noteName = normalizeNoteName(note.replace(/\d/, ''));
+      // String numbering: string index 0 = low E = String 6, index 5 = high E = String 1
+      // Standard guitar string numbering: String 1 = high E, String 6 = low E
+      return `${noteName} on string ${pos.string + 1}, fret ${pos.fret}`;
+    });
+    return `Highlighted notes: ${noteDescriptions.join('; ')}`;
+  };
+
   return (
     <div ref={containerRef} className="fretboard-container w-full">
       <canvas
@@ -359,7 +412,20 @@ const Fretboard: React.FC<FretboardProps> = ({
           height: 'auto',
           minWidth: `${canvasWidth}px`
         }}
+        role="img"
+        aria-label={`Guitar fretboard with ${stringCount} strings and ${fretCount} frets. ${getHighlightedNotesDescription()}`}
+        tabIndex={interactive ? 0 : undefined}
+        onKeyDown={interactive ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            // Announce to screen reader that the fretboard is interactive
+          }
+        } : undefined}
       />
+      {/* Visually hidden description for screen readers */}
+      <span className="sr-only">
+        {getHighlightedNotesDescription()}
+      </span>
     </div>
   );
 };

@@ -6,11 +6,11 @@
   --bg-secondary: #f9fafb;
   --bg-tertiary: #f3f4f6;
   --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
+  --text-secondary: #374151;
+  --text-muted: #6b7280; /* Improved contrast from #9ca3af */
   --border-color: #e5e7eb;
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
+  --accent-primary: #2563eb; /* Slightly darker for better contrast */
+  --accent-hover: #1d4ed8;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --fretboard-wood: #8B4513;
@@ -18,23 +18,23 @@
   --fret-color: #C0C0C0;
   --string-color: #4a4a4a;
   --dot-color: #d4d4d4;
-  --success: #10b981;
-  --error: #ef4444;
-  --warning: #f59e0b;
+  --success: #059669; /* Slightly darker for better contrast */
+  --error: #dc2626; /* Slightly darker for better contrast */
+  --warning: #d97706; /* Slightly darker for better contrast */
 }
 
 .dark {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-color: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8; /* Improved contrast from #64748b */
+  --border-color: #475569;
   --accent-primary: #60a5fa;
-  --accent-hover: #3b82f6;
+  --accent-hover: #93c5fd;
   --card-bg: #1e293b;
-  --card-border: #334155;
+  --card-border: #475569;
   --fretboard-wood: #2d1810;
   --fretboard-wood-dark: #1a0f0a;
   --fret-color: #94a3b8;

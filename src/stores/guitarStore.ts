@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { GuitarConfig, Tuning, DisplayMode, FretPosition, STANDARD_TUNINGS } from '../types/guitar';
+import { Tuning, DisplayMode, FretPosition, STANDARD_TUNINGS } from '../types/guitar';
 
 interface GuitarState {
   // Config
@@ -39,7 +39,7 @@ export const useGuitarStore = create<GuitarState>()(
       showAllNotes: false,
       
       // Actions
-      setStringCount: (count) => set((state) => ({
+      setStringCount: (count) => set(() => ({
         stringCount: count,
         tuning: count === 7 ? STANDARD_TUNINGS['standard-7'] : STANDARD_TUNINGS['standard-6']
       })),

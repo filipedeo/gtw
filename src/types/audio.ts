@@ -1,4 +1,4 @@
-import { Note } from './guitar';
+// Note type is available from guitar.ts if needed for future audio features
 
 export type DroneConfig = {
   note: string;
