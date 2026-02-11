@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Exercise } from '../types/exercise';
-import { FretPosition } from '../types/guitar';
+import { FretPosition, normalizeNoteName } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useAudioStore } from '../stores/audioStore';
 import { useExerciseStore } from '../stores/exerciseStore';
@@ -51,9 +51,9 @@ const CAGED_SHAPES: Record<string, {
       { string: 5, fretOffset: -3 }, // high E - E (open = fret 0)
     ],
     scalePattern: [
-      [0, -3], [0, -1], [1, -3], [1, -1], [1, 0],
-      [2, -3], [2, -1], [3, -3], [3, -2], [3, 0],
-      [4, -3], [4, -2], [4, 0], [5, -3], [5, -1], [5, 0]
+      [0, -3], [0, -2], [1, -3], [1, -1], [1, 0],
+      [2, -3], [2, -1], [2, 0], [3, -3], [3, -1], [3, 1],
+      [4, -3], [4, -2], [4, 0], [5, -3], [5, -2], [5, 0]
     ]
   },
   'A': {
@@ -70,9 +70,9 @@ const CAGED_SHAPES: Record<string, {
       { string: 5, fretOffset: 0 }, // high E - E (open)
     ],
     scalePattern: [
-      [0, 0], [0, 2], [1, 0], [1, 2], [1, 4],
-      [2, 1], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
-      [4, 2], [4, 4], [5, 0], [5, 2], [5, 4]
+      [0, 0], [0, 2], [0, 4], [1, 0], [1, 2], [1, 4],
+      [2, 0], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
+      [4, 0], [4, 2], [4, 3], [5, 0], [5, 2], [5, 4]
     ]
   },
   'G': {
@@ -90,9 +90,9 @@ const CAGED_SHAPES: Record<string, {
       { string: 5, fretOffset: 0 },  // high E - G (fret 3)
     ],
     scalePattern: [
-      [0, -3], [0, -1], [0, 0], [1, -3], [1, -1],
-      [2, -3], [2, -1], [2, 1], [3, -3], [3, -1],
-      [4, -3], [4, -1], [4, 0], [5, -3], [5, -1], [5, 0]
+      [0, -3], [0, -1], [0, 0], [1, -3], [1, -1], [1, 0],
+      [2, -3], [2, -1], [2, 1], [3, -3], [3, -1], [3, 1],
+      [4, -3], [4, -2], [4, 0], [5, -3], [5, -1], [5, 0]
     ]
   },
   'E': {
@@ -128,14 +128,14 @@ const CAGED_SHAPES: Record<string, {
       { string: 5, fretOffset: 2 }, // high E - F# (fret 2)
     ],
     scalePattern: [
-      [1, 0], [1, 2], [1, 3], [2, 0], [2, 2],
-      [3, 0], [3, 2], [3, 3], [4, 0], [4, 2], [4, 3],
+      [1, 0], [1, 2], [1, 4], [2, 0], [2, 2], [2, 4],
+      [3, 0], [3, 2], [3, 4], [4, 0], [4, 2], [4, 3],
       [5, 0], [5, 2], [5, 3]
     ]
   }
 };
 
-const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
   const { stringCount, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
@@ -217,8 +217,8 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     }
     
     setHighlightedPositions(positions);
-    setRootNote(selectedKey);
-  }, [selectedShape, selectedKey, showChord, showScale, isActive, setHighlightedPositions, setRootNote, stringOffset, stringCount]);
+    setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
+  }, [selectedShape, selectedKey, showChord, showScale, showRoots, isActive, setHighlightedPositions, setRootNote, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {
@@ -246,11 +246,12 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
 
   const handlePlayChord = async () => {
     await initAudio();
-    // Play a simple major chord
-    const root = `${selectedKey}3`;
-    const third = `${KEYS[(KEYS.indexOf(selectedKey) + 4) % 12]}3`;
-    const fifth = `${KEYS[(KEYS.indexOf(selectedKey) + 7) % 12]}3`;
-    playChord([root, third, fifth], { duration: 2, velocity: 0.6 });
+    // Play a simple major chord with proper octave handling
+    const rootMidi = 48 + KEYS.indexOf(selectedKey); // C3 = MIDI 48
+    const thirdMidi = rootMidi + 4;
+    const fifthMidi = rootMidi + 7;
+    const midiToNote = (midi: number) => `${KEYS[midi % 12]}${Math.floor(midi / 12) - 1}`;
+    playChord([midiToNote(rootMidi), midiToNote(thirdMidi), midiToNote(fifthMidi)], { duration: 2, velocity: 0.6 });
   };
 
   if (!isActive) {
