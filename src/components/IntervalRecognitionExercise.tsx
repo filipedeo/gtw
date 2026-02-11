@@ -4,7 +4,7 @@ import { FretPosition } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
-import { playNote, initAudio } from '../lib/audioEngine';
+import { playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 
@@ -93,7 +93,8 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
-    
+    stopAllNotes();
+
     // Pick a random interval from available ones
     const interval = availableIntervals[Math.floor(Math.random() * availableIntervals.length)];
     

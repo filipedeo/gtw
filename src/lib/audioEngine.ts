@@ -12,6 +12,7 @@ let tunerGain: Tone.Gain | null = null;
 let tunerCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
 let isInitialized = false;
 let droneCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
+let pendingPlaybackTimeouts: ReturnType<typeof setTimeout>[] = [];
 
 export async function initAudio(): Promise<void> {
   if (isInitialized) return;
@@ -35,44 +36,52 @@ export async function initAudio(): Promise<void> {
 }
 
 export async function playNote(
-  note: string, 
+  note: string,
   options: PlaybackOptions = {}
 ): Promise<void> {
   if (!isInitialized) await initAudio();
   if (!synth) return;
-  
+
   const { duration = 0.5, velocity = 0.7, delay = 0 } = options;
-  
-  try {
-    synth.triggerAttackRelease(
-      note, 
-      duration, 
-      Tone.now() + delay, 
-      velocity
-    );
-  } catch (e) {
-    console.error('Failed to play note:', e);
+
+  const trigger = () => {
+    try {
+      if (synth) synth.triggerAttackRelease(note, duration, Tone.now(), velocity);
+    } catch (e) {
+      console.error('Failed to play note:', e);
+    }
+  };
+
+  if (delay > 0) {
+    const id = setTimeout(trigger, delay * 1000);
+    pendingPlaybackTimeouts.push(id);
+  } else {
+    trigger();
   }
 }
 
 export async function playChord(
-  notes: string[], 
+  notes: string[],
   options: PlaybackOptions = {}
 ): Promise<void> {
   if (!isInitialized) await initAudio();
   if (!synth) return;
-  
+
   const { duration = 1, velocity = 0.6, delay = 0 } = options;
-  
-  try {
-    synth.triggerAttackRelease(
-      notes, 
-      duration, 
-      Tone.now() + delay, 
-      velocity
-    );
-  } catch (e) {
-    console.error('Failed to play chord:', e);
+
+  const trigger = () => {
+    try {
+      if (synth) synth.triggerAttackRelease(notes, duration, Tone.now(), velocity);
+    } catch (e) {
+      console.error('Failed to play chord:', e);
+    }
+  };
+
+  if (delay > 0) {
+    const id = setTimeout(trigger, delay * 1000);
+    pendingPlaybackTimeouts.push(id);
+  } else {
+    trigger();
   }
 }
 
@@ -290,6 +299,16 @@ export function stopTunerTone(): void {
     }, 400);
   } catch (e) {
     console.error('Failed to stop tuner tone:', e);
+  }
+}
+
+export function stopAllNotes(): void {
+  // Cancel all pending scheduled playback
+  for (const id of pendingPlaybackTimeouts) clearTimeout(id);
+  pendingPlaybackTimeouts = [];
+  // Release all currently sounding notes
+  if (synth) {
+    synth.releaseAll();
   }
 }
 

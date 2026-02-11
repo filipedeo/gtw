@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
-import { playChord, playNote, initAudio } from '../lib/audioEngine';
+import { playChord, playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 
 interface EarTrainingExerciseProps {
   exercise: Exercise;
@@ -99,7 +99,8 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
-    
+    stopAllNotes();
+
     // Pick a random key
     const key = KEYS[Math.floor(Math.random() * KEYS.length)];
     setCurrentKey(key);
