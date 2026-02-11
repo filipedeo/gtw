@@ -271,7 +271,7 @@ function App() {
         >
           <div 
             ref={settingsModalRef}
-            className="rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-fade-in"
+            className="rounded-xl p-4 md:p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto animate-fade-in"
             style={{ backgroundColor: 'var(--bg-primary)' }}
             onClick={(e) => e.stopPropagation()}
           >

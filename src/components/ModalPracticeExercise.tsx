@@ -91,7 +91,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
   return (
     <div className="space-y-6">
       {/* Mode Selection */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Mode</label>
           <select

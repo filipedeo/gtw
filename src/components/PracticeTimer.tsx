@@ -74,7 +74,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
     <div className="flex items-center gap-2 relative">
       {/* Timer display */}
       <div
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-mono cursor-pointer transition-all"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-mono cursor-pointer transition-all min-w-[44px] min-h-[44px]"
         style={{
           backgroundColor: targetReached
             ? 'rgba(16, 185, 129, 0.15)'
@@ -128,7 +128,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
 
       {/* Target time picker button */}
       <button
-        className="text-xs px-1.5 py-1 rounded transition-colors"
+        className="text-xs px-2 py-1.5 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         style={{
           backgroundColor: 'var(--bg-tertiary)',
           color: 'var(--text-muted)',
@@ -144,7 +144,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
       {/* Reset button */}
       {elapsedSeconds > 0 && (
         <button
-          className="text-xs px-1.5 py-1 rounded transition-colors"
+          className="text-xs px-2 py-1.5 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           style={{
             backgroundColor: 'var(--bg-tertiary)',
             color: 'var(--text-muted)',
@@ -175,7 +175,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
             {TARGET_PRESETS.map((mins) => (
               <button
                 key={mins}
-                className="text-xs px-3 py-1.5 rounded text-left transition-colors"
+                className="text-xs px-3 py-2 rounded text-left transition-colors min-h-[44px] flex items-center"
                 style={{
                   backgroundColor: targetMinutes === mins ? 'var(--accent-primary)' : 'transparent',
                   color: targetMinutes === mins ? 'white' : 'var(--text-secondary)',
@@ -190,7 +190,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
               </button>
             ))}
             <button
-              className="text-xs px-3 py-1.5 rounded text-left transition-colors"
+              className="text-xs px-3 py-2 rounded text-left transition-colors min-h-[44px] flex items-center"
               style={{
                 backgroundColor: targetMinutes === null ? 'var(--accent-primary)' : 'transparent',
                 color: targetMinutes === null ? 'white' : 'var(--text-muted)',

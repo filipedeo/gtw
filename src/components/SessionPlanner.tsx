@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { getExercises } from '../api/exercises';
@@ -56,11 +56,15 @@ const CATEGORY_COLORS: Record<string, string> = {
   'interval-recognition': '#06b6d4',
 };
 
+const UNDO_TIMEOUT_MS = 5000;
+
 const SessionPlanner: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<TimePreset | null>(null);
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [plan, setPlan] = useState<PlanItem[]>([]);
   const [sessionActive, setSessionActive] = useState(false);
+  const [removedItem, setRemovedItem] = useState<{ item: PlanItem; index: number } | null>(null);
+  const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const { progress, getNextReviews, spacedRepetition } = useProgressStore();
   const { setCurrentExercise, exercises: storeExercises, goToExercise } = useExerciseStore();
@@ -69,6 +73,13 @@ const SessionPlanner: React.FC = () => {
   useEffect(() => {
     getExercises().then(setAllExercises);
   }, []);
+
+  // Clean up undo timer on unmount
+  useEffect(() => {
+    return () => {
+      if (undoTimerId) clearTimeout(undoTimerId);
+    };
+  }, [undoTimerId]);
 
   // Pick the best exercise for a given category
   const pickExerciseForCategory = useMemo(() => {
@@ -131,6 +142,7 @@ const SessionPlanner: React.FC = () => {
 
     setPlan(items);
     setSessionActive(false);
+    dismissUndo();
   };
 
   const handleTimeSelect = (preset: TimePreset) => {
@@ -144,6 +156,40 @@ const SessionPlanner: React.FC = () => {
         i === index ? { ...item, completed: !item.completed } : item
       )
     );
+  };
+
+  const dismissUndo = useCallback(() => {
+    if (undoTimerId) clearTimeout(undoTimerId);
+    setRemovedItem(null);
+    setUndoTimerId(null);
+  }, [undoTimerId]);
+
+  const removePlanItem = (index: number) => {
+    // Clear any existing undo state
+    if (undoTimerId) clearTimeout(undoTimerId);
+
+    const removed = plan[index];
+    setRemovedItem({ item: removed, index });
+    setPlan((prev) => prev.filter((_, i) => i !== index));
+
+    const timerId = setTimeout(() => {
+      setRemovedItem(null);
+      setUndoTimerId(null);
+    }, UNDO_TIMEOUT_MS);
+    setUndoTimerId(timerId);
+  };
+
+  const undoRemove = () => {
+    if (!removedItem) return;
+    if (undoTimerId) clearTimeout(undoTimerId);
+
+    setPlan((prev) => {
+      const newPlan = [...prev];
+      newPlan.splice(removedItem.index, 0, removedItem.item);
+      return newPlan;
+    });
+    setRemovedItem(null);
+    setUndoTimerId(null);
   };
 
   const handleNavigateToExercise = (exercise: Exercise) => {
@@ -201,10 +247,10 @@ const SessionPlanner: React.FC = () => {
         <div className="space-y-2">
           {/* Plan header */}
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
               {completedCount}/{plan.length} completed
             </p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
               {totalTime} min total
             </p>
           </div>
@@ -228,21 +274,49 @@ const SessionPlanner: React.FC = () => {
             />
           </div>
 
+          {/* Undo banner */}
+          {removedItem && (
+            <div
+              className="flex items-center justify-between p-2 rounded-lg text-sm animate-fade-in"
+              style={{
+                backgroundColor: 'rgba(251, 146, 60, 0.12)',
+                border: '1px solid rgba(251, 146, 60, 0.3)',
+              }}
+              role="alert"
+            >
+              <span style={{ color: 'var(--text-secondary)' }}>
+                Removed "{removedItem.item.exercise.title}"
+              </span>
+              <button
+                className="text-xs font-semibold px-2 py-1 rounded transition-colors"
+                style={{
+                  backgroundColor: 'var(--warning)',
+                  color: 'white',
+                }}
+                onClick={undoRemove}
+                aria-label={`Undo removing ${removedItem.item.exercise.title}`}
+              >
+                Undo
+              </button>
+            </div>
+          )}
+
           {/* Plan items */}
-          <ul className="space-y-1.5 list-none p-0 m-0" aria-label="Practice plan">
+          <ul className="space-y-0 list-none p-0 m-0" aria-label="Practice plan">
             {plan.map((item, index) => (
               <li
                 key={item.exercise.id}
-                className="flex items-center gap-2 p-2 rounded-lg transition-all cursor-pointer group"
+                className="flex items-center gap-2 p-2.5 rounded-lg transition-all cursor-pointer group"
                 style={{
                   backgroundColor: item.completed
                     ? 'rgba(16, 185, 129, 0.08)'
                     : 'var(--bg-tertiary)',
                   opacity: item.completed ? 0.7 : 1,
+                  borderBottom: index < plan.length - 1 ? '1px solid var(--border-color)' : 'none',
                 }}
                 onClick={() => handleNavigateToExercise(item.exercise)}
                 role="button"
-                aria-label={`${item.exercise.title} - ${item.timeMinutes} minutes${item.completed ? ' (completed)' : ''}`}
+                aria-label={`${item.exercise.title} - ${item.timeMinutes} minutes${item.completed ? ' (completed)' : ''}. Click to open exercise.`}
               >
                 {/* Checkbox */}
                 <button
@@ -303,6 +377,23 @@ const SessionPlanner: React.FC = () => {
                 >
                   {item.timeMinutes}m
                 </span>
+
+                {/* Remove button */}
+                <button
+                  className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    color: 'var(--error)',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removePlanItem(index);
+                  }}
+                  aria-label={`Remove ${item.exercise.title} from plan`}
+                  title="Remove from plan"
+                >
+                  <span className="text-xs" aria-hidden="true">✕</span>
+                </button>
               </li>
             ))}
           </ul>
@@ -310,7 +401,7 @@ const SessionPlanner: React.FC = () => {
           {/* Start session button */}
           {!sessionActive && (
             <button
-              className="w-full mt-3 py-2 px-4 rounded-lg text-sm font-medium transition-all"
+              className="w-full mt-3 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
               style={{
                 backgroundColor: 'var(--accent-primary)',
                 color: 'white',
@@ -318,6 +409,7 @@ const SessionPlanner: React.FC = () => {
               onClick={handleStartSession}
               aria-label="Start practice session"
             >
+              <span aria-hidden="true">&#9654;</span>
               Start Session
             </button>
           )}
@@ -325,7 +417,7 @@ const SessionPlanner: React.FC = () => {
           {/* Regenerate button */}
           {selectedTime && (
             <button
-              className="w-full mt-1 py-1.5 px-4 rounded-lg text-xs transition-all"
+              className="w-full mt-1 py-1.5 px-4 rounded-lg text-xs transition-all flex items-center justify-center gap-1"
               style={{
                 backgroundColor: 'transparent',
                 color: 'var(--text-muted)',
@@ -334,6 +426,7 @@ const SessionPlanner: React.FC = () => {
               onClick={() => generatePlan(selectedTime)}
               aria-label="Regenerate practice plan"
             >
+              <span aria-hidden="true">&#8635;</span>
               Regenerate Plan
             </button>
           )}

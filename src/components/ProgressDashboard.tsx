@@ -58,7 +58,7 @@ const ProgressDashboard: React.FC = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3" role="group" aria-label="Practice statistics">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label="Practice statistics">
           <div 
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}

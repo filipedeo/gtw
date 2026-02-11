@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { DroneConfig, MetronomeConfig } from '../types/audio';
-import { stopDrone, stopMetronome } from '../lib/audioEngine';
+import { stopDrone, stopMetronome, setMasterVolume as setEngineVolume } from '../lib/audioEngine';
 
 interface AudioStoreState {
   // State
@@ -62,7 +62,11 @@ export const useAudioStore = create<AudioStoreState>((set) => ({
     metronomeConfig: { ...state.metronomeConfig, ...config }
   })),
   
-  setMasterVolume: (volume) => set({ masterVolume: Math.max(0, Math.min(1, volume)) }),
+  setMasterVolume: (volume) => {
+    const clamped = Math.max(0, Math.min(1, volume));
+    setEngineVolume(clamped);
+    set({ masterVolume: clamped });
+  },
   
   setCurrentNote: (note) => set({ currentNote: note }),
   

@@ -64,6 +64,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   
   endExercise: (result) => set((state) => ({
     isActive: false,
+    startTime: null,
     sessionResults: [...state.sessionResults, result],
   })),
   
@@ -81,6 +82,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
         currentExercise: exercises[newIndex],
         currentContent: null,
         isActive: false,
+        startTime: null,
         attempts: 0,
         correctAnswers: 0,
       });
@@ -96,6 +98,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
         currentExercise: exercises[newIndex],
         currentContent: null,
         isActive: false,
+        startTime: null,
         attempts: 0,
         correctAnswers: 0,
       });
