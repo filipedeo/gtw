@@ -385,6 +385,68 @@ const exerciseData: Exercise[] = [
     fretboardRequired: true,
   },
 
+  // ============ PENTATONIC SCALES ============
+  {
+    id: 'pentatonic-1',
+    type: 'pentatonic',
+    title: 'Minor Pentatonic - Shape 1 (Root Position)',
+    description: 'Learn the most common pentatonic box shape. Root starts on the 6th string.',
+    difficulty: 1,
+    instructions: [
+      'This is the most commonly used pentatonic shape',
+      'Root note is on the 6th and 1st strings',
+      'Master this shape first before moving to others',
+      'Great for blues, rock, and most improvisation',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'pentatonic-2',
+    type: 'pentatonic',
+    title: 'Minor Pentatonic - All 5 Shapes',
+    description: 'Learn all 5 pentatonic box patterns and connect them across the fretboard.',
+    difficulty: 2,
+    instructions: [
+      'Each shape covers a different region of the fretboard',
+      'Shapes overlap slightly — use overlap notes to transition',
+      'Practice ascending through all 5 shapes in one key',
+      'Turn on "Show Full Scale" to see the 2 notes that complete each mode',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'pentatonic-3',
+    type: 'pentatonic',
+    title: 'Major Pentatonic - All 5 Shapes',
+    description: 'Same 5 shapes as minor pentatonic but rooted on the relative major.',
+    difficulty: 2,
+    instructions: [
+      'A minor pentatonic = C major pentatonic (same notes, different root)',
+      'The major pentatonic has a brighter, more country/pop sound',
+      'Compare with minor pentatonic to hear the different character',
+      'Each shape maps to a different Greek mode when extended',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'pentatonic-4',
+    type: 'pentatonic',
+    title: 'Pentatonic to Modes Progression',
+    description: 'See how each pentatonic shape extends to its parent Greek mode by adding 2 notes.',
+    difficulty: 3,
+    instructions: [
+      'Each pentatonic box adds 2 notes to become a 7-note mode',
+      'Shape 1 → Aeolian, Shape 2 → Ionian, Shape 3 → Dorian',
+      'Shape 4 → Phrygian, Shape 5 → Mixolydian',
+      'This bridges pentatonic playing to modal improvisation',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+
   // ============ EAR TRAINING ============
   {
     id: 'ear-1',
@@ -476,6 +538,7 @@ export function getExerciseCategories(): { type: string; label: string; count: n
   const categories = [
     { type: 'note-identification', label: 'Note Identification' },
     { type: 'caged-system', label: 'CAGED System' },
+    { type: 'pentatonic', label: 'Pentatonic Scales' },
     { type: 'three-nps', label: '3-Notes-Per-String' },
     { type: 'modal-practice', label: 'Modal Practice' },
     { type: 'interval-recognition', label: 'Interval Recognition' },

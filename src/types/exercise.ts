@@ -7,7 +7,8 @@ export type ExerciseType =
   | 'chord-voicing'
   | 'ear-training'
   | 'caged-system'
-  | 'three-nps';
+  | 'three-nps'
+  | 'pentatonic';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

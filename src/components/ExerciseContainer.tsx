@@ -13,6 +13,7 @@ const IntervalRecognitionExercise = lazy(() => import('./IntervalRecognitionExer
 const ChordVoicingExercise = lazy(() => import('./ChordVoicingExercise'));
 const EarTrainingExercise = lazy(() => import('./EarTrainingExercise'));
 const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
+const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const { 
@@ -137,6 +138,8 @@ const ExerciseContainer: React.FC = () => {
         return <EarTrainingExercise exercise={currentExercise} />;
       case 'three-nps':
         return <ThreeNPSExercise exercise={currentExercise} />;
+      case 'pentatonic':
+        return <PentatonicExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">
