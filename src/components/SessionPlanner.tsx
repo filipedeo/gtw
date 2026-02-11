@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { getExercises } from '../api/exercises';
@@ -14,47 +14,21 @@ interface PlanItem {
   completed: boolean;
 }
 
-const CATEGORY_TIME_ALLOCATIONS: Record<string, Record<string, number>> = {
-  '15': {
-    'note-identification': 3,
-    'modal-practice': 5,
-    'chord-voicing': 5,
-    'ear-training': 2,
-  },
-  '30': {
-    'note-identification': 5,
-    'modal-practice': 7,
-    'chord-voicing': 8,
-    'ear-training': 5,
-    'caged-system': 5,
-  },
-  '60': {
-    'note-identification': 10,
-    'modal-practice': 10,
-    'chord-voicing': 10,
-    'ear-training': 10,
-    'caged-system': 10,
-    'interval-recognition': 10,
-  },
-};
+/** All category types with labels and colors. */
+const ALL_CATEGORIES: { type: string; label: string; color: string }[] = [
+  { type: 'note-identification', label: 'Note ID', color: 'var(--accent-primary)' },
+  { type: 'modal-practice', label: 'Modes', color: '#8b5cf6' },
+  { type: 'chord-voicing', label: 'Chords', color: 'var(--success)' },
+  { type: 'ear-training', label: 'Ear Training', color: 'var(--warning)' },
+  { type: 'caged-system', label: 'CAGED', color: '#ec4899' },
+  { type: 'interval-recognition', label: 'Intervals', color: '#06b6d4' },
+  { type: 'three-nps', label: '3NPS', color: '#f97316' },
+  { type: 'pentatonic', label: 'Pentatonic', color: '#14b8a6' },
+];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'note-identification': 'Note Identification',
-  'modal-practice': 'Modal Practice',
-  'chord-voicing': 'Chord Voicings',
-  'ear-training': 'Ear Training',
-  'caged-system': 'CAGED System',
-  'interval-recognition': 'Interval Recognition',
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  'note-identification': 'var(--accent-primary)',
-  'modal-practice': '#8b5cf6',
-  'chord-voicing': 'var(--success)',
-  'ear-training': 'var(--warning)',
-  'caged-system': '#ec4899',
-  'interval-recognition': '#06b6d4',
-};
+const CATEGORY_COLORS: Record<string, string> = Object.fromEntries(
+  ALL_CATEGORIES.map((c) => [c.type, c.color])
+);
 
 const UNDO_TIMEOUT_MS = 5000;
 
@@ -65,9 +39,13 @@ const SessionPlanner: React.FC = () => {
   const [sessionActive, setSessionActive] = useState(false);
   const [removedItem, setRemovedItem] = useState<{ item: PlanItem; index: number } | null>(null);
   const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [enabledCategories, setEnabledCategories] = useState<Set<string>>(
+    () => new Set(ALL_CATEGORIES.map((c) => c.type))
+  );
 
   const { progress, getNextReviews, spacedRepetition } = useProgressStore();
-  const { setCurrentExercise, exercises: storeExercises, goToExercise, setSelectedCategory } = useExerciseStore();
+  const { setCurrentExercise, exercises: storeExercises, goToExercise, setSelectedCategory } =
+    useExerciseStore();
 
   // Load exercises on mount
   useEffect(() => {
@@ -81,22 +59,21 @@ const SessionPlanner: React.FC = () => {
     };
   }, [undoTimerId]);
 
-  // Pick the best exercise for a given category
-  const pickExerciseForCategory = useMemo(() => {
-    return (category: string): Exercise | null => {
+  // Pick a random exercise for a given category, weighted by priority
+  const pickExerciseForCategory = useCallback(
+    (category: string): Exercise | null => {
       const categoryExercises = allExercises.filter((ex) => ex.type === category);
       if (categoryExercises.length === 0) return null;
 
-      // 1. Check for exercises due for spaced repetition review
+      // Build a weighted pool: due reviews first, weak areas next, then least practiced
       const dueReviews = getNextReviews();
       const dueInCategory = categoryExercises.filter((ex) =>
         dueReviews.some((review) => review.exerciseId === ex.id)
       );
       if (dueInCategory.length > 0) {
-        return dueInCategory[0];
+        return dueInCategory[Math.floor(Math.random() * dueInCategory.length)];
       }
 
-      // 2. Check for exercises in weak areas
       const weakAreas = progress.weakAreas;
       const weakExercises = categoryExercises.filter((ex) =>
         weakAreas.some(
@@ -106,48 +83,68 @@ const SessionPlanner: React.FC = () => {
         )
       );
       if (weakExercises.length > 0) {
-        return weakExercises[0];
+        return weakExercises[Math.floor(Math.random() * weakExercises.length)];
       }
 
-      // 3. Pick the exercise with the fewest attempts (least practiced)
+      // Sort by fewest attempts, then pick randomly from the bottom half
       const sorted = [...categoryExercises].sort((a, b) => {
         const attemptsA = progress.exerciseProgress[a.id]?.totalAttempts ?? 0;
         const attemptsB = progress.exerciseProgress[b.id]?.totalAttempts ?? 0;
         return attemptsA - attemptsB;
       });
+      const poolSize = Math.max(1, Math.ceil(sorted.length / 2));
+      return sorted[Math.floor(Math.random() * poolSize)];
+    },
+    [allExercises, progress, getNextReviews, spacedRepetition]
+  );
 
-      return sorted[0];
-    };
-  }, [allExercises, progress, getNextReviews, spacedRepetition]);
+  // Generate a plan from enabled categories and time preset
+  const generatePlan = useCallback(
+    (preset: TimePreset) => {
+      const categories = ALL_CATEGORIES.filter((c) => enabledCategories.has(c.type));
+      if (categories.length === 0) return;
 
-  // Generate a plan when a time preset is selected
-  const generatePlan = (preset: TimePreset) => {
-    const allocations = CATEGORY_TIME_ALLOCATIONS[preset];
-    if (!allocations) return;
+      const totalMinutes = parseInt(preset);
+      const perCategory = Math.max(2, Math.floor(totalMinutes / categories.length));
 
-    const items: PlanItem[] = [];
-
-    for (const [category, timeMinutes] of Object.entries(allocations)) {
-      const exercise = pickExerciseForCategory(category);
-      if (exercise) {
-        items.push({
-          exercise,
-          category,
-          categoryLabel: CATEGORY_LABELS[category] || category,
-          timeMinutes,
-          completed: false,
-        });
+      const items: PlanItem[] = [];
+      for (const cat of categories) {
+        const exercise = pickExerciseForCategory(cat.type);
+        if (exercise) {
+          items.push({
+            exercise,
+            category: cat.type,
+            categoryLabel: cat.label,
+            timeMinutes: perCategory,
+            completed: false,
+          });
+        }
       }
-    }
 
-    setPlan(items);
-    setSessionActive(false);
-    dismissUndo();
-  };
+      setPlan(items);
+      setSessionActive(false);
+      dismissUndo();
+    },
+    [enabledCategories, pickExerciseForCategory]
+  );
 
   const handleTimeSelect = (preset: TimePreset) => {
     setSelectedTime(preset);
     generatePlan(preset);
+  };
+
+  const toggleCategory = (type: string) => {
+    setEnabledCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        // Don't allow disabling all categories
+        if (next.size <= 1) return prev;
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
   };
 
   const togglePlanItem = (index: number) => {
@@ -165,7 +162,6 @@ const SessionPlanner: React.FC = () => {
   }, [undoTimerId]);
 
   const removePlanItem = (index: number) => {
-    // Clear any existing undo state
     if (undoTimerId) clearTimeout(undoTimerId);
 
     const removed = plan[index];
@@ -193,17 +189,13 @@ const SessionPlanner: React.FC = () => {
   };
 
   const handleNavigateToExercise = (exercise: Exercise) => {
-    // Reset the category filter so the exercise is visible in ExerciseContainer
     setSelectedCategory('all');
-    // Find the exercise index in the store's exercise list
     const idx = storeExercises.findIndex((ex) => ex.id === exercise.id);
     if (idx >= 0) {
       goToExercise(idx);
     } else {
-      // Fallback: set the exercise directly
       setCurrentExercise(exercise);
     }
-    // Scroll the exercise container into view
     requestAnimationFrame(() => {
       document.querySelector('[data-exercise-container]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -224,6 +216,31 @@ const SessionPlanner: React.FC = () => {
       <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
         Session Planner
       </h3>
+
+      {/* Category filter chips */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {ALL_CATEGORIES.map((cat) => {
+          const enabled = enabledCategories.has(cat.type);
+          return (
+            <button
+              key={cat.type}
+              className="px-2 py-1 rounded-full text-xs font-medium transition-all"
+              style={{
+                backgroundColor: enabled ? `${cat.color}20` : 'var(--bg-tertiary)',
+                color: enabled ? cat.color : 'var(--text-muted)',
+                border: `1px solid ${enabled ? cat.color : 'transparent'}`,
+                opacity: enabled ? 1 : 0.5,
+              }}
+              onClick={() => toggleCategory(cat.type)}
+              aria-pressed={enabled}
+              aria-label={`${enabled ? 'Disable' : 'Enable'} ${cat.label} exercises`}
+              title={enabled ? `Remove ${cat.label} from plan` : `Add ${cat.label} to plan`}
+            >
+              {cat.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Time selection */}
       <div className="flex gap-2 mb-4" role="group" aria-label="Session duration">
@@ -291,7 +308,7 @@ const SessionPlanner: React.FC = () => {
               role="alert"
             >
               <span style={{ color: 'var(--text-secondary)' }}>
-                Removed "{removedItem.item.exercise.title}"
+                Removed &ldquo;{removedItem.item.exercise.title}&rdquo;
               </span>
               <button
                 className="text-xs font-semibold px-2 py-1 rounded transition-colors"
@@ -343,7 +360,7 @@ const SessionPlanner: React.FC = () => {
                 >
                   {item.completed && (
                     <span className="text-white text-xs" aria-hidden="true">
-                      ✓
+                      &#10003;
                     </span>
                   )}
                 </button>
@@ -398,7 +415,7 @@ const SessionPlanner: React.FC = () => {
                   aria-label={`Remove ${item.exercise.title} from plan`}
                   title="Remove from plan"
                 >
-                  <span className="text-xs" aria-hidden="true">✕</span>
+                  <span className="text-xs" aria-hidden="true">&#10005;</span>
                 </button>
               </li>
             ))}
@@ -442,7 +459,7 @@ const SessionPlanner: React.FC = () => {
       {/* Empty state */}
       {!selectedTime && (
         <p className="text-sm text-center py-4" style={{ color: 'var(--text-muted)' }}>
-          Select a session length to generate a practice plan
+          Select exercise types above, then pick a session length
         </p>
       )}
     </div>
