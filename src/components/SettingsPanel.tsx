@@ -1,25 +1,200 @@
 import React from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
+import { useProgressStore } from '../stores/progressStore';
+import { useThemeStore } from '../stores/themeStore';
+import { STANDARD_TUNINGS, DisplayMode } from '../types/guitar';
 
 const SettingsPanel: React.FC = () => {
-    const { config, setConfig } = useGuitarStore();
+  const { 
+    stringCount, 
+    tuning, 
+    displayMode,
+    showAllNotes,
+    setStringCount, 
+    setTuning,
+    setDisplayMode,
+    toggleShowAllNotes,
+  } = useGuitarStore();
+  
+  const { resetProgress } = useProgressStore();
+  const { theme, setTheme } = useThemeStore();
 
-    const handleStringChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newConfig = { ...config, numberOfStrings: parseInt(event.target.value) };
-        setConfig(newConfig);
-    };
+  const handleStringCountChange = (count: 6 | 7) => {
+    setStringCount(count);
+  };
 
-    return (
-        <div className='settings-panel'>
-            <h1>Guitar Settings</h1>
-            <label>Number of Strings:
-                <select value={config.numberOfStrings} onChange={handleStringChange}>
-                    <option value="6">6 Strings</option>
-                    <option value="7">7 Strings</option>
-                </select>
-            </label>
+  const handleTuningChange = (tuningKey: string) => {
+    const newTuning = STANDARD_TUNINGS[tuningKey];
+    if (newTuning) {
+      setTuning(newTuning);
+    }
+  };
+
+  const handleResetProgress = () => {
+    if (window.confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+      resetProgress();
+    }
+  };
+
+  const availableTunings = Object.entries(STANDARD_TUNINGS).filter(([key]) => {
+    if (stringCount === 6) return key.includes('-6');
+    return key.includes('-7');
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Theme */}
+      <div>
+        <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+          Appearance
+        </h4>
+        <div className="flex gap-2">
+          {(['light', 'dark', 'system'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTheme(t)}
+              className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all capitalize ${
+                theme === t ? 'btn-primary' : ''
+              }`}
+              style={theme !== t ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {t === 'light' ? '☀️ ' : t === 'dark' ? '🌙 ' : '💻 '}{t}
+            </button>
+          ))}
         </div>
-    );
+      </div>
+
+      {/* Guitar Configuration */}
+      <div>
+        <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+          Guitar Configuration
+        </h4>
+        
+        {/* String Count */}
+        <div className="mb-4">
+          <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Number of Strings
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleStringCountChange(6)}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                stringCount === 6 ? 'btn-primary' : ''
+              }`}
+              style={stringCount !== 6 ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              6 Strings
+            </button>
+            <button
+              onClick={() => handleStringCountChange(7)}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                stringCount === 7 ? 'btn-primary' : ''
+              }`}
+              style={stringCount !== 7 ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              7 Strings
+            </button>
+          </div>
+        </div>
+
+        {/* Tuning */}
+        <div className="mb-4">
+          <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Tuning
+          </label>
+          <select
+            value={Object.entries(STANDARD_TUNINGS).find(([_, t]) => t.name === tuning.name)?.[0] || ''}
+            onChange={(e) => handleTuningChange(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)'
+            }}
+          >
+            {availableTunings.map(([key, t]) => (
+              <option key={key} value={key}>{t.name}</option>
+            ))}
+          </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            {tuning.notes.join(' - ')}
+          </p>
+        </div>
+      </div>
+
+      {/* Display Settings */}
+      <div>
+        <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+          Display Settings
+        </h4>
+        
+        {/* Display Mode */}
+        <div className="mb-4">
+          <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Note Display
+          </label>
+          <select
+            value={displayMode}
+            onChange={(e) => setDisplayMode(e.target.value as DisplayMode)}
+            className="w-full px-3 py-2 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)'
+            }}
+          >
+            <option value="notes">Note Names (C, D, E...)</option>
+            <option value="intervals">Intervals (R, 2, 3...)</option>
+            <option value="degrees">Scale Degrees (1, 2, 3...)</option>
+          </select>
+        </div>
+
+        {/* Show All Notes */}
+        <div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAllNotes}
+              onChange={toggleShowAllNotes}
+              className="w-4 h-4 rounded"
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+              Show all notes on fretboard
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* Data Management */}
+      <div>
+        <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+          Data Management
+        </h4>
+        <button
+          onClick={handleResetProgress}
+          className="w-full py-2 px-4 rounded-lg transition-colors"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            color: 'var(--error)'
+          }}
+        >
+          Reset All Progress
+        </button>
+        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+          This will clear all your practice history and progress data.
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default SettingsPanel;

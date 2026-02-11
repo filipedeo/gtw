@@ -1,13 +1,39 @@
-export type UserProgress = {
-    exercisesCompleted: number;
-    lastSessionDate: Date;
-};
-
 export type ReviewItem = {
-    exerciseId: string;
-    reviewDate: Date;
+  exerciseId: string;
+  easeFactor: number;
+  interval: number; // days
+  nextReview: Date;
+  repetitions: number;
 };
 
 export type SpacedRepetitionData = {
-    reviewItems: ReviewItem[];
+  items: Record<string, ReviewItem>;
+  lastReviewDate: Date | null;
+};
+
+export type ExerciseProgress = {
+  exerciseId: string;
+  totalAttempts: number;
+  correctAttempts: number;
+  averageTime: number;
+  lastAttempt: Date;
+  bestScore: number;
+};
+
+export type UserProgress = {
+  totalExercisesCompleted: number;
+  totalTimeSpent: number; // in seconds
+  currentStreak: number;
+  longestStreak: number;
+  lastPracticeDate: Date | null;
+  exerciseProgress: Record<string, ExerciseProgress>;
+  weakAreas: string[];
+  strongAreas: string[];
+};
+
+export type DailyStats = {
+  date: Date;
+  exercisesCompleted: number;
+  timeSpent: number;
+  accuracy: number;
 };
