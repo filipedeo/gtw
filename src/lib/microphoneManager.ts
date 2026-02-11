@@ -1,5 +1,8 @@
 import { detectPitch, PitchResult } from './pitchDetection';
 
+// Hold last valid pitch for this many ms before clearing the display
+const PITCH_HOLD_MS = 400;
+
 export class MicrophoneManager {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
@@ -7,6 +10,8 @@ export class MicrophoneManager {
   private stream: MediaStream | null = null;
   private animationFrameId: number | null = null;
   private buffer: Float32Array<ArrayBuffer> | null = null;
+  private lastValidPitch: PitchResult | null = null;
+  private lastValidTime = 0;
 
   public onPitchDetected: ((result: PitchResult | null) => void) | null = null;
 
@@ -21,13 +26,15 @@ export class MicrophoneManager {
 
     this.audioContext = new AudioContext();
     this.analyser = this.audioContext.createAnalyser();
-    this.analyser.fftSize = 2048;
+    this.analyser.fftSize = 4096;
 
     this.source = this.audioContext.createMediaStreamSource(this.stream);
     this.source.connect(this.analyser);
     // NOT connected to destination — don't echo mic back
 
     this.buffer = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
+    this.lastValidPitch = null;
+    this.lastValidTime = 0;
     this.loop();
   }
 
@@ -54,6 +61,7 @@ export class MicrophoneManager {
 
     this.analyser = null;
     this.buffer = null;
+    this.lastValidPitch = null;
   }
 
   private loop = (): void => {
@@ -61,7 +69,19 @@ export class MicrophoneManager {
 
     this.analyser.getFloatTimeDomainData(this.buffer);
     const result = detectPitch(this.buffer, this.audioContext.sampleRate);
-    this.onPitchDetected?.(result);
+    const now = performance.now();
+
+    if (result) {
+      this.lastValidPitch = result;
+      this.lastValidTime = now;
+      this.onPitchDetected?.(result);
+    } else if (this.lastValidPitch && now - this.lastValidTime < PITCH_HOLD_MS) {
+      // Hold the last reading briefly so the display doesn't flicker
+      this.onPitchDetected?.(this.lastValidPitch);
+    } else {
+      this.lastValidPitch = null;
+      this.onPitchDetected?.(null);
+    }
 
     this.animationFrameId = requestAnimationFrame(this.loop);
   };
