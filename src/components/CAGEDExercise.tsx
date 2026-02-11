@@ -11,107 +11,126 @@ interface CAGEDExerciseProps {
   exercise: Exercise;
 }
 
+// TODO: Add triad exercises to further explore the CAGED method
+// - Major triads in each CAGED position
+// - Minor triads in each CAGED position  
+// - Diminished and augmented triads
+// - Triad inversions across the fretboard
+// - Connecting triads between CAGED positions
+// This will be handled in a future session.
+
 // CAGED shape definitions - ALL positions are relative offsets from the barre/root position
 // This allows proper transposition to any key
+// 
+// String indices use the tuning array convention:
+// - 6-string: 0=low E, 1=A, 2=D, 3=G, 4=B, 5=high E
+// - 7-string: 0=low B, 1=low E, 2=A, 3=D, 4=G, 5=B, 6=high E
+//
+// The fretboard displays with high E at top, low E at bottom.
+// The Fretboard component handles the visual transformation.
 const CAGED_SHAPES: Record<string, {
   name: string;
   description: string;
   chordPositions: { string: number; fretOffset: number }[]; // Relative to barre position
-  rootString: number; // Which string has the root note
+  rootString: number; // Which string has the root note (tuning array index)
   baseKey: string; // The key this shape is based on (for calculating transposition)
-  scalePattern: number[][]; // [string, fret offset from barre position]
+  scalePattern: number[][]; // [string (tuning index), fret offset from barre position]
 }> = {
   'C': {
     name: 'C Shape',
-    description: 'Based on the open C chord. Root on the 5th string. Requires a stretch when barred.',
-    rootString: 4, // A string (0-indexed from high E)
+    description: 'Based on the open C chord. Root on the 5th (A) string. Requires a stretch when barred.',
+    rootString: 1, // A string (tuning index 1)
     baseKey: 'C',
+    // Open C chord: x-3-2-0-1-0 (A string root at fret 3)
+    // String indices: 0=lowE, 1=A, 2=D, 3=G, 4=B, 5=highE
     chordPositions: [
-      { string: 4, fretOffset: 0 }, // Root (barre position)
-      { string: 3, fretOffset: -1 }, // E (one fret below barre)
-      { string: 2, fretOffset: -3 }, // G (three frets below - open in C position)
-      { string: 1, fretOffset: -2 }, // C
-      { string: 0, fretOffset: -3 }, // E (open in C position)
+      { string: 1, fretOffset: 0 },  // A string - Root C (fret 3 in open position)
+      { string: 2, fretOffset: -1 }, // D string - E (fret 2)
+      { string: 3, fretOffset: -3 }, // G string - G (open = fret 0)
+      { string: 4, fretOffset: -2 }, // B string - C (fret 1)
+      { string: 5, fretOffset: -3 }, // high E - E (open = fret 0)
     ],
-    // Scale pattern relative to root position (fret 3 for C)
-    // All offsets are from the barre/root fret
     scalePattern: [
-      [5, -3], [5, -1], [4, -3], [4, -1], [4, 0],
-      [3, -3], [3, -1], [2, -3], [2, -2], [2, 0],
-      [1, -3], [1, -2], [1, 0], [0, -3], [0, -1], [0, 0]
+      [0, -3], [0, -1], [1, -3], [1, -1], [1, 0],
+      [2, -3], [2, -1], [3, -3], [3, -2], [3, 0],
+      [4, -3], [4, -2], [4, 0], [5, -3], [5, -1], [5, 0]
     ]
   },
   'A': {
     name: 'A Shape',
-    description: 'Based on the open A chord. Root on the 5th string. Most common barre shape.',
-    rootString: 4, // A string
+    description: 'Based on the open A chord. Root on the 5th (A) string. Most common barre shape.',
+    rootString: 1, // A string (tuning index 1)
     baseKey: 'A',
+    // Open A chord: x-0-2-2-2-0 (A string root at fret 0/open)
     chordPositions: [
-      { string: 4, fretOffset: 0 }, // Root (barre)
-      { string: 3, fretOffset: 2 }, // E
-      { string: 2, fretOffset: 2 }, // A
-      { string: 1, fretOffset: 2 }, // C#
-      { string: 0, fretOffset: 0 }, // E (barre)
+      { string: 1, fretOffset: 0 }, // A string - Root A (open)
+      { string: 2, fretOffset: 2 }, // D string - E (fret 2)
+      { string: 3, fretOffset: 2 }, // G string - A (fret 2)
+      { string: 4, fretOffset: 2 }, // B string - C# (fret 2)
+      { string: 5, fretOffset: 0 }, // high E - E (open)
     ],
     scalePattern: [
-      [5, 0], [5, 2], [4, 0], [4, 2], [4, 4],
-      [3, 1], [3, 2], [3, 4], [2, 1], [2, 2], [2, 4],
-      [1, 2], [1, 4], [0, 0], [0, 2], [0, 4]
+      [0, 0], [0, 2], [1, 0], [1, 2], [1, 4],
+      [2, 1], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
+      [4, 2], [4, 4], [5, 0], [5, 2], [5, 4]
     ]
   },
   'G': {
     name: 'G Shape',
-    description: 'Based on the open G chord. Root on the 6th string. Requires stretching.',
-    rootString: 5, // Low E string
+    description: 'Based on the open G chord. Root on the 6th (low E) string. Requires stretching.',
+    rootString: 0, // Low E string (tuning index 0)
     baseKey: 'G',
+    // Open G chord: 3-2-0-0-0-3 (low E root at fret 3)
     chordPositions: [
-      { string: 5, fretOffset: 0 }, // Root (barre)
-      { string: 4, fretOffset: -1 }, // B
-      { string: 3, fretOffset: -3 }, // D (open in G position)
-      { string: 2, fretOffset: -3 }, // G (open in G position)
-      { string: 1, fretOffset: -3 }, // B (open in G position)
-      { string: 0, fretOffset: 0 }, // G
+      { string: 0, fretOffset: 0 },  // low E - Root G (fret 3)
+      { string: 1, fretOffset: -1 }, // A string - B (fret 2)
+      { string: 2, fretOffset: -3 }, // D string - D (open)
+      { string: 3, fretOffset: -3 }, // G string - G (open)
+      { string: 4, fretOffset: -3 }, // B string - B (open)
+      { string: 5, fretOffset: 0 },  // high E - G (fret 3)
     ],
     scalePattern: [
-      [5, -3], [5, -1], [5, 0], [4, -3], [4, -1],
-      [3, -3], [3, -1], [3, 1], [2, -3], [2, -1],
-      [1, -3], [1, -1], [1, 0], [0, -3], [0, -1], [0, 0]
+      [0, -3], [0, -1], [0, 0], [1, -3], [1, -1],
+      [2, -3], [2, -1], [2, 1], [3, -3], [3, -1],
+      [4, -3], [4, -1], [4, 0], [5, -3], [5, -1], [5, 0]
     ]
   },
   'E': {
     name: 'E Shape',
-    description: 'Based on the open E chord. Root on the 6th string. The most common barre chord.',
-    rootString: 5, // Low E string
+    description: 'Based on the open E chord. Root on the 6th (low E) string. The most common barre chord.',
+    rootString: 0, // Low E string (tuning index 0)
     baseKey: 'E',
+    // Open E chord: 0-2-2-1-0-0 (low E root at fret 0/open)
     chordPositions: [
-      { string: 5, fretOffset: 0 }, // Root (barre)
-      { string: 4, fretOffset: 2 }, // B
-      { string: 3, fretOffset: 2 }, // E
-      { string: 2, fretOffset: 1 }, // G#
-      { string: 1, fretOffset: 0 }, // B (barre)
-      { string: 0, fretOffset: 0 }, // E (barre)
+      { string: 0, fretOffset: 0 }, // low E - Root E (open)
+      { string: 1, fretOffset: 2 }, // A string - B (fret 2)
+      { string: 2, fretOffset: 2 }, // D string - E (fret 2)
+      { string: 3, fretOffset: 1 }, // G string - G# (fret 1)
+      { string: 4, fretOffset: 0 }, // B string - B (open)
+      { string: 5, fretOffset: 0 }, // high E - E (open)
     ],
     scalePattern: [
-      [5, 0], [5, 2], [5, 4], [4, 0], [4, 2], [4, 4],
-      [3, 1], [3, 2], [3, 4], [2, 1], [2, 2], [2, 4],
-      [1, 0], [1, 2], [1, 4], [0, 0], [0, 2], [0, 4]
+      [0, 0], [0, 2], [0, 4], [1, 0], [1, 2], [1, 4],
+      [2, 1], [2, 2], [2, 4], [3, 1], [3, 2], [3, 4],
+      [4, 0], [4, 2], [4, 4], [5, 0], [5, 2], [5, 4]
     ]
   },
   'D': {
     name: 'D Shape',
-    description: 'Based on the open D chord. Root on the 4th string. Great for higher voicings.',
-    rootString: 3, // D string
+    description: 'Based on the open D chord. Root on the 4th (D) string. Great for higher voicings.',
+    rootString: 2, // D string (tuning index 2)
     baseKey: 'D',
+    // Open D chord: x-x-0-2-3-2 (D string root at fret 0/open)
     chordPositions: [
-      { string: 3, fretOffset: 0 }, // Root (barre)
-      { string: 2, fretOffset: 2 }, // A
-      { string: 1, fretOffset: 3 }, // D
-      { string: 0, fretOffset: 2 }, // F#
+      { string: 2, fretOffset: 0 }, // D string - Root D (open)
+      { string: 3, fretOffset: 2 }, // G string - A (fret 2)
+      { string: 4, fretOffset: 3 }, // B string - D (fret 3)
+      { string: 5, fretOffset: 2 }, // high E - F# (fret 2)
     ],
     scalePattern: [
-      [4, 0], [4, 2], [4, 3], [3, 0], [3, 2],
-      [2, 0], [2, 2], [2, 3], [1, 0], [1, 2], [1, 3],
-      [0, 0], [0, 2], [0, 3]
+      [1, 0], [1, 2], [1, 3], [2, 0], [2, 2],
+      [3, 0], [3, 2], [3, 3], [4, 0], [4, 2], [4, 3],
+      [5, 0], [5, 2], [5, 3]
     ]
   }
 };
@@ -119,9 +138,14 @@ const CAGED_SHAPES: Record<string, {
 const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
-  const { setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
+  
+  // For 7-string guitars, we need to offset string indices by 1
+  // because the CAGED shapes are defined for 6-string (0=low E)
+  // but on 7-string, 0=low B and 1=low E
+  const stringOffset = stringCount === 7 ? 1 : 0;
   
   const [selectedShape, setSelectedShape] = useState<string>('C');
   const [selectedKey, setSelectedKey] = useState<string>('C');
@@ -168,10 +192,12 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     if (showChord) {
       shapeData.chordPositions.forEach(pos => {
         const fret = rootFret + pos.fretOffset;
-        // Only include if fret is valid (>= 0)
-        if (fret >= 0 && fret <= 22) {
+        // Apply string offset for 7-string guitars
+        const adjustedString = pos.string + stringOffset;
+        // Only include if fret and string are valid
+        if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
           positions.push({
-            string: pos.string,
+            string: adjustedString,
             fret: fret
           });
         }
@@ -181,16 +207,18 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     if (showScale) {
       shapeData.scalePattern.forEach(([string, fretOffset]) => {
         const fret = rootFret + fretOffset;
-        // Only include if fret is valid (>= 0)
-        if (fret >= 0 && fret <= 22) {
-          positions.push({ string, fret });
+        // Apply string offset for 7-string guitars
+        const adjustedString = string + stringOffset;
+        // Only include if fret and string are valid
+        if (fret >= 0 && fret <= 22 && adjustedString < stringCount) {
+          positions.push({ string: adjustedString, fret });
         }
       });
     }
     
     setHighlightedPositions(positions);
     setRootNote(selectedKey);
-  }, [selectedShape, selectedKey, showChord, showScale, isActive, setHighlightedPositions, setRootNote]);
+  }, [selectedShape, selectedKey, showChord, showScale, isActive, setHighlightedPositions, setRootNote, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {
