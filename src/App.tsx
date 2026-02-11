@@ -6,6 +6,8 @@ import ProgressDashboard from './components/ProgressDashboard'
 import SettingsPanel from './components/SettingsPanel'
 import ThemeToggle from './components/ThemeToggle'
 import PracticeTimer from './components/PracticeTimer'
+import ToolsToolbar from './components/ToolsToolbar'
+import MetronomeIndicator from './components/MetronomeIndicator'
 import { useGuitarStore } from './stores/guitarStore'
 import { useExerciseStore } from './stores/exerciseStore'
 import { useThemeStore } from './stores/themeStore'
@@ -120,6 +122,7 @@ function App() {
               </h1>
             </div>
             <PracticeTimer />
+            <MetronomeIndicator />
             <button
               onClick={() => setStringCount(stringCount === 6 ? 7 : 6)}
               className="text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
@@ -137,12 +140,12 @@ function App() {
               ref={audioButtonRef}
               onClick={() => setShowAudioControls(!showAudioControls)}
               className="btn-secondary flex items-center gap-2"
-              aria-label="Toggle audio controls"
+              aria-label="Toggle drone and volume controls"
               aria-expanded={showAudioControls}
               aria-haspopup="dialog"
             >
               <span>🔊</span>
-              <span className="hidden sm:inline">Audio</span>
+              <span className="hidden sm:inline">Drone</span>
             </button>
             <button
               ref={settingsButtonRef}
@@ -158,6 +161,9 @@ function App() {
           </div>
         </div>
       </header>
+
+      {/* Tools Toolbar — always mounted so tuner mic + metronome survive */}
+      <ToolsToolbar />
 
       {/* Main Content */}
       <main className="max-w-[1800px] mx-auto px-4 py-6">
@@ -226,7 +232,7 @@ function App() {
           className="fixed inset-0 z-50 flex justify-end"
           role="dialog"
           aria-modal="true"
-          aria-label="Audio Controls"
+          aria-label="Drone and Volume Controls"
           onKeyDown={(e) => handleModalKeyDown(e, audioModalRef)}
         >
           <div 
@@ -242,7 +248,7 @@ function App() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  Audio Controls
+                  Drone & Volume
                 </h2>
                 <button
                   onClick={() => setShowAudioControls(false)}

@@ -184,6 +184,28 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
 /* Checkbox */
 input[type="checkbox"] {
   width: 1rem;
@@ -236,6 +258,21 @@ input[type="checkbox"] {
 
 .animate-pulse {
   animation: pulse 2s infinite;
+}
+
+@keyframes tuner-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--success)); }
+  50% { filter: drop-shadow(0 0 14px var(--success)); }
+}
+
+.tuner-in-tune {
+  animation: tuner-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes metronome-pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 /* Utility classes */
