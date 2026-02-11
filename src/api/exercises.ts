@@ -325,6 +325,20 @@ const exerciseData: Exercise[] = [
     audioRequired: true,
     fretboardRequired: true,
   },
+  {
+    id: 'chord-5',
+    type: 'chord-voicing',
+    title: 'Triad Inversions - Minor',
+    description: 'Master minor triad inversions across multiple string sets.',
+    difficulty: 2,
+    instructions: [
+      'Learn root position, 1st inversion, 2nd inversion for minor triads',
+      'Compare with major triads to hear the difference',
+      'Practice across D-G-B, G-B-E, and A-D-G string sets',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
 
   // ============ EAR TRAINING ============
   {

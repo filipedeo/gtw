@@ -14,7 +14,7 @@ interface ModalPracticeExerciseProps {
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise: _exercise }) => {
   void _exercise; // Exercise prop available for future use (e.g., difficulty-based mode selection)
-  const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights, setDisplayMode } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
   
@@ -38,10 +38,17 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
         setHighlightedPositions(positions);
         setRootNote(normalizedKey);
       }
+
+      // Show degree numbers when characteristic note highlighting is on
+      if (showCharacteristicNote) {
+        setDisplayMode('degrees');
+      } else {
+        setDisplayMode('notes');
+      }
     } catch (e) {
       console.error('Error getting mode notes:', e);
     }
-  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning, setHighlightedPositions, setRootNote]);
+  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning, setHighlightedPositions, setRootNote, setDisplayMode]);
 
   // Update drone when key changes
   useEffect(() => {
@@ -54,12 +61,13 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
   useEffect(() => {
     return () => {
       clearHighlights();
+      setDisplayMode('notes');
       if (isDroneActive) {
         stopDrone();
         setDroneActive(false);
       }
     };
-  }, [clearHighlights, isDroneActive, setDroneActive]);
+  }, [clearHighlights, setDisplayMode, isDroneActive, setDroneActive]);
 
   const handleToggleDrone = async () => {
     await initAudio();
@@ -69,7 +77,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
       setDroneActive(false);
     } else {
       setDroneConfig({ note: selectedKey, octave: 2 });
-      startDrone({ ...droneConfig, note: selectedKey, octave: 2 });
+      startDrone({ note: selectedKey, octave: 2, volume: droneConfig.volume, waveform: droneConfig.waveform });
       setDroneActive(true);
     }
   };
