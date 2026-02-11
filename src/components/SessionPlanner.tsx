@@ -67,7 +67,7 @@ const SessionPlanner: React.FC = () => {
   const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const { progress, getNextReviews, spacedRepetition } = useProgressStore();
-  const { setCurrentExercise, exercises: storeExercises, goToExercise } = useExerciseStore();
+  const { setCurrentExercise, exercises: storeExercises, goToExercise, setSelectedCategory } = useExerciseStore();
 
   // Load exercises on mount
   useEffect(() => {
@@ -193,6 +193,8 @@ const SessionPlanner: React.FC = () => {
   };
 
   const handleNavigateToExercise = (exercise: Exercise) => {
+    // Reset the category filter so the exercise is visible in ExerciseContainer
+    setSelectedCategory('all');
     // Find the exercise index in the store's exercise list
     const idx = storeExercises.findIndex((ex) => ex.id === exercise.id);
     if (idx >= 0) {
@@ -201,6 +203,10 @@ const SessionPlanner: React.FC = () => {
       // Fallback: set the exercise directly
       setCurrentExercise(exercise);
     }
+    // Scroll the exercise container into view
+    requestAnimationFrame(() => {
+      document.querySelector('[data-exercise-container]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const handleStartSession = () => {
