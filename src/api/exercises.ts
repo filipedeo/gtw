@@ -144,9 +144,10 @@ const exerciseData: Exercise[] = [
     difficulty: 2,
     instructions: [
       'Each string gets exactly 3 notes from the major scale',
+      'All 3NPS patterns use just 3 finger shapes: W-W (1-3-5), W-H (1-3-4), H-W (1-2-4)',
       'Practice ascending and descending with alternate picking',
-      'Start slow - increase speed only when clean',
-      'Great for legato and sweep-based lines',
+      'Start slow — increase speed only when clean',
+      'Remove one note per string to reveal the pentatonic shape inside',
     ],
     audioRequired: true,
     fretboardRequired: true,
@@ -173,8 +174,9 @@ const exerciseData: Exercise[] = [
     difficulty: 3,
     instructions: [
       'Learn to transition smoothly between adjacent patterns',
+      'The 3 finger shapes cycle in the sequence 7-3-6-2-5-1-4 across strings',
       'Practice connecting patterns by sliding between them',
-      'Aim for full fretboard coverage in one key',
+      'Drop to 2 notes per string on certain strings to convert any 3NPS pattern to an in-position (CAGED) shape',
     ],
     audioRequired: true,
     fretboardRequired: true,

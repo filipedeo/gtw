@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Note } from 'tonal';
 import { Exercise } from '../types/exercise';
 import { FretPosition, normalizeNoteName } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
@@ -28,9 +29,16 @@ const MODE_NAMES = [
 ];
 
 // Which parent-scale degree (0-based) each pentatonic box's starting note sits on.
-// Minor pentatonic notes R,b3,4,5,b7 map to parent major scale degrees 6,1,2,3,5
+//
+// Minor pentatonic = 1, b3, 4, 5, b7  (degrees 6, 1, 2, 3, 5 of the relative major)
+// Each box starts from one of these notes, and when extended to 7 notes it yields:
+//   Box 1 (Root) → Aeolian  |  Box 2 (b3) → Ionian  |  Box 3 (4) → Dorian
+//   Box 4 (5) → Phrygian    |  Box 5 (b7) → Mixolydian
 const MINOR_PENT_MODE_INDICES = [5, 0, 1, 2, 4];
-// Major pentatonic notes R,2,3,5,6 map to parent major scale degrees 1,2,3,5,6
+
+// Major pentatonic = 1, 2, 3, 5, 6  (degrees 1, 2, 3, 5, 6 of the major scale)
+//   Box 1 (Root) → Ionian  |  Box 2 (2) → Dorian  |  Box 3 (3) → Phrygian
+//   Box 4 (5) → Mixolydian  |  Box 5 (6) → Aeolian
 const MAJOR_PENT_MODE_INDICES = [0, 1, 2, 4, 5];
 
 const MINOR_PENT_DEGREES = ['Root', 'b3', '4', '5', 'b7'];
@@ -38,13 +46,28 @@ const MAJOR_PENT_DEGREES = ['Root', '2', '3', '5', '6'];
 
 type ScaleType = 'minor' | 'major';
 
+/** Get chroma values (0-11) for a set of note names. */
+function chromas(notes: string[]): number[] {
+  return notes.map(n => Note.get(n).chroma).filter((c): c is number => c !== undefined);
+}
+
+/** Simplify a note name for display — removes double flats/sharps. */
+function displayNote(n: string): string {
+  return Note.simplify(n) || n;
+}
+
 /**
  * Compute pentatonic box positions for a given shape.
  *
+ * Uses chroma (pitch-class 0-11) for all note comparison so it handles
+ * every enharmonic spelling tonal might produce (including double flats).
+ *
  * Algorithm:
- * 1. Find all pentatonic note frets on the lowest string
- * 2. Locate the root note and offset by boxIndex to get the box's start fret
- * 3. For each string, pick the 2 consecutive pentatonic frets nearest the start fret
+ * 1. Scan the lowest string up to fret 22 for pentatonic notes
+ * 2. Locate the root and offset by boxIndex to find the box's start fret
+ * 3. If the start fret is above 12, wrap to the lower octave
+ * 4. For each string, pick the best pair of consecutive pentatonic frets
+ *    within a ≤4-fret span near the start fret
  */
 function getPentatonicBox(
   key: string,
@@ -57,28 +80,26 @@ function getPentatonicBox(
   const scaleNotes = getScaleNotes(key, scaleName);
   if (!scaleNotes || scaleNotes.length === 0) return [];
 
-  const normalizedScale = scaleNotes.map(n => normalizeNoteName(n));
+  const scaleChromas = chromas(scaleNotes);
+  const rootChroma = scaleChromas[0];
 
-  // All pentatonic frets on the lowest string (up to fret 17)
-  const lowFrets: { fret: number; note: string }[] = [];
-  for (let f = 0; f <= 17; f++) {
+  // Scan lowest string up to fret 22 for pentatonic notes
+  const lowFrets: { fret: number; chroma: number }[] = [];
+  for (let f = 0; f <= 22; f++) {
     const note = getNoteAtPosition({ string: 0, fret: f }, tuning as any, stringCount);
-    const nn = normalizeNoteName(note.replace(/\d+$/, ''));
-    if (normalizedScale.includes(nn)) {
-      lowFrets.push({ fret: f, note: nn });
+    const ch = Note.get(note).chroma;
+    if (ch !== undefined && scaleChromas.includes(ch)) {
+      lowFrets.push({ fret: f, chroma: ch });
     }
   }
 
-  // Find the root's first occurrence on the lowest string
-  const rootNote = normalizedScale[0];
-  const rootIdx = lowFrets.findIndex(f => f.note === rootNote);
+  const rootIdx = lowFrets.findIndex(f => f.chroma === rootChroma);
   if (rootIdx === -1) return [];
 
   const startIdx = rootIdx + boxIndex;
   if (startIdx >= lowFrets.length) return [];
 
   let startFret = lowFrets[startIdx].fret;
-  // Wrap high positions to lower octave for playability
   if (startFret > 12) startFret -= 12;
 
   // For each string, find the best pair of pentatonic notes near startFret
@@ -88,8 +109,8 @@ function getPentatonicBox(
     const frets: number[] = [];
     for (let f = 0; f <= 22; f++) {
       const note = getNoteAtPosition({ string: s, fret: f }, tuning as any, stringCount);
-      const nn = normalizeNoteName(note.replace(/\d+$/, ''));
-      if (normalizedScale.includes(nn)) {
+      const ch = Note.get(note).chroma;
+      if (ch !== undefined && scaleChromas.includes(ch)) {
         frets.push(f);
       }
     }
@@ -97,7 +118,7 @@ function getPentatonicBox(
     let bestPair: number[] = [];
     let bestScore = Infinity;
 
-    // Strict window: first note within [startFret-1, startFret], last within [_, startFret+4]
+    // Strict window: first note ≥ startFret-1, last note ≤ startFret+4
     for (let i = 0; i < frets.length - 1; i++) {
       const pair = [frets[i], frets[i + 1]];
       if (pair[0] >= startFret - 1 && pair[1] <= startFret + 4) {
@@ -131,8 +152,12 @@ function getPentatonicBox(
 }
 
 /**
- * Get the 2 "extension" note positions that complete a 7-note mode
+ * Get the "extension" note positions that complete a 7-note mode
  * from the pentatonic, within the current box's fret range.
+ *
+ * Minor pentatonic is missing the 2nd and 6th scale degrees.
+ * Major pentatonic is missing the 4th and 7th.
+ * Adding them back yields the parent diatonic mode for that box position.
  */
 function getExtensionPositions(
   pentatonicPositions: FretPosition[],
@@ -146,11 +171,11 @@ function getExtensionPositions(
   const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
   const fullName = scaleType === 'minor' ? 'aeolian' : 'major';
 
-  const pentNotes = getScaleNotes(key, pentName).map(n => normalizeNoteName(n));
-  const fullNotes = getScaleNotes(key, fullName).map(n => normalizeNoteName(n));
-  const extensionNotes = fullNotes.filter(n => !pentNotes.includes(n));
+  const pentChromas = chromas(getScaleNotes(key, pentName));
+  const fullChromas = chromas(getScaleNotes(key, fullName));
+  const extensionChromas = fullChromas.filter(c => !pentChromas.includes(c));
 
-  if (extensionNotes.length === 0) return [];
+  if (extensionChromas.length === 0) return [];
 
   const frets = pentatonicPositions.map(p => p.fret);
   const minFret = Math.min(...frets);
@@ -160,8 +185,8 @@ function getExtensionPositions(
   for (let s = 0; s < stringCount; s++) {
     for (let f = Math.max(0, minFret - 1); f <= maxFret + 1; f++) {
       const note = getNoteAtPosition({ string: s, fret: f }, tuning as any, stringCount);
-      const nn = normalizeNoteName(note.replace(/\d+$/, ''));
-      if (extensionNotes.includes(nn)) {
+      const ch = Note.get(note).chroma;
+      if (ch !== undefined && extensionChromas.includes(ch)) {
         positions.push({ string: s, fret: f });
       }
     }
@@ -219,20 +244,28 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
   const currentModeName = MODE_NAMES[modeIndices[selectedBox]];
   const currentDegreeLabel = degreeLabels[selectedBox];
 
-  // The 2 note names that complete the full mode
-  const extensionNoteNames = useCallback((): string[] => {
+  // The 2 note names that complete the full mode (display-safe)
+  const getExtensionNoteNames = useCallback((): string[] => {
     const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
     const fullName = scaleType === 'minor' ? 'aeolian' : 'major';
-    const pentNotes = getScaleNotes(selectedKey, pentName).map(n => normalizeNoteName(n));
-    const fullNotes = getScaleNotes(selectedKey, fullName).map(n => normalizeNoteName(n));
-    return fullNotes.filter(n => !pentNotes.includes(n));
+    const pentCh = chromas(getScaleNotes(selectedKey, pentName));
+    const fullNotes = getScaleNotes(selectedKey, fullName);
+    return fullNotes
+      .filter(n => {
+        const ch = Note.get(n).chroma;
+        return ch !== undefined && !pentCh.includes(ch);
+      })
+      .map(displayNote);
   }, [selectedKey, scaleType]);
 
-  // Starting note for the current box
-  const boxStartNoteName = useCallback((): string => {
+  // Starting note name for the current box (display-safe)
+  const getBoxStartNote = useCallback((): string => {
     const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
     const scaleNotes = getScaleNotes(selectedKey, pentName);
-    return selectedBox < scaleNotes.length ? scaleNotes[selectedBox] : selectedKey;
+    if (selectedBox < scaleNotes.length) {
+      return displayNote(scaleNotes[selectedBox]);
+    }
+    return selectedKey;
   }, [selectedKey, scaleType, selectedBox]);
 
   // Update fretboard highlights
@@ -309,8 +342,8 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     );
   }
 
-  const extNames = extensionNoteNames();
-  const startNote = boxStartNoteName();
+  const extNames = getExtensionNoteNames();
+  const startNote = getBoxStartNote();
 
   return (
     <div className="space-y-6">
@@ -384,6 +417,16 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           <p>
             Extends to: <strong>{startNote} {currentModeName}</strong> by adding {extNames.join(' and ')}
           </p>
+          {scaleType === 'minor' && (
+            <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
+              Minor pentatonic = 1 b3 4 5 b7 — missing the 2nd and 6th degrees
+            </p>
+          )}
+          {scaleType === 'major' && (
+            <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
+              Major pentatonic = 1 2 3 5 6 — missing the 4th and 7th degrees
+            </p>
+          )}
         </div>
       </div>
 
@@ -429,12 +472,13 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
         </h4>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           <li>Master each shape individually before connecting them</li>
-          <li>Practice ascending and descending through the box</li>
-          <li>Toggle "Show Full Scale" to see the 2 notes that complete the mode</li>
+          <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
+          <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
           <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
+          <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
           <li>Use the drone to hear how pentatonic notes relate to the root</li>
           {showFullScale && (
-            <li>The faded notes ({extNames.join(' and ')}) turn this into {startNote} {currentModeName}</li>
+            <li>The faded notes ({extNames.join(' and ')}) turn this shape into {startNote} {currentModeName}</li>
           )}
         </ul>
       </div>

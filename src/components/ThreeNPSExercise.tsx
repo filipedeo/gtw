@@ -366,12 +366,14 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           className="text-sm space-y-1 list-disc list-inside"
           style={{ color: 'var(--text-secondary)' }}
         >
-          <li>Every string gets exactly 3 notes - great for even alternate picking</li>
+          <li>Every string gets exactly 3 notes — great for even alternate picking</li>
+          <li>All 7 patterns use just 3 finger shapes: whole-whole (1-3-5), whole-half (1-3-4), and half-whole (1-2-4)</li>
           <li>Practice ascending and descending with strict alternate picking</li>
           <li>Try legato (hammer-ons ascending, pull-offs descending) for smooth lines</li>
-          <li>Start slow with a metronome - increase speed only when clean</li>
+          <li>Start slow with a metronome — increase speed only when clean</li>
           <li>Use the drone to hear how each note relates to the tonal center</li>
           <li>Connect adjacent patterns by sliding between them</li>
+          <li>Remove the highest and lowest note per string to reveal the pentatonic shape hiding inside each 3NPS pattern</li>
         </ul>
       </div>
     </div>
