@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
-import { playChord, playNote, initAudio } from '../lib/audioEngine';
+import { playChord, playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import { Progression, buildProgressionChords } from '../lib/theoryEngine';
 
 interface ChordProgressionExerciseProps {
@@ -119,6 +119,7 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
+    stopAllNotes();
 
     // Pick random key
     const key = EXERCISE_KEYS[Math.floor(Math.random() * EXERCISE_KEYS.length)];
