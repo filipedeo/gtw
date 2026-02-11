@@ -64,26 +64,38 @@ const Fretboard: React.FC<FretboardProps> = ({
 
   // Theme colors
   const colors = resolvedTheme === 'dark' ? {
-    wood: '#1a1a2e',
-    woodGradient: '#16213e',
-    nut: '#4a5568',
-    fret: '#718096',
-    string: '#a0aec0',
-    dot: 'rgba(148, 163, 184, 0.25)',
+    wood: '#2c1810',
+    woodGradient: '#1e1008',
+    woodGrain: 'rgba(255, 200, 150, 0.04)',
+    nut: '#d4c5a0',
+    nutShadow: 'rgba(0,0,0,0.5)',
+    fret: '#a0a0a0',
+    fretShine: '#c8c8c8',
+    string: '#b0b0b0',
+    stringShine: '#d0d0d0',
+    dot: '#c8b888',
+    dotGlow: 'rgba(200, 184, 136, 0.25)',
     text: '#e2e8f0',
-    textMuted: '#718096',
+    textMuted: '#8896a8',
+    fretNumber: '#7a8494',
     noteHighlight: '#60a5fa',
     noteRoot: '#f87171',
     noteDefault: 'rgba(100, 116, 139, 0.4)',
   } : {
-    wood: '#d4a574',
-    woodGradient: '#c4956a',
-    nut: '#f5f5dc',
+    wood: '#c4956a',
+    woodGradient: '#a87d56',
+    woodGrain: 'rgba(0, 0, 0, 0.04)',
+    nut: '#f5f0e0',
+    nutShadow: 'rgba(0,0,0,0.3)',
     fret: '#b8b8b8',
-    string: '#3d3d3d',
-    dot: '#e8e8e8',
+    fretShine: '#d8d8d8',
+    string: '#4a4a4a',
+    stringShine: '#6a6a6a',
+    dot: '#f0e8d8',
+    dotGlow: 'rgba(240, 232, 216, 0.5)',
     text: '#374151',
     textMuted: '#6b7280',
+    fretNumber: '#9ca3af',
     noteHighlight: '#3b82f6',
     noteRoot: '#ef4444',
     noteDefault: 'rgba(107, 114, 128, 0.3)',
@@ -114,109 +126,162 @@ const Fretboard: React.FC<FretboardProps> = ({
     const width = canvasWidth;
     const height = canvasHeight;
     
-    // Clear and draw wood background with gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    // Clear and draw wood background with gradient (rosewood/ebony look)
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, colors.wood);
-    gradient.addColorStop(1, colors.woodGradient);
+    gradient.addColorStop(0.5, colors.woodGradient);
+    gradient.addColorStop(1, colors.wood);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
-    
-    // Draw subtle wood grain lines
-    ctx.strokeStyle = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)';
+
+    // Draw wood grain lines (horizontal, with subtle curves)
+    ctx.strokeStyle = colors.woodGrain;
     ctx.lineWidth = 1;
-    for (let i = 0; i < height; i += 8) {
+    for (let i = 0; i < height; i += 6) {
       ctx.beginPath();
       ctx.moveTo(0, i);
-      ctx.lineTo(width, i + Math.sin(i * 0.1) * 2);
+      for (let xp = 0; xp < width; xp += 20) {
+        ctx.lineTo(xp, i + Math.sin(xp * 0.008 + i * 0.05) * 3);
+      }
       ctx.stroke();
     }
-    
-    // Draw nut with shadow
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 4;
+    // Vertical grain accent for depth
+    ctx.strokeStyle = colors.woodGrain;
+    for (let j = 0; j < width; j += 40) {
+      ctx.beginPath();
+      ctx.moveTo(j, 0);
+      ctx.lineTo(j + Math.sin(j * 0.1) * 2, height);
+      ctx.stroke();
+    }
+
+    // Draw nut with 3D bevel effect
+    const nutX = PADDING_X;
+    const nutTop = PADDING_Y - 8;
+    const nutH = STRING_SPACING * (stringCount - 1) + 16;
+    // Shadow
+    ctx.shadowColor = colors.nutShadow;
+    ctx.shadowBlur = 6;
     ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 1;
     ctx.fillStyle = colors.nut;
-    ctx.fillRect(PADDING_X, PADDING_Y - 8, NUT_WIDTH, STRING_SPACING * (stringCount - 1) + 16);
+    ctx.fillRect(nutX, nutTop, NUT_WIDTH, nutH);
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
+    // Nut highlight (left edge catch light)
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillRect(nutX, nutTop, 2, nutH);
 
-    // Draw frets with metallic effect
+    // Draw frets with metallic shine
+    const fretTop = PADDING_Y - 6;
+    const fretBottom = PADDING_Y + STRING_SPACING * (stringCount - 1) + 6;
     for (let fret = 1; fret <= fretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + fret * FRET_WIDTH;
-      
-      // Fret shadow
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+
+      // Fret shadow (right side)
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(x + 1, PADDING_Y - 6);
-      ctx.lineTo(x + 1, PADDING_Y + STRING_SPACING * (stringCount - 1) + 6);
+      ctx.moveTo(x + 1, fretTop);
+      ctx.lineTo(x + 1, fretBottom);
       ctx.stroke();
-      
-      // Fret highlight
+
+      // Main fret wire
       ctx.strokeStyle = colors.fret;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(x, PADDING_Y - 6);
-      ctx.lineTo(x, PADDING_Y + STRING_SPACING * (stringCount - 1) + 6);
+      ctx.moveTo(x, fretTop);
+      ctx.lineTo(x, fretBottom);
+      ctx.stroke();
+
+      // Shine highlight (left edge)
+      ctx.strokeStyle = colors.fretShine;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x - 1, fretTop);
+      ctx.lineTo(x - 1, fretBottom);
       ctx.stroke();
     }
-    
-    // Draw fret markers (dots)
+
+    // Draw fret marker inlays (pearl-style dots)
     for (let fret = 1; fret <= fretCount; fret++) {
-      if (DOT_FRETS.includes(fret)) {
-        const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
-        const y = PADDING_Y + STRING_SPACING * (stringCount - 1) / 2;
-        
-        ctx.fillStyle = colors.dot;
-        
-        if (DOUBLE_DOT_FRETS.includes(fret)) {
-          ctx.beginPath();
-          ctx.arc(x, y - STRING_SPACING * 0.8, 6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(x, y + STRING_SPACING * 0.8, 6, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.beginPath();
-          ctx.arc(x, y, 6, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      if (!DOT_FRETS.includes(fret)) continue;
+      const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
+      const centerY = PADDING_Y + STRING_SPACING * (stringCount - 1) / 2;
+      const dotRadius = 7;
+
+      const drawInlay = (cx: number, cy: number) => {
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(cx, cy, dotRadius + 3, 0, Math.PI * 2);
+        ctx.fillStyle = colors.dotGlow;
+        ctx.fill();
+        // Pearl body with radial gradient
+        const pearlGrad = ctx.createRadialGradient(cx - 1, cy - 1, 1, cx, cy, dotRadius);
+        pearlGrad.addColorStop(0, resolvedTheme === 'dark' ? '#e8dcc0' : '#fffaf0');
+        pearlGrad.addColorStop(0.7, colors.dot);
+        pearlGrad.addColorStop(1, resolvedTheme === 'dark' ? '#8a7d60' : '#c8c0b0');
+        ctx.beginPath();
+        ctx.arc(cx, cy, dotRadius, 0, Math.PI * 2);
+        ctx.fillStyle = pearlGrad;
+        ctx.fill();
+        // Subtle border
+        ctx.strokeStyle = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      };
+
+      if (DOUBLE_DOT_FRETS.includes(fret)) {
+        drawInlay(x, centerY - STRING_SPACING * 0.8);
+        drawInlay(x, centerY + STRING_SPACING * 0.8);
+      } else {
+        drawInlay(x, centerY);
       }
     }
-    
-    // Draw strings with thickness variation
-    // Visual row 0 (top) = high E (thinnest), row 5 (bottom) = low E (thickest)
+
+    // Draw strings with metallic sheen
+    // Visual row 0 (top) = high E (thinnest), row N (bottom) = low string (thickest)
     for (let visualRow = 0; visualRow < stringCount; visualRow++) {
       const y = PADDING_Y + visualRow * STRING_SPACING;
-      // Thickness increases as we go down (higher visual row = thicker string)
       const thickness = 1 + visualRow * 0.4;
-      
+
       // String shadow
-      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-      ctx.lineWidth = thickness + 1;
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = thickness + 1.5;
       ctx.beginPath();
       ctx.moveTo(PADDING_X, y + 1);
       ctx.lineTo(width - PADDING_X + 10, y + 1);
       ctx.stroke();
-      
-      // String
+
+      // Main string body
       ctx.strokeStyle = colors.string;
       ctx.lineWidth = thickness;
       ctx.beginPath();
       ctx.moveTo(PADDING_X, y);
       ctx.lineTo(width - PADDING_X + 10, y);
       ctx.stroke();
+
+      // Metallic highlight on top edge
+      ctx.strokeStyle = colors.stringShine;
+      ctx.lineWidth = Math.max(0.5, thickness * 0.3);
+      ctx.beginPath();
+      ctx.moveTo(PADDING_X, y - thickness * 0.3);
+      ctx.lineTo(width - PADDING_X + 10, y - thickness * 0.3);
+      ctx.stroke();
     }
-    
+
     // Draw fret numbers
-    ctx.fillStyle = colors.textMuted;
-    ctx.font = '12px Inter, system-ui, sans-serif';
+    ctx.fillStyle = colors.fretNumber;
+    ctx.font = '11px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
     for (let fret = 1; fret <= fretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
-      ctx.fillText(fret.toString(), x, height - 10);
+      // Only show numbers at landmark frets to reduce clutter
+      if (DOT_FRETS.includes(fret) || fret === 1) {
+        ctx.fillText(fret.toString(), x, height - 18);
+      }
     }
     
     // Draw string labels (tuning)
