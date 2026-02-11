@@ -41,7 +41,9 @@ export const useGuitarStore = create<GuitarState>()(
       // Actions
       setStringCount: (count) => set(() => ({
         stringCount: count,
-        tuning: count === 7 ? STANDARD_TUNINGS['standard-7'] : STANDARD_TUNINGS['standard-6']
+        tuning: count === 7 ? STANDARD_TUNINGS['standard-7'] : STANDARD_TUNINGS['standard-6'],
+        highlightedPositions: [],
+        rootNote: null,
       })),
       
       setTuning: (tuning) => set({ tuning }),

@@ -151,13 +151,8 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     const targetNote = getNoteAtPosition(target, tuning, stringCount);
     
     setTimeout(() => {
-      if (finalDirection === 'ascending') {
-        playNote(rootNote, { duration: 0.8, velocity: 0.7 });
-        setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
-      } else {
-        playNote(targetNote, { duration: 0.8, velocity: 0.7 });
-        setTimeout(() => playNote(rootNote, { duration: 0.8, velocity: 0.7 }), 600);
-      }
+      playNote(rootNote, { duration: 0.8, velocity: 0.7 });
+      setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
     }, 300);
     
   }, [stringCount, tuning, exercise.difficulty, availableIntervals, setHighlightedPositions]);
@@ -180,13 +175,8 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     const rootNote = getNoteAtPosition(rootPosition, tuning, stringCount);
     const targetNote = getNoteAtPosition(targetPosition, tuning, stringCount);
     
-    if (playDirection === 'ascending') {
-      playNote(rootNote, { duration: 0.8, velocity: 0.7 });
-      setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
-    } else {
-      playNote(targetNote, { duration: 0.8, velocity: 0.7 });
-      setTimeout(() => playNote(rootNote, { duration: 0.8, velocity: 0.7 }), 600);
-    }
+    playNote(rootNote, { duration: 0.8, velocity: 0.7 });
+    setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
   };
 
   const handleAnswer = useCallback((answer: string) => {

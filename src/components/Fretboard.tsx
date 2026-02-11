@@ -136,7 +136,10 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.fillStyle = colors.nut;
     ctx.fillRect(PADDING_X, PADDING_Y - 8, NUT_WIDTH, STRING_SPACING * (stringCount - 1) + 16);
     ctx.shadowColor = 'transparent';
-    
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
     // Draw frets with metallic effect
     for (let fret = 1; fret <= fretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + fret * FRET_WIDTH;
@@ -249,7 +252,7 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
       }
     }
-  }, [stringCount, tuning, fretCount, highlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition]);
+  }, [stringCount, tuning, fretCount, highlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D, 
@@ -406,7 +409,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       const noteName = normalizeNoteName(note.replace(/\d/, ''));
       // String numbering: string index 0 = low E = String 6, index 5 = high E = String 1
       // Standard guitar string numbering: String 1 = high E, String 6 = low E
-      return `${noteName} on string ${pos.string + 1}, fret ${pos.fret}`;
+      return `${noteName} on string ${stringCount - pos.string}, fret ${pos.fret}`;
     });
     return `Highlighted notes: ${noteDescriptions.join('; ')}`;
   };
@@ -417,10 +420,9 @@ const Fretboard: React.FC<FretboardProps> = ({
         ref={canvasRef}
         onClick={handleCanvasClick}
         className={`${interactive ? 'cursor-pointer' : ''} rounded-lg`}
-        style={{ 
-          width: '100%', 
+        style={{
+          maxWidth: '100%',
           height: 'auto',
-          minWidth: `${canvasWidth}px`
         }}
         role="img"
         aria-label={`Guitar fretboard with ${stringCount} strings and ${fretCount} frets. ${getHighlightedNotesDescription()}`}

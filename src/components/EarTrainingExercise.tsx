@@ -90,10 +90,10 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     if (rootIndex === -1) rootIndex = KEYS.indexOf(rootName);
     const octave = 3;
 
-    return intervals.map((interval, idx) => {
+    return intervals.map((interval) => {
       const noteIndex = (rootIndex + interval) % 12;
       const noteOctave = octave + Math.floor((rootIndex + interval) / 12);
-      return `${KEYS_SHARP[noteIndex]}${noteOctave + (idx > 2 ? 1 : 0)}`;
+      return `${KEYS_SHARP[noteIndex]}${noteOctave}`;
     });
   }, []);
 

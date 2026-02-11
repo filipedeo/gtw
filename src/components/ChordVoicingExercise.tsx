@@ -14,9 +14,6 @@ const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 // Internal sharps array for MIDI/semitone calculations
 const KEYS_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-// Standard tuning open string MIDI values
-const OPEN_STRING_MIDI = [40, 45, 50, 55, 59, 64]; // E2, A2, D3, G3, B3, E4
-
 // Drop 2 voicings on strings D-G-B-E (indices 2,3,4,5)
 // Offsets are relative to the rootFret position
 // Drop 2 = take close voicing, drop 2nd voice from top down an octave
@@ -68,17 +65,17 @@ const TRIAD_VOICINGS = {
       {
         label: 'G-B-E',
         inversions: [
-          { name: 'Root Position', positions: [[3, 2], [4, 1], [5, 0]], intervals: ['R', '3', '5'] },
-          { name: '1st Inversion', positions: [[3, 1], [4, 0], [5, 1]], intervals: ['3', '5', 'R'] },
-          { name: '2nd Inversion', positions: [[3, 0], [4, 0], [5, 1]], intervals: ['5', 'R', '3'] },
+          { name: 'Root Position', positions: [[3, 2], [4, 2], [5, 0]], intervals: ['R', '3', '5'] },
+          { name: '1st Inversion', positions: [[3, 1], [4, 0], [5, 0]], intervals: ['3', '5', 'R'] },
+          { name: '2nd Inversion', positions: [[3, 0], [4, 1], [5, 0]], intervals: ['5', 'R', '3'] },
         ],
       },
       {
         label: 'A-D-G',
         inversions: [
-          { name: 'Root Position', positions: [[1, 2], [2, 1], [3, 0]], intervals: ['R', '3', '5'] },
+          { name: 'Root Position', positions: [[1, 2], [2, 1], [3, -1]], intervals: ['R', '3', '5'] },
           { name: '1st Inversion', positions: [[1, 2], [2, 0], [3, 0]], intervals: ['3', '5', 'R'] },
-          { name: '2nd Inversion', positions: [[1, 0], [2, 0], [3, 0]], intervals: ['5', 'R', '3'] },
+          { name: '2nd Inversion', positions: [[1, 0], [2, 0], [3, -1]], intervals: ['5', 'R', '3'] },
         ],
       },
     ],
@@ -97,17 +94,17 @@ const TRIAD_VOICINGS = {
       {
         label: 'G-B-E',
         inversions: [
-          { name: 'Root Position', positions: [[3, 2], [4, 0], [5, 0]], intervals: ['R', 'b3', '5'] },
+          { name: 'Root Position', positions: [[3, 2], [4, 1], [5, 0]], intervals: ['R', 'b3', '5'] },
           { name: '1st Inversion', positions: [[3, 1], [4, 1], [5, 1]], intervals: ['b3', '5', 'R'] },
-          { name: '2nd Inversion', positions: [[3, 0], [4, 1], [5, 1]], intervals: ['5', 'R', 'b3'] },
+          { name: '2nd Inversion', positions: [[3, 0], [4, 1], [5, -1]], intervals: ['5', 'R', 'b3'] },
         ],
       },
       {
         label: 'A-D-G',
         inversions: [
-          { name: 'Root Position', positions: [[1, 2], [2, 0], [3, 0]], intervals: ['R', 'b3', '5'] },
+          { name: 'Root Position', positions: [[1, 2], [2, 0], [3, -1]], intervals: ['R', 'b3', '5'] },
           { name: '1st Inversion', positions: [[1, 1], [2, 0], [3, 0]], intervals: ['b3', '5', 'R'] },
-          { name: '2nd Inversion', positions: [[1, 0], [2, 0], [3, 1]], intervals: ['5', 'R', 'b3'] },
+          { name: '2nd Inversion', positions: [[1, 0], [2, 0], [3, -2]], intervals: ['5', 'R', 'b3'] },
         ],
       },
     ],
@@ -117,7 +114,14 @@ const TRIAD_VOICINGS = {
 type ChordType = 'maj7' | 'min7' | 'dom7' | 'major' | 'minor';
 
 const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise }) => {
-  const { setHighlightedPositions, clearHighlights, setRootNote } = useGuitarStore();
+  const { setHighlightedPositions, clearHighlights, setRootNote, stringCount } = useGuitarStore();
+
+  // Dynamic MIDI values based on string count
+  const OPEN_STRING_MIDI_MAP: Record<number, number[]> = {
+    6: [40, 45, 50, 55, 59, 64], // E2, A2, D3, G3, B3, E4
+    7: [35, 40, 45, 50, 55, 59, 64], // B1, E2, A2, D3, G3, B3, E4
+  };
+  const openStringMidi = OPEN_STRING_MIDI_MAP[stringCount] || OPEN_STRING_MIDI_MAP[6];
   const { isActive } = useExerciseStore();
 
   const [selectedKey, setSelectedKey] = useState('C');
@@ -190,7 +194,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
 
     const notes = inversion.positions.map(([string, fretOffset]) => {
       const fret = rootFret + fretOffset;
-      const midi = OPEN_STRING_MIDI[string] + fret;
+      const midi = openStringMidi[string] + fret;
       const noteName = KEYS_SHARP[midi % 12];
       const octave = Math.floor(midi / 12) - 1;
       return `${noteName}${octave}`;

@@ -239,7 +239,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       setDroneActive(false);
     } else {
       setDroneConfig({ note: selectedKey, octave: 2 });
-      startDrone({ ...droneConfig, note: selectedKey, octave: 2 });
+      startDrone({ note: selectedKey, octave: 2, volume: droneConfig.volume, waveform: droneConfig.waveform });
       setDroneActive(true);
     }
   };
