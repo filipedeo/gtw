@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  // GitHub Pages serves from /gtw/ — set base so asset paths resolve correctly
+  base: process.env.GITHUB_PAGES === 'true' ? '/gtw/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -15,7 +17,7 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
