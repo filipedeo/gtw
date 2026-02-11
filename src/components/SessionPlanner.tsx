@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
-import { getExercises } from '../api/exercises';
+import { getExercises, getExerciseCategories } from '../api/exercises';
 import { Exercise } from '../types/exercise';
 
 type TimePreset = '15' | '30' | '60';
@@ -14,21 +14,23 @@ interface PlanItem {
   completed: boolean;
 }
 
-/** All category types with labels and colors. */
-const ALL_CATEGORIES: { type: string; label: string; color: string }[] = [
-  { type: 'note-identification', label: 'Note ID', color: 'var(--accent-primary)' },
-  { type: 'modal-practice', label: 'Modes', color: '#8b5cf6' },
-  { type: 'chord-voicing', label: 'Chords', color: 'var(--success)' },
-  { type: 'ear-training', label: 'Ear Training', color: 'var(--warning)' },
-  { type: 'caged-system', label: 'CAGED', color: '#ec4899' },
-  { type: 'interval-recognition', label: 'Intervals', color: '#06b6d4' },
-  { type: 'three-nps', label: '3NPS', color: '#f97316' },
-  { type: 'pentatonic', label: 'Pentatonic', color: '#14b8a6' },
-];
+/** Color palette for category chips/indicators. Falls back to cycling through the palette. */
+const CATEGORY_COLOR_MAP: Record<string, string> = {
+  'note-identification': 'var(--accent-primary)',
+  'modal-practice': '#8b5cf6',
+  'chord-voicing': 'var(--success)',
+  'ear-training': 'var(--warning)',
+  'caged-system': '#ec4899',
+  'interval-recognition': '#06b6d4',
+  'three-nps': '#f97316',
+  'pentatonic': '#14b8a6',
+};
 
-const CATEGORY_COLORS: Record<string, string> = Object.fromEntries(
-  ALL_CATEGORIES.map((c) => [c.type, c.color])
-);
+const FALLBACK_COLORS = ['#6366f1', '#a855f7', '#0ea5e9', '#84cc16', '#f43f5e', '#eab308'];
+
+function getCategoryColor(type: string, index: number): string {
+  return CATEGORY_COLOR_MAP[type] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+}
 
 const UNDO_TIMEOUT_MS = 5000;
 
@@ -39,8 +41,19 @@ const SessionPlanner: React.FC = () => {
   const [sessionActive, setSessionActive] = useState(false);
   const [removedItem, setRemovedItem] = useState<{ item: PlanItem; index: number } | null>(null);
   const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  // Derive categories dynamically from exercise data — new types are included automatically
+  const allCategories = useMemo(() => {
+    const cats = getExerciseCategories();
+    return cats.map((cat, i) => ({
+      type: cat.type,
+      label: cat.label,
+      color: getCategoryColor(cat.type, i),
+    }));
+  }, []);
+
   const [enabledCategories, setEnabledCategories] = useState<Set<string>>(
-    () => new Set(ALL_CATEGORIES.map((c) => c.type))
+    () => new Set(getExerciseCategories().map((c) => c.type))
   );
 
   const { progress, getNextReviews, spacedRepetition } = useProgressStore();
@@ -101,7 +114,7 @@ const SessionPlanner: React.FC = () => {
   // Generate a plan from enabled categories and time preset
   const generatePlan = useCallback(
     (preset: TimePreset) => {
-      const categories = ALL_CATEGORIES.filter((c) => enabledCategories.has(c.type));
+      const categories = allCategories.filter((c) => enabledCategories.has(c.type));
       if (categories.length === 0) return;
 
       const totalMinutes = parseInt(preset);
@@ -219,7 +232,7 @@ const SessionPlanner: React.FC = () => {
 
       {/* Category filter chips */}
       <div className="flex flex-wrap gap-1.5 mb-3">
-        {ALL_CATEGORIES.map((cat) => {
+        {allCategories.map((cat) => {
           const enabled = enabledCategories.has(cat.type);
           return (
             <button
@@ -347,7 +360,7 @@ const SessionPlanner: React.FC = () => {
                   style={{
                     borderColor: item.completed
                       ? 'var(--success)'
-                      : CATEGORY_COLORS[item.category] || 'var(--border-color)',
+                      : CATEGORY_COLOR_MAP[item.category] || 'var(--border-color)',
                     backgroundColor: item.completed ? 'var(--success)' : 'transparent',
                   }}
                   onClick={(e) => {
@@ -369,7 +382,7 @@ const SessionPlanner: React.FC = () => {
                 <div
                   className="flex-shrink-0 w-1 h-8 rounded-full"
                   style={{
-                    backgroundColor: CATEGORY_COLORS[item.category] || 'var(--text-muted)',
+                    backgroundColor: CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)',
                   }}
                   aria-hidden="true"
                 />
@@ -394,8 +407,8 @@ const SessionPlanner: React.FC = () => {
                 <span
                   className="flex-shrink-0 text-xs font-mono px-1.5 py-0.5 rounded"
                   style={{
-                    backgroundColor: `${CATEGORY_COLORS[item.category] || 'var(--text-muted)'}20`,
-                    color: CATEGORY_COLORS[item.category] || 'var(--text-muted)',
+                    backgroundColor: `${CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)'}20`,
+                    color: CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)',
                   }}
                 >
                   {item.timeMinutes}m
