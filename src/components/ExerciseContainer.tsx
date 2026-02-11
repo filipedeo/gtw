@@ -14,6 +14,7 @@ const ChordVoicingExercise = lazy(() => import('./ChordVoicingExercise'));
 const EarTrainingExercise = lazy(() => import('./EarTrainingExercise'));
 const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
+const ChordProgressionExercise = lazy(() => import('./ChordProgressionExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const {
@@ -141,6 +142,8 @@ const ExerciseContainer: React.FC = () => {
         return <ThreeNPSExercise exercise={currentExercise} />;
       case 'pentatonic':
         return <PentatonicExercise exercise={currentExercise} />;
+      case 'chord-progression':
+        return <ChordProgressionExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">

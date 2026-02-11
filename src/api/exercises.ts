@@ -495,10 +495,54 @@ const exerciseData: Exercise[] = [
     audioRequired: true,
     fretboardRequired: false,
   },
-];
 
-// Add CAGED type to exercise types
-export type ExtendedExerciseType = ExerciseType | 'caged-system';
+  // ============ CHORD PROGRESSIONS ============
+  {
+    id: 'chord-prog-1',
+    type: 'chord-progression',
+    title: 'Chord Progressions - I IV V',
+    description: 'Identify basic progressions using the three primary major chords.',
+    difficulty: 2,
+    instructions: [
+      'A chord progression will play in a random key',
+      'Listen to the bass movement and chord qualities',
+      'Identify the Roman numeral progression',
+      'Uppercase = major, lowercase = minor',
+    ],
+    audioRequired: true,
+    fretboardRequired: false,
+  },
+  {
+    id: 'chord-prog-2',
+    type: 'chord-progression',
+    title: 'Chord Progressions - Pop & Rock',
+    description: 'Recognize common pop and rock progressions including the vi chord.',
+    difficulty: 3,
+    instructions: [
+      'These progressions use I, IV, V, vi, and ii chords',
+      'The vi chord is relative minor — listen for the darker sound',
+      'The ii chord often leads to V (ii-V is a strong pull)',
+      'Try to follow the bass note movement',
+    ],
+    audioRequired: true,
+    fretboardRequired: false,
+  },
+  {
+    id: 'chord-prog-3',
+    type: 'chord-progression',
+    title: 'Chord Progressions - Advanced',
+    description: 'Identify advanced progressions with borrowed chords and less common movements.',
+    difficulty: 4,
+    instructions: [
+      'Includes borrowed chords like bVII and iv',
+      'bVII is a major chord one whole step below the tonic',
+      'iv is the minor version of the IV chord (borrowed from minor key)',
+      'Listen carefully to unexpected chord qualities',
+    ],
+    audioRequired: true,
+    fretboardRequired: false,
+  },
+];
 
 /**
  * Get all exercises
@@ -533,23 +577,36 @@ export async function getExercisesByDifficulty(difficulty: Difficulty): Promise<
   return exerciseData.filter(ex => ex.difficulty === difficulty);
 }
 
+/** Human-readable labels for exercise types. New types without an entry get auto-formatted. */
+const CATEGORY_LABELS: Record<string, string> = {
+  'note-identification': 'Note Identification',
+  'caged-system': 'CAGED System',
+  'pentatonic': 'Pentatonic Scales',
+  'three-nps': '3-Notes-Per-String',
+  'modal-practice': 'Modal Practice',
+  'interval-recognition': 'Interval Recognition',
+  'chord-voicing': 'Chord Voicings',
+  'ear-training': 'Ear Training',
+  'chord-progression': 'Chord Progressions',
+};
+
+function formatTypeLabel(type: string): string {
+  return CATEGORY_LABELS[type] ??
+    type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 /**
- * Get exercise categories
+ * Get exercise categories — derived automatically from exerciseData.
+ * Adding exercises with a new type is all that's needed for them to appear here.
  */
 export function getExerciseCategories(): { type: string; label: string; count: number }[] {
-  const categories = [
-    { type: 'note-identification', label: 'Note Identification' },
-    { type: 'caged-system', label: 'CAGED System' },
-    { type: 'pentatonic', label: 'Pentatonic Scales' },
-    { type: 'three-nps', label: '3-Notes-Per-String' },
-    { type: 'modal-practice', label: 'Modal Practice' },
-    { type: 'interval-recognition', label: 'Interval Recognition' },
-    { type: 'chord-voicing', label: 'Chord Voicings' },
-    { type: 'ear-training', label: 'Ear Training' },
-  ];
-  
-  return categories.map(cat => ({
-    ...cat,
-    count: exerciseData.filter(ex => ex.type === cat.type).length,
+  const seen = new Map<string, number>();
+  for (const ex of exerciseData) {
+    seen.set(ex.type, (seen.get(ex.type) ?? 0) + 1);
+  }
+  return Array.from(seen.entries()).map(([type, count]) => ({
+    type,
+    label: formatTypeLabel(type),
+    count,
   }));
 }

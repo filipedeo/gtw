@@ -120,3 +120,54 @@ export function simplifyNoteName(note: string): string {
 export function enharmonicNote(note: string): string {
   return Note.enharmonic(note);
 }
+
+// Chord progression utilities
+
+export interface Progression {
+  numerals: string[];           // ["I", "V", "vi", "IV"]
+  degrees: (number | string)[]; // [1, 5, 6, 4] — string for borrowed ("b7", "4m")
+  name?: string;                // e.g. "Axis of Awesome"
+}
+
+/** Quality (semitone intervals from root) for each diatonic degree in a major key */
+const DEGREE_INTERVALS: Record<number, number[]> = {
+  1: [0, 4, 7],  // major
+  2: [0, 3, 7],  // minor
+  3: [0, 3, 7],  // minor
+  4: [0, 4, 7],  // major
+  5: [0, 4, 7],  // major
+  6: [0, 3, 7],  // minor
+  7: [0, 3, 6],  // diminished
+};
+
+/** Semitone offsets of each scale degree from the tonic (index 0 unused, 1-7) */
+const MAJOR_SCALE_SEMITONES = [0, 0, 2, 4, 5, 7, 9, 11];
+
+export function buildProgressionChords(
+  key: string,
+  degrees: (number | string)[]
+): Array<{ root: string; intervals: number[] }> {
+  const rootIndex = NOTE_NAMES.indexOf(key) !== -1
+    ? NOTE_NAMES.indexOf(key)
+    : NOTE_NAMES_FLAT.indexOf(key);
+
+  return degrees.map((degree) => {
+    if (typeof degree === 'number') {
+      // Diatonic degree 1-7
+      const semitoneOffset = MAJOR_SCALE_SEMITONES[degree];
+      const noteIndex = (rootIndex + semitoneOffset) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: DEGREE_INTERVALS[degree] };
+    }
+    // Borrowed chords: "b7" = flat 7th major, "4m" = 4th minor
+    if (degree === 'b7') {
+      const noteIndex = (rootIndex + 10) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 4, 7] };
+    }
+    if (degree === '4m') {
+      const noteIndex = (rootIndex + 5) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 3, 7] };
+    }
+    // Fallback: treat as degree 1
+    return { root: NOTE_NAMES[rootIndex], intervals: [0, 4, 7] };
+  });
+}
