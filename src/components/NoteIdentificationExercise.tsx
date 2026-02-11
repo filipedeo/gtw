@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Exercise } from '../types/exercise';
 import { FretPosition, NOTE_NAMES, normalizeNoteName, areNotesEqual } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
@@ -27,27 +27,30 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   const [showFeedback, setShowFeedback] = useState(false);
   const [revealedPositions, setRevealedPositions] = useState<FretPosition[]>([]);
 
+  // Keep a ref to handleAnswer so keyboard handler always uses latest version
+  const handleAnswerRef = useRef<(answer: string) => void>(() => {});
+
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isActive || selectedAnswer !== null) return;
-      
+
       const keyMap: { [key: string]: number } = {
         '1': 0,
         '2': 1,
         '3': 2,
         '4': 3,
       };
-      
+
       if (e.key in keyMap) {
         const index = keyMap[e.key];
         if (index < options.length) {
           e.preventDefault();
-          handleAnswer(options[index]);
+          handleAnswerRef.current(options[index]);
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isActive, selectedAnswer, options]);
@@ -117,9 +120,9 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     }
   };
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = useCallback((answer: string) => {
     if (selectedAnswer !== null || !isActive || !currentPosition) return;
-    
+
     setSelectedAnswer(answer);
     // Use enharmonic-aware comparison
     const correct = areNotesEqual(answer, correctNote);
@@ -141,7 +144,10 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
         generateQuestion();
       }
     }, 2000);
-  };
+  }, [selectedAnswer, isActive, currentPosition, correctNote, fullNote, score.total, recordAnswer, generateQuestion]);
+
+  // Keep ref in sync with latest handleAnswer
+  handleAnswerRef.current = handleAnswer;
 
   if (!isActive) {
     return (

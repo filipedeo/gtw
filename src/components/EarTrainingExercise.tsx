@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
 import { playChord, playNote, initAudio } from '../lib/audioEngine';
@@ -7,7 +7,9 @@ interface EarTrainingExerciseProps {
   exercise: Exercise;
 }
 
-const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+// Internal sharps array for MIDI/note generation
+const KEYS_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // Chord quality definitions
 const CHORD_QUALITIES = {
@@ -43,11 +45,14 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
   const [currentChordNotes, setCurrentChordNotes] = useState<string[]>([]);
   const [currentScaleNote, setCurrentScaleNote] = useState<string>('');
 
+  // Keep a ref to handleAnswer so keyboard handler always uses latest version
+  const handleAnswerRef = useRef<(answer: string) => void>(() => {});
+
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4, etc. keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isActive || selectedAnswer !== null) return;
-      
+
       const keyMap: { [key: string]: number } = {
         '1': 0,
         '2': 1,
@@ -57,16 +62,16 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
         '6': 5,
         '7': 6,
       };
-      
+
       if (e.key in keyMap) {
         const index = keyMap[e.key];
         if (index < options.length) {
           e.preventDefault();
-          handleAnswer(options[index]);
+          handleAnswerRef.current(options[index]);
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isActive, selectedAnswer, options]);
@@ -79,13 +84,16 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
   }, [exercise.id]);
 
   const generateChordNotes = useCallback((rootNote: string, intervals: number[]): string[] => {
-    const rootIndex = KEYS.indexOf(rootNote.replace(/\d/, ''));
+    const rootName = rootNote.replace(/\d/, '');
+    // Use sharps array for MIDI math; find index via both arrays
+    let rootIndex = KEYS_SHARP.indexOf(rootName);
+    if (rootIndex === -1) rootIndex = KEYS.indexOf(rootName);
     const octave = 3;
-    
+
     return intervals.map((interval, idx) => {
       const noteIndex = (rootIndex + interval) % 12;
       const noteOctave = octave + Math.floor((rootIndex + interval) / 12);
-      return `${KEYS[noteIndex]}${noteOctave + (idx > 2 ? 1 : 0)}`;
+      return `${KEYS_SHARP[noteIndex]}${noteOctave + (idx > 2 ? 1 : 0)}`;
     });
   }, []);
 
@@ -130,11 +138,13 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
       // Major scale intervals
       const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11];
       const noteInterval = majorScaleIntervals[degreeIndex];
-      const noteIndex = (KEYS.indexOf(key) + noteInterval) % 12;
-      const note = `${KEYS[noteIndex]}4`;
+      let keyIdx = KEYS_SHARP.indexOf(key);
+      if (keyIdx === -1) keyIdx = KEYS.indexOf(key);
+      const noteIndex = (keyIdx + noteInterval) % 12;
+      const note = `${KEYS_SHARP[noteIndex]}4`;
       
       setCorrectAnswer(degree);
-      setOptions(SCALE_DEGREES.sort(() => Math.random() - 0.5));
+      setOptions([...SCALE_DEGREES].sort(() => Math.random() - 0.5));
       setCurrentChordNotes(tonicChord);
       setCurrentScaleNote(note);
       
@@ -167,27 +177,30 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     }
   };
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = useCallback((answer: string) => {
     if (selectedAnswer !== null || !isActive) return;
-    
+
     setSelectedAnswer(answer);
     const correct = answer === correctAnswer;
     setIsCorrect(correct);
     setShowFeedback(true);
-    
+
     // Record answer using the hook (handles scoring, completion, and progress tracking)
     recordAnswer(correct);
-    
+
     // Play again to reinforce
     handlePlayAgain();
-    
+
     // Move to next question after delay (hook handles completion check)
     setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
-  };
+  }, [selectedAnswer, isActive, correctAnswer, score.total, recordAnswer, handlePlayAgain, generateQuestion]);
+
+  // Keep ref in sync with latest handleAnswer
+  handleAnswerRef.current = handleAnswer;
 
   const getQuestionText = () => {
     switch (mode) {

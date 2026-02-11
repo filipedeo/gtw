@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DroneConfig, MetronomeConfig } from '../types/audio';
+import { stopDrone, stopMetronome } from '../lib/audioEngine';
 
 interface AudioStoreState {
   // State
@@ -65,10 +66,14 @@ export const useAudioStore = create<AudioStoreState>((set) => ({
   
   setCurrentNote: (note) => set({ currentNote: note }),
   
-  stopAll: () => set({
-    isPlaying: false,
-    isDroneActive: false,
-    isMetronomeActive: false,
-    currentNote: null,
-  }),
+  stopAll: () => {
+    stopDrone();
+    stopMetronome();
+    set({
+      isPlaying: false,
+      isDroneActive: false,
+      isMetronomeActive: false,
+      currentNote: null,
+    });
+  },
 }));

@@ -61,54 +61,56 @@ export function useExercise(options: UseExerciseOptions): UseExerciseReturn {
     (correct: boolean) => {
       if (!isActive || isComplete) return;
 
-      // Update local score
-      const newScore = {
-        correct: score.correct + (correct ? 1 : 0),
-        total: score.total + 1,
-      };
-      setScore(newScore);
+      // Use functional updater to avoid stale score closure
+      setScore(prevScore => {
+        const newScore = {
+          correct: prevScore.correct + (correct ? 1 : 0),
+          total: prevScore.total + 1,
+        };
+
+        // Check if exercise is complete
+        if (newScore.total >= totalQuestions) {
+          if (completionCalledRef.current) return newScore;
+          completionCalledRef.current = true;
+
+          setIsComplete(true);
+
+          // Calculate final score
+          const finalScore = newScore.correct / newScore.total;
+          const timeSpent = startTime ? (Date.now() - startTime) / 1000 : 0;
+
+          // Record to progress/spaced repetition system
+          recordExerciseCompletion(exerciseId, finalScore, timeSpent);
+
+          // Update review item with quality based on score
+          // Quality: 5 = perfect, 4 = good, 3 = acceptable, 2 = hard, 1 = failed
+          const quality = finalScore >= 0.8 ? 5 : finalScore >= 0.6 ? 3 : 1;
+          updateReviewItem(exerciseId, quality);
+
+          // End exercise in store
+          endExercise({
+            exerciseId,
+            score: finalScore,
+            timeSpent,
+            attempts: newScore.total,
+            completedAt: new Date(),
+          });
+
+          // Call completion callback if provided
+          if (onComplete) {
+            onComplete(finalScore);
+          }
+        }
+
+        return newScore;
+      });
 
       // Record attempt in exercise store
       recordAttempt(correct);
-
-      // Check if exercise is complete
-      if (newScore.total >= totalQuestions) {
-        if (completionCalledRef.current) return;
-        completionCalledRef.current = true;
-
-        setIsComplete(true);
-
-        // Calculate final score
-        const finalScore = newScore.correct / newScore.total;
-        const timeSpent = startTime ? (Date.now() - startTime) / 1000 : 0;
-
-        // Record to progress/spaced repetition system
-        recordExerciseCompletion(exerciseId, finalScore, timeSpent);
-
-        // Update review item with quality based on score
-        // Quality: 5 = perfect, 4 = good, 3 = acceptable, 2 = hard, 1 = failed
-        const quality = finalScore >= 0.8 ? 5 : finalScore >= 0.6 ? 3 : 1;
-        updateReviewItem(exerciseId, quality);
-
-        // End exercise in store
-        endExercise({
-          exerciseId,
-          score: finalScore,
-          timeSpent,
-          attempts: newScore.total,
-          completedAt: new Date(),
-        });
-
-        // Call completion callback if provided
-        if (onComplete) {
-          onComplete(finalScore);
-        }
-      }
     },
     [
       isActive,
       isComplete,
-      score,
       totalQuestions,
       startTime,
       exerciseId,
@@ -129,7 +131,7 @@ export function useExercise(options: UseExerciseOptions): UseExerciseReturn {
   // Computed values
   const scorePercentage = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
   const questionsRemaining = totalQuestions - score.total;
-  const questionNumber = score.total + 1;
+  const questionNumber = Math.min(score.total + 1, totalQuestions);
 
   return {
     // State
