@@ -7,6 +7,9 @@ let droneOscillator: Tone.Oscillator | null = null;
 let droneGain: Tone.Gain | null = null;
 let metronomeLoop: Tone.Loop | null = null;
 let metronomeSynth: Tone.MembraneSynth | null = null;
+let tunerOscillator: Tone.Oscillator | null = null;
+let tunerGain: Tone.Gain | null = null;
+let tunerCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
 let isInitialized = false;
 let droneCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -191,13 +194,16 @@ export async function startMetronome(config: MetronomeConfig): Promise<void> {
     
     metronomeSynth.volume.value = Tone.gainToDb(config.volume) - 6;
     
+    // Derive subdivision from bottom number of time signature
+    const subdivision = config.timeSignature[1] === 8 ? '8n' : '4n';
+
     let beat = 0;
     metronomeLoop = new Tone.Loop((time) => {
       if (!metronomeSynth) return;
       const isAccent = config.accentFirst && beat === 0;
       metronomeSynth.triggerAttackRelease(isAccent ? 'C3' : 'G3', '32n', time);
       beat = (beat + 1) % config.timeSignature[0];
-    }, '4n');
+    }, subdivision);
     
     metronomeLoop.start(0);
     Tone.Transport.start();
@@ -232,12 +238,68 @@ export function updateMetronomeBPM(bpm: number): void {
   Tone.Transport.bpm.value = bpm;
 }
 
+export async function startTunerTone(frequency: number, volume: number = 0.3): Promise<void> {
+  if (!isInitialized) await initAudio();
+
+  stopTunerTone();
+
+  try {
+    tunerGain = new Tone.Gain(0).toDestination();
+    tunerOscillator = new Tone.Oscillator({
+      frequency,
+      type: 'sine',
+    }).connect(tunerGain);
+
+    tunerOscillator.start();
+    tunerGain.gain.rampTo(volume * 0.5, 0.3);
+  } catch (e) {
+    console.error('Failed to start tuner tone:', e);
+  }
+}
+
+export function stopTunerTone(): void {
+  try {
+    if (tunerCleanupTimeout) {
+      clearTimeout(tunerCleanupTimeout);
+      tunerCleanupTimeout = null;
+    }
+
+    const oscillatorToStop = tunerOscillator;
+    const gainToDispose = tunerGain;
+
+    tunerOscillator = null;
+    tunerGain = null;
+
+    if (gainToDispose) {
+      gainToDispose.gain.rampTo(0, 0.3);
+    }
+
+    tunerCleanupTimeout = setTimeout(() => {
+      tunerCleanupTimeout = null;
+      try {
+        if (oscillatorToStop) {
+          oscillatorToStop.stop();
+          oscillatorToStop.dispose();
+        }
+        if (gainToDispose) {
+          gainToDispose.dispose();
+        }
+      } catch (e) {
+        console.debug('Tuner tone cleanup:', e);
+      }
+    }, 400);
+  } catch (e) {
+    console.error('Failed to stop tuner tone:', e);
+  }
+}
+
 export function setMasterVolume(volume: number): void {
   Tone.Destination.volume.value = Tone.gainToDb(Math.max(0.01, volume));
 }
 
 export function disposeAll(): void {
   stopDrone();
+  stopTunerTone();
   stopMetronome();
   if (synth) {
     synth.dispose();
