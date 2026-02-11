@@ -12,6 +12,7 @@ const CAGEDExercise = lazy(() => import('./CAGEDExercise'));
 const IntervalRecognitionExercise = lazy(() => import('./IntervalRecognitionExercise'));
 const ChordVoicingExercise = lazy(() => import('./ChordVoicingExercise'));
 const EarTrainingExercise = lazy(() => import('./EarTrainingExercise'));
+const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const { 
@@ -134,6 +135,8 @@ const ExerciseContainer: React.FC = () => {
         return <ChordVoicingExercise exercise={currentExercise} />;
       case 'ear-training':
         return <EarTrainingExercise exercise={currentExercise} />;
+      case 'three-nps':
+        return <ThreeNPSExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">

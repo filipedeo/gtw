@@ -135,6 +135,51 @@ const exerciseData: Exercise[] = [
     fretboardRequired: true,
   },
 
+  // ============ 3-NOTES-PER-STRING ============
+  {
+    id: 'three-nps-1',
+    type: 'three-nps',
+    title: '3NPS - Ionian (Major Scale)',
+    description: 'Learn the Ionian 3-notes-per-string pattern for efficient linear playing.',
+    difficulty: 2,
+    instructions: [
+      'Each string gets exactly 3 notes from the major scale',
+      'Practice ascending and descending with alternate picking',
+      'Start slow - increase speed only when clean',
+      'Great for legato and sweep-based lines',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'three-nps-2',
+    type: 'three-nps',
+    title: '3NPS - Dorian',
+    description: 'The Dorian 3NPS pattern - natural 6th gives it a smooth minor sound.',
+    difficulty: 2,
+    instructions: [
+      'Dorian is the minor mode with a natural 6th',
+      'Common in jazz, funk, and blues',
+      'Practice with a drone on the root note',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'three-nps-3',
+    type: 'three-nps',
+    title: '3NPS - All 7 Modes',
+    description: 'Master all seven 3NPS patterns and connect them across the fretboard.',
+    difficulty: 3,
+    instructions: [
+      'Learn to transition smoothly between adjacent patterns',
+      'Practice connecting patterns by sliding between them',
+      'Aim for full fretboard coverage in one key',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+
   // ============ MODAL PRACTICE ============
   {
     id: 'modal-1',
@@ -431,6 +476,7 @@ export function getExerciseCategories(): { type: string; label: string; count: n
   const categories = [
     { type: 'note-identification', label: 'Note Identification' },
     { type: 'caged-system', label: 'CAGED System' },
+    { type: 'three-nps', label: '3-Notes-Per-String' },
     { type: 'modal-practice', label: 'Modal Practice' },
     { type: 'interval-recognition', label: 'Interval Recognition' },
     { type: 'chord-voicing', label: 'Chord Voicings' },

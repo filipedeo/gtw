@@ -11,14 +11,16 @@ interface GuitarState {
   
   // Fretboard state
   highlightedPositions: FretPosition[];
+  secondaryHighlightedPositions: FretPosition[];
   rootNote: string | null;
   showAllNotes: boolean;
-  
+
   // Actions
   setStringCount: (count: 6 | 7) => void;
   setTuning: (tuning: Tuning) => void;
   setDisplayMode: (mode: DisplayMode) => void;
   setHighlightedPositions: (positions: FretPosition[]) => void;
+  setSecondaryHighlightedPositions: (positions: FretPosition[]) => void;
   setRootNote: (note: string | null) => void;
   toggleShowAllNotes: () => void;
   clearHighlights: () => void;
@@ -35,6 +37,7 @@ export const useGuitarStore = create<GuitarState>()(
       
       // Default fretboard state
       highlightedPositions: [],
+      secondaryHighlightedPositions: [],
       rootNote: null,
       showAllNotes: false,
       
@@ -43,6 +46,7 @@ export const useGuitarStore = create<GuitarState>()(
         stringCount: count,
         tuning: count === 7 ? STANDARD_TUNINGS['standard-7'] : STANDARD_TUNINGS['standard-6'],
         highlightedPositions: [],
+        secondaryHighlightedPositions: [],
         rootNote: null,
       })),
       
@@ -51,12 +55,14 @@ export const useGuitarStore = create<GuitarState>()(
       setDisplayMode: (mode) => set({ displayMode: mode }),
       
       setHighlightedPositions: (positions) => set({ highlightedPositions: positions }),
+
+      setSecondaryHighlightedPositions: (positions) => set({ secondaryHighlightedPositions: positions }),
       
       setRootNote: (note) => set({ rootNote: note }),
       
       toggleShowAllNotes: () => set((state) => ({ showAllNotes: !state.showAllNotes })),
       
-      clearHighlights: () => set({ highlightedPositions: [], rootNote: null }),
+      clearHighlights: () => set({ highlightedPositions: [], secondaryHighlightedPositions: [], rootNote: null }),
     }),
     {
       name: 'guitar-config',

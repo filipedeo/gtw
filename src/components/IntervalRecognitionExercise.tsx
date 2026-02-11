@@ -6,6 +6,7 @@ import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
+import DisplayModeToggle from './DisplayModeToggle';
 
 interface IntervalRecognitionExerciseProps {
   exercise: Exercise;
@@ -234,6 +235,10 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
             </span>
           )}
         </div>
+      </div>
+
+      <div className="flex justify-end mb-2">
+        <DisplayModeToggle compact />
       </div>
 
       {/* Fretboard */}

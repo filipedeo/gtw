@@ -1,12 +1,13 @@
 import { FretPosition, Note } from './guitar';
 
-export type ExerciseType = 
+export type ExerciseType =
   | 'note-identification'
   | 'modal-practice'
   | 'interval-recognition'
   | 'chord-voicing'
   | 'ear-training'
-  | 'caged-system';
+  | 'caged-system'
+  | 'three-nps';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

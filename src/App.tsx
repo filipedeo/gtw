@@ -5,6 +5,7 @@ import AudioControls from './components/AudioControls'
 import ProgressDashboard from './components/ProgressDashboard'
 import SettingsPanel from './components/SettingsPanel'
 import ThemeToggle from './components/ThemeToggle'
+import PracticeTimer from './components/PracticeTimer'
 import { useGuitarStore } from './stores/guitarStore'
 import { useExerciseStore } from './stores/exerciseStore'
 import { useThemeStore } from './stores/themeStore'
@@ -118,7 +119,8 @@ function App() {
                 Guitar Theory
               </h1>
             </div>
-            <button 
+            <PracticeTimer />
+            <button
               onClick={() => setStringCount(stringCount === 6 ? 7 : 6)}
               className="text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}

@@ -7,6 +7,7 @@ import { getScalePositions } from '../utils/fretboardCalculations';
 import { getModeNotes, MODES } from '../lib/theoryEngine';
 import { startDrone, stopDrone, initAudio } from '../lib/audioEngine';
 import { normalizeNoteName } from '../types/guitar';
+import DisplayModeToggle from './DisplayModeToggle';
 
 interface ModalPracticeExerciseProps {
   exercise: Exercise;
@@ -14,7 +15,7 @@ interface ModalPracticeExerciseProps {
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise: _exercise }) => {
   void _exercise; // Exercise prop available for future use (e.g., difficulty-based mode selection)
-  const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights, setDisplayMode } = useGuitarStore();
+  const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
   
@@ -29,7 +30,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
   // Update fretboard when mode/key changes
   useEffect(() => {
     if (!isActive) return;
-    
+
     try {
       const normalizedKey = normalizeNoteName(selectedKey);
       const scaleNotes = getModeNotes(normalizedKey, selectedMode);
@@ -38,17 +39,10 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
         setHighlightedPositions(positions);
         setRootNote(normalizedKey);
       }
-
-      // Show degree numbers when characteristic note highlighting is on
-      if (showCharacteristicNote) {
-        setDisplayMode('degrees');
-      } else {
-        setDisplayMode('notes');
-      }
     } catch (e) {
       console.error('Error getting mode notes:', e);
     }
-  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning, setHighlightedPositions, setRootNote, setDisplayMode]);
+  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning, setHighlightedPositions, setRootNote]);
 
   // Update drone when key changes
   useEffect(() => {
@@ -61,13 +55,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
   useEffect(() => {
     return () => {
       clearHighlights();
-      setDisplayMode('notes');
       if (isDroneActive) {
         stopDrone();
         setDroneActive(false);
       }
     };
-  }, [clearHighlights, setDisplayMode, isDroneActive, setDroneActive]);
+  }, [clearHighlights, isDroneActive, setDroneActive]);
 
   const handleToggleDrone = async () => {
     await initAudio();
@@ -174,6 +167,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise:
           />
           Highlight characteristic note
         </label>
+        <DisplayModeToggle />
       </div>
 
       {/* Practice Tips */}
