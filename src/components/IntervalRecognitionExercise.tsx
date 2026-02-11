@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Exercise } from '../types/exercise';
-import { FretPosition, NOTE_NAMES } from '../types/guitar';
+import { FretPosition } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
-import { useExerciseStore } from '../stores/exerciseStore';
-import { useProgressStore } from '../stores/progressStore';
+import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
@@ -44,8 +43,10 @@ function getIntervalsForDifficulty(difficulty: number): typeof INTERVALS {
 
 const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = ({ exercise }) => {
   const { stringCount, tuning, setHighlightedPositions, clearHighlights } = useGuitarStore();
-  const { isActive, recordAttempt, endExercise, startTime } = useExerciseStore();
-  const { recordExerciseCompletion, updateReviewItem } = useProgressStore();
+  const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
+    exerciseId: exercise.id,
+    totalQuestions: 10,
+  });
   
   const [rootPosition, setRootPosition] = useState<FretPosition | null>(null);
   const [targetPosition, setTargetPosition] = useState<FretPosition | null>(null);
@@ -53,9 +54,33 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
   const [options, setOptions] = useState<typeof INTERVALS>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
   const [showFeedback, setShowFeedback] = useState(false);
   const [playDirection, setPlayDirection] = useState<'ascending' | 'descending'>('ascending');
+
+  // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isActive || selectedAnswer !== null) return;
+      
+      const keyMap: { [key: string]: number } = {
+        '1': 0,
+        '2': 1,
+        '3': 2,
+        '4': 3,
+      };
+      
+      if (e.key in keyMap) {
+        const index = keyMap[e.key];
+        if (index < options.length) {
+          e.preventDefault();
+          handleAnswer(options[index].short);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isActive, selectedAnswer, options]);
 
   const availableIntervals = getIntervalsForDifficulty(exercise.difficulty);
 
@@ -70,14 +95,14 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     const root = getRandomPosition(stringCount, maxFret, 0);
     
     // Calculate target position (same string, different fret)
-    const direction = Math.random() > 0.5 ? 'ascending' : 'descending';
+    const direction: 'ascending' | 'descending' = Math.random() > 0.5 ? 'ascending' : 'descending';
     const targetFret = direction === 'ascending' 
       ? root.fret + interval.semitones 
       : root.fret - interval.semitones;
     
     // If target fret is invalid, flip direction
     let finalTargetFret = targetFret;
-    let finalDirection = direction;
+    let finalDirection: 'ascending' | 'descending' = direction;
     if (targetFret < 0 || targetFret > 22) {
       finalDirection = direction === 'ascending' ? 'descending' : 'ascending';
       finalTargetFret = finalDirection === 'ascending' 
@@ -167,31 +192,15 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     setIsCorrect(correct);
     setShowFeedback(true);
     
-    recordAttempt(correct);
-    setScore(prev => ({
-      correct: prev.correct + (correct ? 1 : 0),
-      total: prev.total + 1
-    }));
+    // Record answer using the hook (handles scoring, completion, and progress tracking)
+    recordAnswer(correct);
     
     // Play the interval again
     handlePlayAgain();
     
+    // Move to next question after delay (hook handles completion check)
     setTimeout(() => {
-      if (score.total + 1 >= 10) {
-        const finalScore = (score.correct + (correct ? 1 : 0)) / (score.total + 1);
-        const timeSpent = startTime ? (Date.now() - startTime) / 1000 : 0;
-        
-        recordExerciseCompletion(exercise.id, finalScore, timeSpent);
-        updateReviewItem(exercise.id, finalScore >= 0.8 ? 5 : finalScore >= 0.6 ? 3 : 1);
-        
-        endExercise({
-          exerciseId: exercise.id,
-          score: finalScore,
-          timeSpent,
-          attempts: score.total + 1,
-          completedAt: new Date(),
-        });
-      } else {
+      if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
@@ -217,13 +226,13 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
       {/* Score Display */}
       <div className="flex justify-between items-center">
         <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Question {score.total + 1} of 10
+          Question {questionNumber} of 10
         </div>
         <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           Score: {score.correct}/{score.total}
           {score.total > 0 && (
             <span style={{ color: 'var(--text-muted)' }} className="ml-2">
-              ({Math.round((score.correct / score.total) * 100)}%)
+              ({scorePercentage}%)
             </span>
           )}
         </div>
@@ -254,8 +263,12 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
       </div>
 
       {/* Answer Options */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
-        {options.map((option) => {
+      <div 
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
+        role="group"
+        aria-label="Answer options. Press 1, 2, 3, or 4 to select an answer"
+      >
+        {options.map((option, index) => {
           let buttonStyle: React.CSSProperties = {
             padding: '1rem',
             borderRadius: '0.5rem',
@@ -286,14 +299,22 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
               onClick={() => handleAnswer(option.short)}
               disabled={selectedAnswer !== null}
               style={buttonStyle}
-              className="hover:opacity-90 flex flex-col items-center"
+              className="hover:opacity-90 flex flex-col items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              aria-label={`Option ${index + 1}: ${option.name}, ${option.semitones} semitones. Press ${index + 1} to select`}
+              aria-pressed={selectedAnswer === option.short}
             >
+              <span className="sr-only">{index + 1}: </span>
               <span className="text-lg">{option.short}</span>
               <span className="text-xs opacity-75">{option.name}</span>
             </button>
           );
         })}
       </div>
+      {/* Keyboard hint */}
+      <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+        <span aria-hidden="true">Tip: Press 1, 2, 3, or 4 to quickly select an answer</span>
+        <span className="sr-only">Use number keys 1 through 4 to select answers</span>
+      </p>
 
       {/* Feedback */}
       {showFeedback && correctInterval && (
@@ -302,12 +323,15 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
           style={{ 
             backgroundColor: isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
           }}
+          role="alert"
+          aria-live="assertive"
         >
           <p 
             className="font-medium text-lg"
             style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
           >
-            {isCorrect ? '✓ Correct!' : `✗ Incorrect. The answer was ${correctInterval.name}`}
+            <span aria-hidden="true">{isCorrect ? '✓' : '✗'}</span>
+            {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctInterval.name}`}
           </p>
           <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
             Song reference: {correctInterval.song}

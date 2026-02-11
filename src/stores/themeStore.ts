@@ -18,7 +18,7 @@ function getSystemTheme(): 'light' | 'dark' {
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       theme: 'system',
       resolvedTheme: getSystemTheme(),
       
@@ -50,7 +50,7 @@ export const useThemeStore = create<ThemeState>()(
 
 // Listen for system theme changes
 if (typeof window !== 'undefined') {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const state = useThemeStore.getState();
     if (state.theme === 'system') {
       state.setTheme('system');

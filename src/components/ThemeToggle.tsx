@@ -1,40 +1,34 @@
-import React from 'react';
 import { useThemeStore } from '../stores/themeStore';
 
 const ThemeToggle: React.FC = () => {
-  const { theme, setTheme, resolvedTheme } = useThemeStore();
+  const { resolvedTheme, setTheme } = useThemeStore();
 
-  const cycleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+  // Simple toggle between light and dark (no system mode)
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   const getIcon = () => {
-    if (theme === 'system') {
-      return '💻';
-    }
     return resolvedTheme === 'dark' ? '🌙' : '☀️';
   };
 
   const getLabel = () => {
-    if (theme === 'system') {
-      return 'System';
-    }
-    return theme === 'dark' ? 'Dark' : 'Light';
+    return resolvedTheme === 'dark' ? 'Dark' : 'Light';
+  };
+
+  const getNextTheme = () => {
+    return resolvedTheme === 'dark' ? 'light' : 'dark';
   };
 
   return (
     <button
-      onClick={cycleTheme}
-      className="btn-secondary flex items-center gap-2"
+      onClick={toggleTheme}
+      className="btn-secondary flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
       title={`Theme: ${getLabel()}`}
+      aria-label={`Current theme: ${getLabel()}. Click to switch to ${getNextTheme()} theme`}
+      aria-live="polite"
     >
-      <span>{getIcon()}</span>
+      <span aria-hidden="true">{getIcon()}</span>
       <span className="hidden sm:inline text-sm">{getLabel()}</span>
     </button>
   );
