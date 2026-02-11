@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Exercise } from '../types/exercise';
 import { FretPosition } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
@@ -20,10 +20,10 @@ const INTERVALS = [
   { name: 'Perfect 4th', short: 'P4', semitones: 5, song: '"Here Comes the Bride"' },
   { name: 'Tritone', short: 'TT', semitones: 6, song: '"The Simpsons" theme' },
   { name: 'Perfect 5th', short: 'P5', semitones: 7, song: '"Star Wars" theme' },
-  { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"The Entertainer"' },
+  { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Love Story" (theme)' },
   { name: 'Major 6th', short: 'M6', semitones: 9, song: '"My Bonnie Lies Over the Ocean"' },
   { name: 'Minor 7th', short: 'm7', semitones: 10, song: '"Somewhere" (West Side Story)' },
-  { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Take On Me" (first two notes)' },
+  { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Superman Theme" (first two notes)' },
   { name: 'Octave', short: 'P8', semitones: 12, song: '"Somewhere Over the Rainbow"' },
 ];
 
@@ -57,32 +57,38 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
   const [showFeedback, setShowFeedback] = useState(false);
   const [playDirection, setPlayDirection] = useState<'ascending' | 'descending'>('ascending');
 
+  // Keep a ref to handleAnswer so keyboard handler always uses latest version
+  const handleAnswerRef = useRef<(answer: string) => void>(() => {});
+
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isActive || selectedAnswer !== null) return;
-      
+
       const keyMap: { [key: string]: number } = {
         '1': 0,
         '2': 1,
         '3': 2,
         '4': 3,
       };
-      
+
       if (e.key in keyMap) {
         const index = keyMap[e.key];
         if (index < options.length) {
           e.preventDefault();
-          handleAnswer(options[index].short);
+          handleAnswerRef.current(options[index].short);
         }
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isActive, selectedAnswer, options]);
 
-  const availableIntervals = getIntervalsForDifficulty(exercise.difficulty);
+  const availableIntervals = useMemo(
+    () => getIntervalsForDifficulty(exercise.difficulty),
+    [exercise.difficulty]
+  );
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
@@ -111,16 +117,15 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     }
     
     // If still invalid, just use ascending from a lower fret
+    let effectiveRoot = root;
     if (finalTargetFret < 0 || finalTargetFret > 22) {
-      const newRoot = { ...root, fret: Math.min(root.fret, 10) };
-      finalTargetFret = newRoot.fret + interval.semitones;
+      effectiveRoot = { ...root, fret: Math.min(root.fret, 10) };
+      finalTargetFret = effectiveRoot.fret + interval.semitones;
       finalDirection = 'ascending';
-      setRootPosition(newRoot);
-    } else {
-      setRootPosition(root);
     }
-    
-    const target: FretPosition = { string: root.string, fret: finalTargetFret };
+    setRootPosition(effectiveRoot);
+
+    const target: FretPosition = { string: effectiveRoot.string, fret: finalTargetFret };
     
     // Generate wrong options
     const wrongOptions = availableIntervals
@@ -139,10 +144,10 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     setPlayDirection(finalDirection);
     
     // Highlight both positions
-    setHighlightedPositions([root, target]);
+    setHighlightedPositions([effectiveRoot, target]);
     
     // Play the interval
-    const rootNote = getNoteAtPosition(root, tuning, stringCount);
+    const rootNote = getNoteAtPosition(effectiveRoot, tuning, stringCount);
     const targetNote = getNoteAtPosition(target, tuning, stringCount);
     
     setTimeout(() => {
@@ -184,27 +189,30 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     }
   };
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = useCallback((answer: string) => {
     if (selectedAnswer !== null || !isActive || !correctInterval) return;
-    
+
     setSelectedAnswer(answer);
     const correct = answer === correctInterval.short;
     setIsCorrect(correct);
     setShowFeedback(true);
-    
+
     // Record answer using the hook (handles scoring, completion, and progress tracking)
     recordAnswer(correct);
-    
+
     // Play the interval again
     handlePlayAgain();
-    
+
     // Move to next question after delay (hook handles completion check)
     setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
-  };
+  }, [selectedAnswer, isActive, correctInterval, score.total, recordAnswer, handlePlayAgain, generateQuestion]);
+
+  // Keep ref in sync with latest handleAnswer
+  handleAnswerRef.current = handleAnswer;
 
   if (!isActive) {
     return (
@@ -347,11 +355,11 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
         <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
           Interval Reference
         </h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
           {availableIntervals.map(interval => (
-            <div key={interval.short} className="flex justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>{interval.short}:</span>
-              <span style={{ color: 'var(--text-muted)' }}>{interval.semitones} semitones</span>
+            <div key={interval.short} className="flex justify-between gap-2">
+              <span style={{ color: 'var(--text-secondary)' }}><strong>{interval.short}</strong> ({interval.semitones}st)</span>
+              <span style={{ color: 'var(--text-muted)' }}>{interval.song}</span>
             </div>
           ))}
         </div>

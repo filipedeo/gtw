@@ -21,6 +21,7 @@ const Fretboard: React.FC<FretboardProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
   const [clickedPosition, setClickedPosition] = useState<FretPosition | null>(null);
   
@@ -44,6 +45,7 @@ const Fretboard: React.FC<FretboardProps> = ({
   const PADDING_X = 50;
   const DOT_FRETS = [3, 5, 7, 9, 12, 15, 17, 19, 21];
   const DOUBLE_DOT_FRETS = [12, 24];
+  const DEGREE_NAMES = ['1', '\u266d2', '2', '\u266d3', '3', '4', '\u266d5', '5', '\u266d6', '6', '\u266d7', '7'];
 
   // Convert between visual row (Y position) and tuning array index
   // Visual: row 0 (top) = high E, row 5 (bottom) = low E
@@ -306,14 +308,18 @@ const Fretboard: React.FC<FretboardProps> = ({
       ctx.fillText('?', x, y);
     } else if (showName) {
       let displayText: string = noteName;
-      if (displayMode === 'intervals' && rootNote) {
+      if ((displayMode === 'intervals' || displayMode === 'degrees') && rootNote) {
         const normalizedRoot = normalizeNoteName(rootNote);
         const rootIndex = NOTE_NAMES.indexOf(normalizedRoot);
         const noteIndex = NOTE_NAMES.indexOf(noteName);
         if (rootIndex !== -1 && noteIndex !== -1) {
           const interval = (noteIndex - rootIndex + 12) % 12;
-          const intervalNames = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
-          displayText = intervalNames[interval];
+          if (displayMode === 'degrees') {
+            displayText = DEGREE_NAMES[interval];
+          } else {
+            const intervalNames = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+            displayText = intervalNames[interval];
+          }
         }
       }
       ctx.fillText(displayText, x, y);
@@ -351,14 +357,18 @@ const Fretboard: React.FC<FretboardProps> = ({
       const note = getNoteAtPosition(position, tuning, stringCount);
       
       // Show the clicked note temporarily
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
       setClickedPosition(position);
-      
+
       // Play the note
       playNote(note, { duration: 1.5, velocity: masterVolume * 0.8 });
-      
+
       // Clear the clicked position after the note finishes playing
-      setTimeout(() => {
+      clickTimeoutRef.current = setTimeout(() => {
         setClickedPosition(null);
+        clickTimeoutRef.current = null;
       }, 1500);
       
       // Callback

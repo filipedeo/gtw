@@ -109,6 +109,7 @@ export function getKeyChords(keyName: string): string[] {
 
 // Note name utilities
 export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+/** Flat note names for display in flat-key contexts */
 export const NOTE_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 export function simplifyNoteName(note: string): string {
