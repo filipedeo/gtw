@@ -225,21 +225,6 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     return null;
   };
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to begin ear training.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          {mode === 'chord-basic' && 'Learn to distinguish between major and minor chords.'}
-          {mode === 'chord-seventh' && 'Identify different types of 7th chords.'}
-          {mode === 'scale-degree' && 'Train your ear to recognize scale degrees.'}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Score Display */}

@@ -3,7 +3,7 @@ import { Exercise } from '../types/exercise';
 import { FretPosition, normalizeNoteName } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExerciseStore } from '../stores/exerciseStore';
-import { playChord, initAudio } from '../lib/audioEngine';
+import { playChord, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 
@@ -326,6 +326,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
   const [selectedInversion, setSelectedInversion] = useState(0);
   const [selectedStringSet, setSelectedStringSet] = useState(0);
   const [showAllInversions, setShowAllInversions] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
   const [rootFret, setRootFret] = useState(5);
 
   // Ref to prevent the rootFret effect from overwriting voice-led values
@@ -485,6 +486,19 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       rootFret, stringOffset, showAllInversions, currentInversion, inversions,
       openStringMidi, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
 
+  // Auto-play chord when settings change
+  useEffect(() => {
+    if (!autoPlay || !isActive || !currentInversion) return;
+    const timer = setTimeout(async () => {
+      await initAudio();
+      stopAllNotes();
+      const notes = positionsToNotes(currentInversion.positions, rootFret, openStringMidi, stringOffset);
+      playChord(notes, { duration: 2, velocity: 0.6 });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [autoPlay, isActive, selectedKey, selectedChordType, clampedInversion, clampedStringSet,
+      rootFret, stringOffset, currentInversion, openStringMidi]);
+
   // Cleanup
   useEffect(() => {
     return () => { clearHighlights(); };
@@ -496,19 +510,6 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
     const notes = positionsToNotes(currentInversion.positions, rootFret, openStringMidi, stringOffset);
     playChord(notes, { duration: 2, velocity: 0.6 });
   };
-
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to explore {voicingName} voicings.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Learn Drop 2 voicings and triad inversions across the fretboard.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -631,13 +632,22 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       </div>
 
       {/* Play Button */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
         <button
           onClick={handlePlayChord}
           className="btn-primary flex items-center gap-2"
         >
           Play Chord
         </button>
+        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+          <input
+            type="checkbox"
+            checked={autoPlay}
+            onChange={(e) => setAutoPlay(e.target.checked)}
+            className="rounded"
+          />
+          Auto-play
+        </label>
       </div>
 
       {/* Practice Tips */}

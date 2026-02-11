@@ -208,19 +208,6 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
   // Keep ref in sync
   handleAnswerRef.current = handleAnswer;
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to begin chord progression training.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Listen to chord progressions and identify them by their Roman numerals.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Score Display */}

@@ -206,21 +206,6 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
   // Keep ref in sync with latest handleAnswer
   handleAnswerRef.current = handleAnswer;
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to begin interval recognition training.
-        </p>
-        <div className="flex justify-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-          <span>Difficulty: {exercise.difficulty}/5</span>
-          <span>|</span>
-          <span>Intervals: {availableIntervals.map(i => i.short).join(', ')}</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Score Display */}

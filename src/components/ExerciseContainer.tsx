@@ -20,10 +20,8 @@ const ExerciseContainer: React.FC = () => {
   const {
     exercises,
     currentExercise,
-    isActive,
     setExercises,
     setCurrentExercise,
-    startExercise,
     selectedCategory,
     setSelectedCategory,
   } = useExerciseStore();
@@ -331,17 +329,6 @@ const ExerciseContainer: React.FC = () => {
         </Suspense>
       </div>
 
-      {/* Start/Reset Button */}
-      {currentExercise && !isActive && (
-        <div className="mt-6 text-center">
-          <button
-            onClick={startExercise}
-            className="btn-primary px-8 py-3 text-lg"
-          >
-            ▶ Start Exercise
-          </button>
-        </div>
-      )}
     </div>
     </ErrorBoundary>
   );

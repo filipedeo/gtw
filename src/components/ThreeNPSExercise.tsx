@@ -221,19 +221,6 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
     }, sorted.length * noteDelay * 1000 + 500);
   };
 
-  if (!isActive) {
-    return (
-      <div className="text-center py-8">
-        <p style={{ color: 'var(--text-secondary)' }} className="mb-4">
-          Click "Start Exercise" to explore the {selectedMode.displayName} 3NPS pattern.
-        </p>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Three notes per string for efficient linear playing, legato, and speed.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Mode & Key Selection */}

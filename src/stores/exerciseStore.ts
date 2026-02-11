@@ -57,8 +57,8 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
     currentContent: content,
     attempts: 0,
     correctAnswers: 0,
-    isActive: false,
-    startTime: null,
+    isActive: true,
+    startTime: Date.now(),
   }),
   
   startExercise: () => set({
@@ -87,14 +87,14 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
         exerciseIndex: newIndex,
         currentExercise: exercises[newIndex],
         currentContent: null,
-        isActive: false,
-        startTime: null,
+        isActive: true,
+        startTime: Date.now(),
         attempts: 0,
         correctAnswers: 0,
       });
     }
   },
-  
+
   previousExercise: () => {
     const { exercises, exerciseIndex } = get();
     if (exerciseIndex > 0) {
@@ -103,14 +103,14 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
         exerciseIndex: newIndex,
         currentExercise: exercises[newIndex],
         currentContent: null,
-        isActive: false,
-        startTime: null,
+        isActive: true,
+        startTime: Date.now(),
         attempts: 0,
         correctAnswers: 0,
       });
     }
   },
-  
+
   goToExercise: (index) => {
     const { exercises } = get();
     if (index >= 0 && index < exercises.length) {
@@ -118,7 +118,8 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
         exerciseIndex: index,
         currentExercise: exercises[index],
         currentContent: null,
-        isActive: false,
+        isActive: true,
+        startTime: Date.now(),
         attempts: 0,
         correctAnswers: 0,
       });
