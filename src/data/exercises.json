@@ -1,0 +1,16 @@
+[
+    {
+        "id": "ex1",
+        "type": "NoteIdentification",
+        "content": {
+            "description": "Identify the notes on the fretboard."
+        }
+    },
+    {
+        "id": "ex2",
+        "type": "ModalPractice",
+        "content": {
+            "description": "Practice different musical modes."
+        }
+    }
+]
