@@ -47,6 +47,23 @@ const MAJOR_PENT_DEGREES = ['Root', '2', '3', '5', '6'];
 
 type ScaleType = 'minor' | 'major';
 
+const MINOR_COMPATIBLE_MODES = [
+  { name: 'aeolian', displayName: 'Aeolian (Natural Minor)' },
+  { name: 'dorian', displayName: 'Dorian' },
+  { name: 'phrygian', displayName: 'Phrygian' },
+];
+const MAJOR_COMPATIBLE_MODES = [
+  { name: 'major', displayName: 'Ionian (Major)' },
+  { name: 'lydian', displayName: 'Lydian' },
+  { name: 'mixolydian', displayName: 'Mixolydian' },
+];
+// Scales that extend from minor pentatonic but may replace notes (not pure subsets)
+const MINOR_EXTENDED_SCALES = [
+  { name: 'blues', displayName: 'Blues Scale' },
+  { name: 'harmonic minor', displayName: 'Harmonic Minor' },
+  { name: 'melodic minor', displayName: 'Melodic Minor (Jazz Minor)' },
+];
+
 /** Get chroma values (0-11) for a set of note names. */
 function chromas(notes: string[]): number[] {
   return notes.map(n => Note.get(n).chroma).filter((c): c is number => c !== undefined);
@@ -55,6 +72,18 @@ function chromas(notes: string[]): number[] {
 /** Simplify a note name for display — removes double flats/sharps. */
 function displayNote(n: string): string {
   return Note.simplify(n) || n;
+}
+
+/**
+ * Find pentatonic chromas that are NOT in the target scale.
+ * Non-empty result means the pentatonic is not a clean subset of the target
+ * (e.g., minor pent has b7 but harmonic minor has natural 7).
+ */
+function getConflictChromas(key: string, scaleType: ScaleType, targetMode: string): number[] {
+  const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
+  const pentCh = chromas(getScaleNotes(key, pentName));
+  const targetCh = chromas(getScaleNotes(key, targetMode));
+  return pentCh.filter(c => !targetCh.includes(c));
 }
 
 /**
@@ -166,11 +195,12 @@ function getExtensionPositions(
   scaleType: ScaleType,
   tuning: Tuning,
   stringCount: number,
+  targetMode?: string,
 ): FretPosition[] {
   if (pentatonicPositions.length === 0) return [];
 
   const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
-  const fullName = scaleType === 'minor' ? 'aeolian' : 'major';
+  const fullName = targetMode || (scaleType === 'minor' ? 'aeolian' : 'major');
 
   const pentChromas = chromas(getScaleNotes(key, pentName));
   const fullChromas = chromas(getScaleNotes(key, fullName));
@@ -213,6 +243,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
   const [selectedBox, setSelectedBox] = useState(0);
   const [showFullScale, setShowFullScale] = useState(false);
   const [isPlayingScale, setIsPlayingScale] = useState(false);
+  const [selectedTargetMode, setSelectedTargetMode] = useState<string | null>(null);
 
   // Set defaults based on exercise ID
   useEffect(() => {
@@ -231,7 +262,20 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     else if (id === 'pentatonic-major-5') { setScaleType('major'); setSelectedBox(4); setShowFullScale(false); setSelectedKey('C'); }
     // Pentatonic to modes
     else if (id === 'pentatonic-4') { setScaleType('minor'); setSelectedBox(0); setShowFullScale(true); setSelectedKey('A'); }
+    // Mode across all shapes
+    else if (id === 'pentatonic-5') { setScaleType('minor'); setSelectedBox(0); setShowFullScale(true); setSelectedKey('A'); setSelectedTargetMode('aeolian'); }
   }, [exercise.id]);
+
+  // Auto-switch scaleType when selectedTargetMode changes (pentatonic-5 only)
+  useEffect(() => {
+    if (exercise.id !== 'pentatonic-5' || !selectedTargetMode) return;
+    if (MINOR_COMPATIBLE_MODES.some(m => m.name === selectedTargetMode) ||
+        MINOR_EXTENDED_SCALES.some(m => m.name === selectedTargetMode)) {
+      setScaleType('minor');
+    } else if (MAJOR_COMPATIBLE_MODES.some(m => m.name === selectedTargetMode)) {
+      setScaleType('major');
+    }
+  }, [selectedTargetMode, exercise.id]);
 
   // Mode info for the current box
   const modeIndices = scaleType === 'minor' ? MINOR_PENT_MODE_INDICES : MAJOR_PENT_MODE_INDICES;
@@ -240,9 +284,9 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
   const currentDegreeLabel = degreeLabels[selectedBox];
 
   // The 2 note names that complete the full mode (display-safe)
-  const getExtensionNoteNames = useCallback((): string[] => {
+  const getExtensionNoteNames = useCallback((targetMode?: string): string[] => {
     const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
-    const fullName = scaleType === 'minor' ? 'aeolian' : 'major';
+    const fullName = targetMode || (scaleType === 'minor' ? 'aeolian' : 'major');
     const pentCh = chromas(getScaleNotes(selectedKey, pentName));
     const fullNotes = getScaleNotes(selectedKey, fullName);
     return fullNotes
@@ -268,16 +312,37 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     if (!isActive) return;
 
     const pentPositions = getPentatonicBox(selectedKey, scaleType, selectedBox, tuning, stringCount);
-    setHighlightedPositions(pentPositions);
     setRootNote(normalizeNoteName(selectedKey));
 
     if (showFullScale) {
-      const extPositions = getExtensionPositions(pentPositions, selectedKey, scaleType, tuning, stringCount);
+      const targetMode = exercise.id === 'pentatonic-5' ? (selectedTargetMode || undefined) : undefined;
+
+      // Filter out pentatonic notes that conflict with the target scale
+      // (e.g., minor pent has b7 but harmonic minor has natural 7)
+      if (targetMode) {
+        const conflicts = getConflictChromas(selectedKey, scaleType, targetMode);
+        if (conflicts.length > 0) {
+          const filteredPent = pentPositions.filter(pos => {
+            const note = getNoteAtPosition(pos, tuning, stringCount);
+            const ch = Note.get(note).chroma;
+            return ch === undefined || !conflicts.includes(ch);
+          });
+          setHighlightedPositions(filteredPent);
+        } else {
+          setHighlightedPositions(pentPositions);
+        }
+      } else {
+        setHighlightedPositions(pentPositions);
+      }
+
+      const extPositions = getExtensionPositions(pentPositions, selectedKey, scaleType, tuning, stringCount, targetMode);
       setSecondaryHighlightedPositions(extPositions);
     } else {
+      setHighlightedPositions(pentPositions);
       setSecondaryHighlightedPositions([]);
     }
   }, [isActive, selectedKey, scaleType, selectedBox, showFullScale, tuning, stringCount,
+      selectedTargetMode, exercise.id,
       setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
 
   useEffect(() => { updateFretboard(); }, [updateFretboard]);
@@ -324,49 +389,120 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     setTimeout(() => setIsPlayingScale(false), sorted.length * noteDelay * 1000 + 500);
   };
 
-  const extNames = getExtensionNoteNames();
+  // Pentatonic note names that don't belong in the target scale (e.g., b7 for harmonic minor)
+  const getConflictNoteNames = useCallback((targetMode?: string): string[] => {
+    if (!targetMode) return [];
+    const pentName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
+    const pentNotes = getScaleNotes(selectedKey, pentName);
+    const targetCh = chromas(getScaleNotes(selectedKey, targetMode));
+    return pentNotes
+      .filter(n => {
+        const ch = Note.get(n).chroma;
+        return ch !== undefined && !targetCh.includes(ch);
+      })
+      .map(displayNote);
+  }, [selectedKey, scaleType]);
+
+  const extNames = getExtensionNoteNames(exercise.id === 'pentatonic-5' ? (selectedTargetMode || undefined) : undefined);
+  const conflictNames = getConflictNoteNames(exercise.id === 'pentatonic-5' ? (selectedTargetMode || undefined) : undefined);
   const startNote = getBoxStartNote();
+
+  const isModeCentric = exercise.id === 'pentatonic-5';
+  const allModes = [...MINOR_COMPATIBLE_MODES, ...MAJOR_COMPATIBLE_MODES, ...MINOR_EXTENDED_SCALES];
+  const selectedModeDisplayName = allModes.find(m => m.name === selectedTargetMode)?.displayName ?? selectedTargetMode ?? '';
 
   return (
     <div className="space-y-6">
-      {/* Scale Type & Key */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Scale Type
-          </label>
-          <div className="flex gap-2">
-            {(['minor', 'major'] as ScaleType[]).map(type => (
-              <button
-                key={type}
-                onClick={() => setScaleType(type)}
-                className={`flex-1 py-2 rounded-lg font-medium transition-all ${scaleType === type ? 'btn-primary' : ''}`}
-                style={scaleType !== type ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' } : {}}
-              >
-                {type === 'minor' ? 'Minor' : 'Major'} Pent.
-              </button>
-            ))}
+      {/* Mode Selector (pentatonic-5 only) */}
+      {isModeCentric && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              Target Mode
+            </label>
+            <select
+              value={selectedTargetMode || ''}
+              onChange={e => setSelectedTargetMode(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg"
+              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+            >
+              <optgroup label="Minor Modes (from minor pentatonic)">
+                {MINOR_COMPATIBLE_MODES.map(m => (
+                  <option key={m.name} value={m.name}>{m.displayName}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Major Modes (from major pentatonic)">
+                {MAJOR_COMPATIBLE_MODES.map(m => (
+                  <option key={m.name} value={m.name}>{m.displayName}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Other Scales (from minor pentatonic)">
+                {MINOR_EXTENDED_SCALES.map(m => (
+                  <option key={m.name} value={m.name}>{m.displayName}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              Key
+            </label>
+            <select
+              value={selectedKey}
+              onChange={e => setSelectedKey(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg"
+              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+            >
+              {KEYS.map(key => (
+                <option key={key} value={key}>
+                  {key} {selectedModeDisplayName}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+      )}
 
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Key
-          </label>
-          <select
-            value={selectedKey}
-            onChange={e => setSelectedKey(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg"
-            style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
-          >
-            {KEYS.map(key => (
-              <option key={key} value={key}>
-                {key} {scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic
-              </option>
-            ))}
-          </select>
+      {/* Scale Type & Key (non-pentatonic-5) */}
+      {!isModeCentric && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              Scale Type
+            </label>
+            <div className="flex gap-2">
+              {(['minor', 'major'] as ScaleType[]).map(type => (
+                <button
+                  key={type}
+                  onClick={() => setScaleType(type)}
+                  className={`flex-1 py-2 rounded-lg font-medium transition-all ${scaleType === type ? 'btn-primary' : ''}`}
+                  style={scaleType !== type ? { backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' } : {}}
+                >
+                  {type === 'minor' ? 'Minor' : 'Major'} Pent.
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              Key
+            </label>
+            <select
+              value={selectedKey}
+              onChange={e => setSelectedKey(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg"
+              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+            >
+              {KEYS.map(key => (
+                <option key={key} value={key}>
+                  {key} {scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Shape Selection */}
       <div>
@@ -390,15 +526,25 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       {/* Shape Info */}
       <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
         <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          Shape {selectedBox + 1} — {selectedKey} {scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic
+          {isModeCentric
+            ? `Shape ${selectedBox + 1} — ${selectedKey} ${selectedModeDisplayName}`
+            : `Shape ${selectedBox + 1} — ${selectedKey} ${scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic`}
         </h4>
         <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
           <p>
             Starts from the <strong>{currentDegreeLabel}</strong> ({startNote}) on the lowest string
           </p>
-          <p>
-            Extends to: <strong>{startNote} {currentModeName}</strong> by adding {extNames.join(' and ')}
-          </p>
+          {isModeCentric ? (
+            <p>
+              {scaleType === 'minor' ? 'Minor' : 'Major'} pentatonic + <strong>{extNames.join(', ')}</strong>
+              {conflictNames.length > 0 && <>, replacing <strong>{conflictNames.join(', ')}</strong></>}
+              {' '}= {selectedKey} {selectedModeDisplayName}
+            </p>
+          ) : (
+            <p>
+              Extends to: <strong>{startNote} {currentModeName}</strong> by adding {extNames.join(' and ')}
+            </p>
+          )}
           {scaleType === 'minor' && (
             <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
               Minor pentatonic = 1 b3 4 5 b7 — missing the 2nd and 6th degrees
@@ -411,6 +557,28 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           )}
         </div>
       </div>
+
+      {/* Extension Notes Info (pentatonic-5 only) */}
+      {isModeCentric && extNames.length > 0 && (
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            Extension Notes for {selectedKey} {selectedModeDisplayName}
+          </h4>
+          <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
+            <p>
+              {extNames.length} note{extNames.length !== 1 ? 's' : ''} that distinguish {selectedModeDisplayName} from the {scaleType} pentatonic: <strong>{extNames.join(', ')}</strong>
+            </p>
+            {conflictNames.length > 0 && (
+              <p>
+                The pentatonic&apos;s <strong>{conflictNames.join(', ')}</strong> {conflictNames.length === 1 ? 'is' : 'are'} not part of {selectedModeDisplayName} and {conflictNames.length === 1 ? 'is' : 'are'} hidden from the display.
+              </p>
+            )}
+            <p>
+              These are the same pitch classes in every shape — only their fretboard positions change as you move across shapes.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Shape → Mode Reference (pentatonic-4 only) */}
       {exercise.id === 'pentatonic-4' && (
@@ -444,17 +612,19 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showFullScale}
-            onChange={e => setShowFullScale(e.target.checked)}
-            className="rounded"
-          />
-          <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            Show Full Scale (+{extNames.join(', ')})
-          </span>
-        </label>
+        {!isModeCentric && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showFullScale}
+              onChange={e => setShowFullScale(e.target.checked)}
+              className="rounded"
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+              Show Full Scale (+{extNames.join(', ')})
+            </span>
+          </label>
+        )}
         <DisplayModeToggle />
       </div>
 
@@ -483,14 +653,30 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           Practice Tips
         </h4>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
-          <li>Master each shape individually before connecting them</li>
-          <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
-          <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
-          <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
-          <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
-          <li>Use the drone to hear how pentatonic notes relate to the root</li>
-          {showFullScale && (
-            <li>The faded notes ({extNames.join(' and ')}) turn this shape into {startNote} {currentModeName}</li>
+          {isModeCentric ? (
+            <>
+              <li>Cycle through all 5 shapes to see how {extNames.join(', ')} appear in different positions</li>
+              <li>The extension notes are always the same pitch classes — notice how their fretboard locations shift per shape</li>
+              {conflictNames.length > 0 && (
+                <li>The pentatonic&apos;s {conflictNames.join(', ')} {conflictNames.length === 1 ? 'is' : 'are'} replaced in {selectedModeDisplayName} — practice hearing the difference</li>
+              )}
+              <li>Try switching between scales (e.g., Dorian vs Harmonic Minor) to see which notes change</li>
+              <li>Use the drone to hear the color of {selectedModeDisplayName} over the root</li>
+              <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
+              <li>Practice improvising in each shape using the pentatonic backbone + the extension notes</li>
+            </>
+          ) : (
+            <>
+              <li>Master each shape individually before connecting them</li>
+              <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
+              <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
+              <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
+              <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
+              <li>Use the drone to hear how pentatonic notes relate to the root</li>
+              {showFullScale && (
+                <li>The faded notes ({extNames.join(' and ')}) turn this shape into {startNote} {currentModeName}</li>
+              )}
+            </>
           )}
         </ul>
       </div>

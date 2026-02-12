@@ -28,7 +28,7 @@ const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
  * 3. Drift the target region upward as we move to higher strings so the
  *    overall shape stays in one position on the neck.
  */
-function getThreeNPSPositions(
+export function getThreeNPSPositions(
   key: string,
   modeName: string,
   tuning: Tuning,
@@ -111,6 +111,8 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
       'three-nps-mixolydian': 4, // Mixolydian
       'three-nps-aeolian': 5,    // Aeolian
       'three-nps-locrian': 6,    // Locrian
+      'three-nps-harmonic-minor': 7,  // Harmonic Minor
+      'three-nps-melodic-minor': 8,   // Melodic Minor
     };
     const index = modeMap[exercise.id];
     if (index !== undefined) setSelectedModeIndex(index);

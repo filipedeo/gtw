@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 describe('Exercise coverage', () => {
-  it('has individual 3NPS exercises for all 7 diatonic modes', async () => {
+  it('has individual 3NPS exercises for all 7 diatonic modes plus harmonic/melodic minor', async () => {
     const { getExercisesByType } = await import('../api/exercises');
     const exercises = await getExercisesByType('three-nps');
 
@@ -14,6 +14,8 @@ describe('Exercise coverage', () => {
       'three-nps-mixolydian',
       'three-nps-aeolian',
       'three-nps-locrian',
+      'three-nps-harmonic-minor',
+      'three-nps-melodic-minor',
     ];
 
     for (const id of modeIds) {

@@ -124,6 +124,92 @@ describe('3NPS patterns', () => {
     expect(frets0).not.toEqual(frets5);
   });
 
+  describe('harmonic minor 3NPS', () => {
+    it('produces 18 positions (3 per string x 6 strings)', () => {
+      const positions = getThreeNPSPositions('C', 'harmonic minor', 0);
+      expect(positions).toHaveLength(18);
+    });
+
+    it('all notes belong to C harmonic minor', () => {
+      const positions = getThreeNPSPositions('C', 'harmonic minor', 0);
+      const scaleNotes = getModeNotes('C', 'harmonic minor').map(n => normalizeNoteName(n));
+
+      for (const pos of positions) {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        const noteName = normalizeNoteName(note.replace(/\d/, ''));
+        expect(scaleNotes).toContain(noteName);
+      }
+    });
+
+    it('contains B natural (raised 7th) not Bb', () => {
+      const positions = getThreeNPSPositions('C', 'harmonic minor', 0);
+      const noteNames = positions.map(pos => {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        return normalizeNoteName(note.replace(/\d/, ''));
+      });
+      // Should contain B (raised 7th)
+      expect(noteNames).toContain('B');
+      // Should not contain Bb
+      expect(noteNames).not.toContain('Bb');
+    });
+
+    it('works in different keys (A harmonic minor)', () => {
+      const positions = getThreeNPSPositions('A', 'harmonic minor', 0);
+      expect(positions).toHaveLength(18);
+      const scaleNotes = getModeNotes('A', 'harmonic minor').map(n => normalizeNoteName(n));
+
+      for (const pos of positions) {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        const noteName = normalizeNoteName(note.replace(/\d/, ''));
+        expect(scaleNotes).toContain(noteName);
+      }
+    });
+  });
+
+  describe('melodic minor 3NPS', () => {
+    it('produces 18 positions (3 per string x 6 strings)', () => {
+      const positions = getThreeNPSPositions('C', 'melodic minor', 0);
+      expect(positions).toHaveLength(18);
+    });
+
+    it('all notes belong to C melodic minor', () => {
+      const positions = getThreeNPSPositions('C', 'melodic minor', 0);
+      const scaleNotes = getModeNotes('C', 'melodic minor').map(n => normalizeNoteName(n));
+
+      for (const pos of positions) {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        const noteName = normalizeNoteName(note.replace(/\d/, ''));
+        expect(scaleNotes).toContain(noteName);
+      }
+    });
+
+    it('contains A natural (raised 6th) and B natural (raised 7th)', () => {
+      const positions = getThreeNPSPositions('C', 'melodic minor', 0);
+      const noteNames = positions.map(pos => {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        return normalizeNoteName(note.replace(/\d/, ''));
+      });
+      // Should contain A (raised 6th) and B (raised 7th)
+      expect(noteNames).toContain('A');
+      expect(noteNames).toContain('B');
+      // Should not contain Ab or Bb
+      expect(noteNames).not.toContain('Ab');
+      expect(noteNames).not.toContain('Bb');
+    });
+
+    it('works in different keys (D melodic minor)', () => {
+      const positions = getThreeNPSPositions('D', 'melodic minor', 0);
+      expect(positions).toHaveLength(18);
+      const scaleNotes = getModeNotes('D', 'melodic minor').map(n => normalizeNoteName(n));
+
+      for (const pos of positions) {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        const noteName = normalizeNoteName(note.replace(/\d/, ''));
+        expect(scaleNotes).toContain(noteName);
+      }
+    });
+  });
+
   describe('transposition', () => {
     it('G ionian produces G major scale notes', () => {
       const positions = getThreeNPSPositions('G', 'ionian', 3);
