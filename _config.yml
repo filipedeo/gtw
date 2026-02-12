@@ -1,0 +1,12 @@
+# Jekyll configuration for GitHub Pages
+# Exclude directories that contain code examples with Liquid-like syntax
+exclude:
+  - agents/
+  - node_modules/
+  - "*.json"
+  - "*.lock"
+  - src/
+  - public/
+  - dist/
+  - .github/
+  - "*.config.*"
