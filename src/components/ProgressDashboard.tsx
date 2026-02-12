@@ -3,7 +3,7 @@ import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import SessionPlanner from './SessionPlanner';
 
-const ProgressDashboard: React.FC = () => {
+const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = ({ showSessionPlanner = true }) => {
   const { progress, getNextReviews } = useProgressStore();
   const { sessionResults } = useExerciseStore();
 
@@ -28,7 +28,7 @@ const ProgressDashboard: React.FC = () => {
 
   return (
     <>
-    <SessionPlanner />
+    {showSessionPlanner && <SessionPlanner />}
 
     <div className="card">
       <h3 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>

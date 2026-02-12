@@ -2,19 +2,35 @@ import React, { useState } from 'react';
 import GuitarTuner from './GuitarTuner';
 import MetronomeControls from './MetronomeControls';
 
-type ActiveTab = 'tuner' | 'metronome' | null;
+export type ActiveToolTab = 'tuner' | 'metronome' | null;
 
-const ToolsToolbar: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>(null);
+interface ToolsToolbarProps {
+  activeTab?: ActiveToolTab;
+  onTabChange?: (tab: ActiveToolTab) => void;
+  hideTabButtons?: boolean;
+}
 
-  const toggleTab = (tab: ActiveTab) => {
-    setActiveTab((prev) => (prev === tab ? null : tab));
+const ToolsToolbar: React.FC<ToolsToolbarProps> = ({
+  activeTab: controlledTab,
+  onTabChange,
+  hideTabButtons = false,
+}) => {
+  const [internalTab, setInternalTab] = useState<ActiveToolTab>(null);
+  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
+
+  const toggleTab = (tab: ActiveToolTab) => {
+    const next = activeTab === tab ? null : tab;
+    if (onTabChange) {
+      onTabChange(next);
+    } else {
+      setInternalTab(next);
+    }
   };
 
   return (
     <div className="max-w-[1800px] mx-auto px-4 mt-2">
       {/* Tab toggles */}
-      <div className="flex gap-2">
+      <div className="flex gap-2" style={{ display: hideTabButtons ? 'none' : undefined }}>
         <button
           onClick={() => toggleTab('tuner')}
           className="px-3 py-1.5 rounded-t-lg text-sm font-medium transition-colors"

@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useMemo, lazy, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useProgressStore } from '../stores/progressStore';
 import { getExercises, getExerciseCategories } from '../api/exercises';
+import { useSwipe } from '../hooks/useSwipe';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -30,6 +31,7 @@ const ExerciseContainer: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const categories = getExerciseCategories();
   
@@ -106,6 +108,12 @@ const ExerciseContainer: React.FC = () => {
       setCurrentExercise(filteredExercises[filteredIndex + 1]);
     }
   };
+
+  // Swipe navigation for mobile
+  useSwipe(containerRef, {
+    onSwipeLeft: goToNextFiltered,
+    onSwipeRight: goToPreviousFiltered,
+  });
 
   // Go to a specific exercise by its index in the filtered list
   const goToFilteredExercise = (index: number) => {
@@ -193,7 +201,7 @@ const ExerciseContainer: React.FC = () => {
 
   return (
     <ErrorBoundary>
-    <div className="card" data-exercise-container>
+    <div ref={containerRef} className="card" data-exercise-container>
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
         <button
