@@ -12,7 +12,8 @@ export type ExerciseType =
   | 'chord-progression'
   | 'jam-mode'
   | 'bass-technique'
-  | 'arpeggio';
+  | 'arpeggio'
+  | 'chord-scale';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
