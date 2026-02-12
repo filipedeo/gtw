@@ -378,36 +378,56 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
         </div>
       </div>
 
-      {/* Walking Line Display */}
+      {/* Walking Line Display — grouped in rows of 4 bars */}
       <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
         <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
           Walking Line
         </h4>
-        <div className="flex flex-wrap gap-1">
-          {walkingLine.map((item, idx) => {
-            const isCurrentBeat = isPlaying && idx === currentBeatIndex;
-            const noteName = item.note.replace(/\d+$/, '');
-            const beatInChord = idx % progression.beatsPerChord;
-            const isBarStart = beatInChord === 0;
-            return (
-              <React.Fragment key={idx}>
-                {isBarStart && idx > 0 && (
-                  <span className="text-xs self-center mx-0.5" style={{ color: 'var(--text-muted)' }}>|</span>
-                )}
-                <span
-                  className="inline-flex items-center justify-center w-8 h-8 rounded text-xs font-mono font-medium transition-all"
-                  style={{
-                    backgroundColor: isCurrentBeat ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                    color: isCurrentBeat ? 'white' : 'var(--text-primary)',
-                    border: `1px solid ${isCurrentBeat ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                    transform: isCurrentBeat ? 'scale(1.15)' : 'scale(1)',
-                  }}
-                >
-                  {noteName}
-                </span>
-              </React.Fragment>
-            );
-          })}
+        <div className="space-y-1.5">
+          {(() => {
+            const bpc = progression.beatsPerChord;
+            const totalBars = Math.ceil(walkingLine.length / bpc);
+            const barsPerRow = 4;
+            const rows: number[][] = [];
+            for (let r = 0; r < totalBars; r += barsPerRow) {
+              rows.push(Array.from({ length: Math.min(barsPerRow, totalBars - r) }, (_, i) => r + i));
+            }
+            return rows.map((rowBars, rowIdx) => (
+              <div key={rowIdx} className="flex flex-wrap gap-1 items-center">
+                {rowBars.map((barIdx) => {
+                  const start = barIdx * bpc;
+                  const barNotes = walkingLine.slice(start, start + bpc);
+                  return (
+                    <React.Fragment key={barIdx}>
+                      {barIdx > rowBars[0] && (
+                        <span className="text-xs self-center mx-0.5" style={{ color: 'var(--text-muted)' }}>|</span>
+                      )}
+                      {barNotes.map((item, beatIdx) => {
+                        const globalIdx = start + beatIdx;
+                        const isCurrentBeat = isPlaying && globalIdx === currentBeatIndex;
+                        const noteName = item.note.replace(/\d+$/, '');
+                        return (
+                          <span
+                            key={globalIdx}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded text-xs font-mono font-medium transition-all"
+                            style={{
+                              backgroundColor: isCurrentBeat ? 'var(--accent-primary)' : 'var(--bg-primary)',
+                              color: isCurrentBeat ? 'white' : 'var(--text-primary)',
+                              border: `1px solid ${isCurrentBeat ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                              transform: isCurrentBeat ? 'scale(1.15)' : 'scale(1)',
+                            }}
+                          >
+                            {noteName}
+                          </span>
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
+                <span className="text-xs self-center mx-0.5" style={{ color: 'var(--text-muted)' }}>|</span>
+              </div>
+            ));
+          })()}
         </div>
         <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
           Pattern: Root - 3rd - 5th - Chromatic approach

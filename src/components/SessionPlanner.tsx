@@ -141,7 +141,9 @@ const SessionPlanner: React.FC = () => {
       const perCategory = Math.max(2, Math.floor(totalMinutes / categories.length));
 
       const items: PlanItem[] = [];
+      let timeUsed = 0;
       for (const cat of categories) {
+        if (timeUsed + perCategory > totalMinutes && items.length > 0) break;
         const exercise = pickExerciseForCategory(cat.type);
         if (exercise) {
           items.push({
@@ -151,6 +153,7 @@ const SessionPlanner: React.FC = () => {
             timeMinutes: perCategory,
             completed: false,
           });
+          timeUsed += perCategory;
         }
       }
 

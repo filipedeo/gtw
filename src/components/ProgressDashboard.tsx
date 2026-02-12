@@ -51,7 +51,7 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
               aria-labelledby="streak-label"
               aria-describedby="streak-value"
             >
-              <span id="streak-value">{progress.currentStreak} days</span>
+              <span id="streak-value">{progress.currentStreak} {progress.currentStreak === 1 ? 'day' : 'days'}</span>
             </p>
           </div>
           <div className="text-3xl" aria-hidden="true">🔥</div>
@@ -85,11 +85,11 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
             className="p-3 rounded-lg"
             style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
             role="region"
-            aria-label={`Best streak: ${progress.longestStreak} days`}
+            aria-label={`Best streak: ${progress.longestStreak} ${progress.longestStreak === 1 ? 'day' : 'days'}`}
           >
             <p className="text-xs" style={{ color: '#8b5cf6' }}>Best Streak</p>
             <p className="text-xl font-bold" style={{ color: '#8b5cf6' }} aria-hidden="true">
-              {progress.longestStreak} days
+              {progress.longestStreak} {progress.longestStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
           <div 
@@ -141,15 +141,15 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
         )}
 
         {/* Weak Areas */}
-        {progress.weakAreas.length > 0 && (
-          <div role="region" aria-label="Areas to improve">
-            <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              Areas to Improve
-            </p>
+        <div role="region" aria-label="Areas to improve">
+          <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            Areas to Improve
+          </p>
+          {progress.weakAreas.length > 0 ? (
             <ul className="flex flex-wrap gap-2 list-none p-0 m-0" aria-label={`${progress.weakAreas.length} areas need improvement`}>
               {progress.weakAreas.map((area, idx) => (
-                <li 
-                  key={idx} 
+                <li
+                  key={idx}
                   className="text-xs px-2 py-1 rounded"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)' }}
                 >
@@ -157,19 +157,23 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Practice more exercises to discover areas for improvement
+            </p>
+          )}
+        </div>
 
         {/* Strong Areas */}
-        {progress.strongAreas.length > 0 && (
-          <div role="region" aria-label="Strengths">
-            <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              Strengths
-            </p>
+        <div role="region" aria-label="Strengths">
+          <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            Strengths
+          </p>
+          {progress.strongAreas.length > 0 ? (
             <ul className="flex flex-wrap gap-2 list-none p-0 m-0" aria-label={`${progress.strongAreas.length} strength areas`}>
               {progress.strongAreas.map((area, idx) => (
-                <li 
-                  key={idx} 
+                <li
+                  key={idx}
                   className="text-xs px-2 py-1 rounded"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}
                 >
@@ -177,8 +181,12 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Keep practicing to build your strengths
+            </p>
+          )}
+        </div>
       </div>
     </div>
     </>

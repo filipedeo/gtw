@@ -17,7 +17,7 @@ interface MobileDrawerProps {
 
 const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTool }) => {
   const drawerRef = useRef<HTMLDivElement>(null);
-  const { stringCount, setStringCount } = useGuitarStore();
+  const { instrument, stringCount, setStringCount, setInstrument } = useGuitarStore();
   const { currentExercise } = useExerciseStore();
   const { isMobile } = useBreakpoint();
 
@@ -228,20 +228,35 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
             </div>
           </section>
 
-          {/* Guitar string toggle */}
+          {/* Instrument & string toggle */}
           <section className="mb-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-              Guitar
+              Instrument
             </h3>
-            <button
-              onClick={() => setStringCount(stringCount === 6 ? 7 : 6)}
-              className="btn-secondary w-full flex items-center justify-center gap-2 text-sm"
-              aria-label={`Currently ${stringCount}-string guitar. Click to switch to ${stringCount === 6 ? 7 : 6}-string`}
-            >
-              <span className="font-mono">{stringCount}-string</span>
-              <span style={{ color: 'var(--text-muted)' }}>→</span>
-              <span className="font-mono">{stringCount === 6 ? 7 : 6}-string</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (instrument === 'guitar') {
+                    setStringCount(stringCount === 6 ? 7 : 6);
+                  } else {
+                    const bassOptions = [4, 5, 6] as const;
+                    const idx = bassOptions.indexOf(stringCount as 4 | 5 | 6);
+                    setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
+                  }
+                }}
+                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+                aria-label={`Currently ${stringCount}-string ${instrument}. Click to change string count.`}
+              >
+                <span className="font-mono">{stringCount}s {instrument}</span>
+              </button>
+              <button
+                onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
+                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+              >
+                <span style={{ color: 'var(--text-muted)' }}>→</span>
+                <span>{instrument === 'guitar' ? 'Bass' : 'Guitar'}</span>
+              </button>
+            </div>
           </section>
         </div>
       </div>

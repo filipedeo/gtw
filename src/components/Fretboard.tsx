@@ -537,17 +537,23 @@ const Fretboard: React.FC<FretboardProps> = ({
 
   // Generate description of highlighted notes for screen readers
   const getHighlightedNotesDescription = (): string => {
-    if (highlightedPositions.length === 0) {
+    if (highlightedPositions.length === 0 && secondaryHighlightedPositions.length === 0) {
       return 'No notes highlighted';
     }
-    const noteDescriptions = highlightedPositions.map(pos => {
-      const note = getNoteAtPosition(pos, tuning, stringCount);
-      const noteName = normalizeNoteName(note.replace(/\d/, ''));
-      // String numbering: string index 0 = low E = String 6, index 5 = high E = String 1
-      // Standard guitar string numbering: String 1 = high E, String 6 = low E
-      return `${noteName} on string ${stringCount - pos.string}, fret ${pos.fret}`;
-    });
-    return `Highlighted notes: ${noteDescriptions.join('; ')}`;
+    const describePositions = (positions: FretPosition[]) =>
+      positions.map(pos => {
+        const note = getNoteAtPosition(pos, tuning, stringCount);
+        const noteName = normalizeNoteName(note.replace(/\d/, ''));
+        return `${noteName} on string ${stringCount - pos.string}, fret ${pos.fret}`;
+      });
+    const parts: string[] = [];
+    if (highlightedPositions.length > 0) {
+      parts.push(`Highlighted notes: ${describePositions(highlightedPositions).join('; ')}`);
+    }
+    if (secondaryHighlightedPositions.length > 0) {
+      parts.push(`Root notes: ${describePositions(secondaryHighlightedPositions).join('; ')}`);
+    }
+    return parts.join('. ');
   };
 
   return (
