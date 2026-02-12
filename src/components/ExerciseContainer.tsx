@@ -21,6 +21,7 @@ const JamModeExercise = lazy(() => import('./JamModeExercise'));
 const ArpeggioExercise = lazy(() => import('./ArpeggioExercise'));
 const WalkingBassExercise = lazy(() => import('./WalkingBassExercise'));
 const BassPositionExercise = lazy(() => import('./BassPositionExercise'));
+const ChordScaleExercise = lazy(() => import('./ChordScaleExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const {
@@ -192,6 +193,8 @@ const ExerciseContainer: React.FC = () => {
       case 'bass-technique':
         if (currentExercise.id.startsWith('bass-walk')) return <WalkingBassExercise exercise={currentExercise} />;
         return <BassPositionExercise exercise={currentExercise} />;
+      case 'chord-scale':
+        return <ChordScaleExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">
