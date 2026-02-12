@@ -19,8 +19,8 @@ export const JAM_PROGRESSIONS: JamProgression[] = [
   },
   {
     name: 'Minor Blues',
-    numerals: ['i', 'i', 'i', 'i', 'iv', 'iv', 'i', 'i', 'v', 'iv', 'i', 'v'],
-    degrees: [1, 1, 1, 1, 4, 4, 1, 1, 5, 4, 1, 5],
+    numerals: ['i', 'i', 'i', 'i', 'iv', 'iv', 'i', 'i', 'V', 'iv', 'i', 'V'],
+    degrees: ['1m', '1m', '1m', '1m', '4m', '4m', '1m', '1m', '5M', '4m', '1m', '5M'],
     suggestedScale: 'aeolian',
     genre: 'Blues',
     beatsPerChord: 4,
@@ -90,6 +90,49 @@ export const JAM_PROGRESSIONS: JamProgression[] = [
     degrees: [6, 4, 1, 5],
     suggestedScale: 'aeolian',
     genre: 'Pop',
+    beatsPerChord: 4,
+  },
+  // Jazz - Minor ii-V-i
+  {
+    name: 'Minor ii-V-i',
+    numerals: ['iiø7', 'V7', 'i', 'i'],
+    degrees: ['2dim', '5M', '1m', '1m'],
+    suggestedScale: 'harmonic minor',
+    genre: 'Jazz',
+    beatsPerChord: 4,
+  },
+  // Flamenco/Spanish
+  {
+    name: 'Andalusian Cadence',
+    numerals: ['i', 'bVII', 'bVI', 'V'],
+    degrees: ['1m', 'b7', 'b6', '5M'],
+    suggestedScale: 'phrygian dominant',
+    genre: 'Flamenco',
+    beatsPerChord: 4,
+  },
+  // Secondary Dominants
+  {
+    name: 'Secondary Dominant (V/V)',
+    numerals: ['I', 'V/V', 'V', 'I'],
+    degrees: [1, '2M', 5, 1],
+    suggestedScale: 'ionian',
+    genre: 'Jazz',
+    beatsPerChord: 4,
+  },
+  {
+    name: 'Extended ii-V with V/ii',
+    numerals: ['V/ii', 'ii', 'V', 'I'],
+    degrees: ['6M', 2, 5, 1],
+    suggestedScale: 'ionian',
+    genre: 'Jazz',
+    beatsPerChord: 4,
+  },
+  {
+    name: 'Descending Dominants',
+    numerals: ['I', 'V/IV', 'IV', 'iv', 'I'],
+    degrees: [1, '1M', 4, '4m', 1],
+    suggestedScale: 'ionian',
+    genre: 'Jazz',
     beatsPerChord: 4,
   },
 ];
