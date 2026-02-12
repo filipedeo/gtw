@@ -21,16 +21,23 @@ function chromaSet(notes: string[]): Set<number> {
 // MODES constant
 // ---------------------------------------------------------------------------
 describe('MODES constant', () => {
-  it('has 7 modes', () => {
-    expect(MODES).toHaveLength(7);
+  it('has 10 entries (7 diatonic modes + 3 additional scales)', () => {
+    expect(MODES).toHaveLength(10);
   });
 
-  it('modes are in order: ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian', () => {
-    const names = MODES.map(m => m.name);
+  it('first 7 modes are in order: ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian', () => {
+    const names = MODES.slice(0, 7).map(m => m.name);
     expect(names).toEqual([
       'ionian', 'dorian', 'phrygian', 'lydian',
       'mixolydian', 'aeolian', 'locrian',
     ]);
+  });
+
+  it('includes harmonic minor, melodic minor, and blues', () => {
+    const names = MODES.map(m => m.name);
+    expect(names).toContain('harmonic minor');
+    expect(names).toContain('melodic minor');
+    expect(names).toContain('blues');
   });
 
   it('each mode has displayName and characteristicNote', () => {
@@ -162,10 +169,15 @@ describe('Parallel modes from C', () => {
     expect(shared).toBe(6);
   });
 
-  it('each parallel mode from C has 7 unique pitch classes', () => {
-    for (const mode of MODES) {
+  it('each diatonic mode from C has 7 unique pitch classes', () => {
+    for (const mode of MODES.slice(0, 7)) {
       const ch = chromaSet(getModeNotes('C', mode.name));
       expect(ch.size).toBe(7);
     }
+  });
+
+  it('blues scale from C has 6 unique pitch classes', () => {
+    const ch = chromaSet(getModeNotes('C', 'blues'));
+    expect(ch.size).toBe(6);
   });
 });

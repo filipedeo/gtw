@@ -9,6 +9,7 @@ import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
+import PracticeRating from './PracticeRating';
 
 interface ThreeNPSExerciseProps {
   exercise: Exercise;
@@ -363,6 +364,9 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           <li>Remove the highest and lowest note per string to reveal the pentatonic shape hiding inside each 3NPS pattern</li>
         </ul>
       </div>
+
+      {/* Self-Assessment */}
+      <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );
 };

@@ -122,11 +122,18 @@ describe('getModeNotes', () => {
     expect(ionian).toEqual(major);
   });
 
-  it('all 7 modes from C have 7 notes', () => {
-    for (const mode of MODES) {
+  it('all 7 diatonic modes from C have 7 notes', () => {
+    const diatonicModes = MODES.slice(0, 7);
+    for (const mode of diatonicModes) {
       const notes = getModeNotes('C', mode.name);
       expect(notes).toHaveLength(7);
     }
+  });
+
+  it('harmonic minor and melodic minor have 7 notes, blues has 6', () => {
+    expect(getModeNotes('C', 'harmonic minor')).toHaveLength(7);
+    expect(getModeNotes('C', 'melodic minor')).toHaveLength(7);
+    expect(getModeNotes('C', 'blues')).toHaveLength(6);
   });
 
   it('C dorian contains Eb and A (b3 and natural 6)', () => {
@@ -282,8 +289,8 @@ describe('simplifyNoteName / enharmonicNote', () => {
 // MODES constant
 // ---------------------------------------------------------------------------
 describe('MODES constant', () => {
-  it('has exactly 7 entries', () => {
-    expect(MODES).toHaveLength(7);
+  it('has 10 entries (7 diatonic modes + 3 additional scales)', () => {
+    expect(MODES).toHaveLength(10);
   });
 
   it('first mode is ionian', () => {

@@ -32,6 +32,7 @@ type ExerciseMode = 'chord-basic' | 'chord-seventh' | 'scale-degree';
 const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) => {
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
     exerciseId: exercise.id,
+    exerciseType: exercise.type,
     totalQuestions: 10,
   });
   

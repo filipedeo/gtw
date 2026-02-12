@@ -2,13 +2,28 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { UserProgress, ExerciseProgress, ReviewItem, SpacedRepetitionData } from '../types/progress';
 
+function formatTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    'note-identification': 'Note Identification',
+    'caged-system': 'CAGED System',
+    'pentatonic': 'Pentatonic Scales',
+    'three-nps': '3-Notes-Per-String',
+    'modal-practice': 'Modal Practice',
+    'interval-recognition': 'Interval Recognition',
+    'chord-voicing': 'Chord Voicings',
+    'ear-training': 'Ear Training',
+    'chord-progression': 'Chord Progressions',
+  };
+  return labels[type] ?? type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
 interface ProgressState {
   // User progress
   progress: UserProgress;
   spacedRepetition: SpacedRepetitionData;
   
   // Actions
-  recordExerciseCompletion: (exerciseId: string, score: number, timeSpent: number) => void;
+  recordExerciseCompletion: (exerciseId: string, score: number, timeSpent: number, exerciseType?: string) => void;
   updateStreak: () => void;
   getNextReviews: () => ReviewItem[];
   updateReviewItem: (exerciseId: string, quality: number) => void;
@@ -69,7 +84,7 @@ export const useProgressStore = create<ProgressState>()(
       progress: initialProgress,
       spacedRepetition: initialSpacedRepetition,
       
-      recordExerciseCompletion: (exerciseId, score, timeSpent) => set((state) => {
+      recordExerciseCompletion: (exerciseId, score, timeSpent, exerciseType) => set((state) => {
         const existing = state.progress.exerciseProgress[exerciseId];
         const newProgress: ExerciseProgress = existing ? {
           ...existing,
@@ -80,6 +95,7 @@ export const useProgressStore = create<ProgressState>()(
           bestScore: Math.max(existing.bestScore, score),
         } : {
           exerciseId,
+          exerciseType,
           totalAttempts: 1,
           correctAttempts: score >= 0.7 ? 1 : 0,
           averageTime: timeSpent,
@@ -87,16 +103,40 @@ export const useProgressStore = create<ProgressState>()(
           bestScore: score,
         };
         
+        const updatedExerciseProgress = {
+          ...state.progress.exerciseProgress,
+          [exerciseId]: newProgress,
+        };
+
+        // Recompute weak/strong areas from all exercise progress
+        const typeScores: Record<string, { totalScore: number; count: number }> = {};
+        for (const ep of Object.values(updatedExerciseProgress)) {
+          const type = ep.exerciseType;
+          if (type && ep.totalAttempts >= 2) {
+            if (!typeScores[type]) typeScores[type] = { totalScore: 0, count: 0 };
+            typeScores[type].totalScore += ep.bestScore;
+            typeScores[type].count += 1;
+          }
+        }
+
+        const weakAreas: string[] = [];
+        const strongAreas: string[] = [];
+        for (const [type, { totalScore, count }] of Object.entries(typeScores)) {
+          const avg = totalScore / count;
+          const label = formatTypeLabel(type);
+          if (avg < 0.6) weakAreas.push(label);
+          else if (avg >= 0.8) strongAreas.push(label);
+        }
+
         return {
           progress: {
             ...state.progress,
             totalExercisesCompleted: state.progress.totalExercisesCompleted + 1,
             totalTimeSpent: state.progress.totalTimeSpent + timeSpent,
             lastPracticeDate: new Date(),
-            exerciseProgress: {
-              ...state.progress.exerciseProgress,
-              [exerciseId]: newProgress,
-            },
+            exerciseProgress: updatedExerciseProgress,
+            weakAreas,
+            strongAreas,
           },
         };
       }),

@@ -32,13 +32,16 @@ export function getAllScaleNames(): string[] {
 
 // Mode utilities
 export const MODES = [
-  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: 'M7' },
-  { name: 'dorian', displayName: 'Dorian', characteristicNote: '6' },
-  { name: 'phrygian', displayName: 'Phrygian', characteristicNote: 'b2' },
-  { name: 'lydian', displayName: 'Lydian', characteristicNote: '#4' },
-  { name: 'mixolydian', displayName: 'Mixolydian', characteristicNote: 'b7' },
-  { name: 'aeolian', displayName: 'Aeolian (Natural Minor)', characteristicNote: 'b6' },
-  { name: 'locrian', displayName: 'Locrian', characteristicNote: 'b5' },
+  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: 'M7', characteristicDegree: 6 },
+  { name: 'dorian', displayName: 'Dorian', characteristicNote: '6', characteristicDegree: 5 },
+  { name: 'phrygian', displayName: 'Phrygian', characteristicNote: 'b2', characteristicDegree: 1 },
+  { name: 'lydian', displayName: 'Lydian', characteristicNote: '#4', characteristicDegree: 3 },
+  { name: 'mixolydian', displayName: 'Mixolydian', characteristicNote: 'b7', characteristicDegree: 6 },
+  { name: 'aeolian', displayName: 'Aeolian (Natural Minor)', characteristicNote: 'b6', characteristicDegree: 5 },
+  { name: 'locrian', displayName: 'Locrian', characteristicNote: 'b5', characteristicDegree: 4 },
+  { name: 'harmonic minor', displayName: 'Harmonic Minor', characteristicNote: 'M7', characteristicDegree: 6 },
+  { name: 'melodic minor', displayName: 'Melodic Minor (Ascending)', characteristicNote: 'M6 & M7', characteristicDegree: 5 },
+  { name: 'blues', displayName: 'Blues', characteristicNote: 'b5 (blue note)', characteristicDegree: 3 },
 ];
 
 export function getModeNotes(root: string, modeName: string): string[] {

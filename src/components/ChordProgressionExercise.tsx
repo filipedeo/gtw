@@ -66,6 +66,7 @@ function formatProgression(numerals: string[]): string {
 const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exercise }) => {
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
     exerciseId: exercise.id,
+    exerciseType: exercise.type,
     totalQuestions: 10,
   });
 

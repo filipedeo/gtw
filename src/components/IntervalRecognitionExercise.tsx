@@ -46,6 +46,7 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
   const { stringCount, tuning, setHighlightedPositions, clearHighlights } = useGuitarStore();
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
     exerciseId: exercise.id,
+    exerciseType: exercise.type,
     totalQuestions: 10,
   });
   
