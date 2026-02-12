@@ -275,6 +275,21 @@ input[type="checkbox"] {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* Drawer slide animation */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-slide-in {
+  animation: slideInRight 0.25s ease-out forwards;
+}
+
+/* Mobile card padding reduction */
+@media (max-width: 767px) {
+  .card { padding: 1rem; }
+}
+
 /* Utility classes */
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
