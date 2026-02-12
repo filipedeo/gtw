@@ -216,27 +216,21 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
   // Set defaults based on exercise ID
   useEffect(() => {
-    if (exercise.id === 'pentatonic-1') {
-      setScaleType('minor');
-      setSelectedBox(0);
-      setShowFullScale(false);
-      setSelectedKey('A');
-    } else if (exercise.id === 'pentatonic-2') {
-      setScaleType('minor');
-      setSelectedBox(0);
-      setShowFullScale(false);
-      setSelectedKey('A');
-    } else if (exercise.id === 'pentatonic-3') {
-      setScaleType('major');
-      setSelectedBox(0);
-      setShowFullScale(false);
-      setSelectedKey('C');
-    } else if (exercise.id === 'pentatonic-4') {
-      setScaleType('minor');
-      setSelectedBox(0);
-      setShowFullScale(true);
-      setSelectedKey('A');
-    }
+    const id = exercise.id;
+    // Minor shapes
+    if (id === 'pentatonic-1') { setScaleType('minor'); setSelectedBox(0); setShowFullScale(false); setSelectedKey('A'); }
+    else if (id === 'pentatonic-minor-2') { setScaleType('minor'); setSelectedBox(1); setShowFullScale(false); setSelectedKey('A'); }
+    else if (id === 'pentatonic-minor-3') { setScaleType('minor'); setSelectedBox(2); setShowFullScale(false); setSelectedKey('A'); }
+    else if (id === 'pentatonic-minor-4') { setScaleType('minor'); setSelectedBox(3); setShowFullScale(false); setSelectedKey('A'); }
+    else if (id === 'pentatonic-minor-5') { setScaleType('minor'); setSelectedBox(4); setShowFullScale(false); setSelectedKey('A'); }
+    // Major shapes
+    else if (id === 'pentatonic-major-1') { setScaleType('major'); setSelectedBox(0); setShowFullScale(false); setSelectedKey('C'); }
+    else if (id === 'pentatonic-major-2') { setScaleType('major'); setSelectedBox(1); setShowFullScale(false); setSelectedKey('C'); }
+    else if (id === 'pentatonic-major-3') { setScaleType('major'); setSelectedBox(2); setShowFullScale(false); setSelectedKey('C'); }
+    else if (id === 'pentatonic-major-4') { setScaleType('major'); setSelectedBox(3); setShowFullScale(false); setSelectedKey('C'); }
+    else if (id === 'pentatonic-major-5') { setScaleType('major'); setSelectedBox(4); setShowFullScale(false); setSelectedKey('C'); }
+    // Pentatonic to modes
+    else if (id === 'pentatonic-4') { setScaleType('minor'); setSelectedBox(0); setShowFullScale(true); setSelectedKey('A'); }
   }, [exercise.id]);
 
   // Mode info for the current box
@@ -417,6 +411,36 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           )}
         </div>
       </div>
+
+      {/* Shape → Mode Reference (pentatonic-4 only) */}
+      {exercise.id === 'pentatonic-4' && (
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+          <h4 className="font-medium mb-3" style={{ color: 'var(--accent-primary)' }}>
+            Shape → Mode Reference
+          </h4>
+          <div className="grid grid-cols-1 gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {[0, 1, 2, 3, 4].map(box => {
+              const modeName = MODE_NAMES[modeIndices[box]];
+              const degreeLabel = degreeLabels[box];
+              const isSelected = selectedBox === box;
+              return (
+                <button
+                  key={box}
+                  onClick={() => setSelectedBox(box)}
+                  className="text-left p-2 rounded transition-all"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    fontWeight: isSelected ? 'bold' : 'normal',
+                  }}
+                >
+                  Shape {box + 1} ({degreeLabel}) → {modeName}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">

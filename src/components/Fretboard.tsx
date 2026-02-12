@@ -254,8 +254,9 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.fillStyle = colors.text;
     ctx.font = 'bold 14px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
     for (let visualRow = 0; visualRow < stringCount; visualRow++) {
-      const y = PADDING_Y + visualRow * STRING_SPACING + 5;
+      const y = PADDING_Y + visualRow * STRING_SPACING;
       const stringIndex = visualRowToStringIndex(visualRow);
       const noteName = tuning.notes[stringIndex] || '';
       ctx.fillText(noteName.replace(/\d/, ''), PADDING_X - 10, y);
@@ -288,7 +289,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     // Draw all notes if enabled
     if (showAllNotes) {
       for (let string = 0; string < stringCount; string++) {
-        for (let fret = 0; fret <= Math.min(fretCount, 12); fret++) {
+        for (let fret = 0; fret <= fretCount; fret++) {
           const pos = { string, fret };
           const isClickedPos = clickedPosition && clickedPosition.string === string && clickedPosition.fret === fret;
           if (!highlightedPositions.some(p => p.string === string && p.fret === fret) && !isClickedPos) {
@@ -347,7 +348,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2;
+    ctx.shadowOffsetY = 0;
 
     // Draw circle with slightly larger size for clicked or hovered notes
     const radius = isClicked ? 15 : isHover ? 15 : 13;
