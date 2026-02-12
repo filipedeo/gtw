@@ -3,7 +3,7 @@ import { useAudioStore } from '../stores/audioStore';
 import { DroneConfig } from '../types/audio';
 import { startDrone, stopDrone, initAudio, setMasterVolume as setEngineVolume } from '../lib/audioEngine';
 
-const AudioControls: React.FC = () => {
+const AudioControls: React.FC = React.memo(() => {
   const {
     isDroneActive,
     droneConfig,
@@ -143,6 +143,6 @@ const AudioControls: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default AudioControls;

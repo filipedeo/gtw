@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Fretboard from './components/Fretboard'
 import ExerciseContainer from './components/ExerciseContainer'
+import ErrorBoundary from './components/ErrorBoundary'
 import AudioControls from './components/AudioControls'
 import ProgressDashboard from './components/ProgressDashboard'
 import SettingsPanel from './components/SettingsPanel'
@@ -125,10 +126,10 @@ function App() {
   }
 
   // Handle tool selection from mobile drawer
-  const handleSelectTool = (tool: 'tuner' | 'metronome') => {
+  const handleSelectTool = useCallback((tool: 'tuner' | 'metronome') => {
     setActiveToolsTab(tool)
     setShowDrawer(false)
-  }
+  }, [])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-secondary)' }}>
@@ -219,7 +220,9 @@ function App() {
                 <span>Click any note to hear it</span>
               </div>
             </div>
-            <Fretboard />
+            <ErrorBoundary>
+              <Fretboard />
+            </ErrorBoundary>
           </div>
         )}
 

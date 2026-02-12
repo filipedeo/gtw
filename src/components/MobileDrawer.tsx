@@ -4,6 +4,7 @@ import SessionPlanner from './SessionPlanner';
 import ProgressDashboard from './ProgressDashboard';
 import AudioControls from './AudioControls';
 import SettingsPanel from './SettingsPanel';
+import ErrorBoundary from './ErrorBoundary';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -137,7 +138,9 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
               Fretboard
             </h3>
             <div className="card p-3">
-              <Fretboard />
+              <ErrorBoundary>
+                <Fretboard />
+              </ErrorBoundary>
               {isMobile && (
                 <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
                   Rotate to landscape for a larger view
@@ -151,7 +154,9 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
               Session Planner
             </h3>
-            <SessionPlanner />
+            <ErrorBoundary>
+              <SessionPlanner />
+            </ErrorBoundary>
           </section>
 
           {/* Progress */}
@@ -159,7 +164,9 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
               Progress
             </h3>
-            <ProgressDashboard showSessionPlanner={false} />
+            <ErrorBoundary>
+              <ProgressDashboard showSessionPlanner={false} />
+            </ErrorBoundary>
           </section>
 
           {/* Exercise Info */}

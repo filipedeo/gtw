@@ -11,9 +11,9 @@ const sizeMap = {
   lg: { spinner: 56, border: 4 },
 };
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  message, 
-  size = 'md' 
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = React.memo(({
+  message,
+  size = 'md'
 }) => {
   const { spinner, border } = sizeMap[size];
 
@@ -65,6 +65,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       `}</style>
     </div>
   );
-};
+});
 
 export default LoadingSpinner;

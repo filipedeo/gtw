@@ -9,7 +9,7 @@ const TIME_SIGNATURES: [number, number][] = [
   [7, 8],
 ];
 
-const MetronomeControls: React.FC = () => {
+const MetronomeControls: React.FC = React.memo(() => {
   const {
     isMetronomeActive,
     metronomeConfig,
@@ -137,6 +137,6 @@ const MetronomeControls: React.FC = () => {
       </label>
     </div>
   );
-};
+});
 
 export default MetronomeControls;
