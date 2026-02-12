@@ -167,6 +167,34 @@ describe('getModeNotes', () => {
     expect(notes).toContain('Db');
     expect(notes).toContain('Gb');
   });
+
+  it('C harmonic minor has raised 7th (B) vs aeolian (Bb)', () => {
+    const harmonicMinor = getModeNotes('C', 'harmonic minor');
+    const aeolian = getModeNotes('C', 'aeolian');
+    expect(harmonicMinor).toHaveLength(7);
+    // Harmonic minor has B (raised 7th), aeolian has Bb
+    expect(harmonicMinor).toContain('B');
+    expect(aeolian).toContain('Bb');
+    expect(aeolian).not.toContain('B');
+    // Both share the b6 (Ab)
+    expect(harmonicMinor).toContain('Ab');
+    expect(aeolian).toContain('Ab');
+  });
+
+  it('C melodic minor has raised 6th (A) and raised 7th (B) vs aeolian', () => {
+    const melodicMinor = getModeNotes('C', 'melodic minor');
+    const aeolian = getModeNotes('C', 'aeolian');
+    expect(melodicMinor).toHaveLength(7);
+    // Melodic minor has A (raised 6th) and B (raised 7th)
+    expect(melodicMinor).toContain('A');
+    expect(melodicMinor).toContain('B');
+    // Aeolian has Ab and Bb
+    expect(aeolian).toContain('Ab');
+    expect(aeolian).toContain('Bb');
+    // Both share the b3 (Eb)
+    expect(melodicMinor).toContain('Eb');
+    expect(aeolian).toContain('Eb');
+  });
 });
 
 // ---------------------------------------------------------------------------
