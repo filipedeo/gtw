@@ -137,11 +137,6 @@ a:focus-visible,
   transition: background-color 0.3s, border-color 0.3s;
 }
 
-.card-hover:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  transform: translateY(-2px);
-}
-
 /* Form elements */
 select, input[type="text"], input[type="number"] {
   background-color: var(--bg-primary);
@@ -254,10 +249,6 @@ input[type="checkbox"] {
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
-}
-
-.animate-pulse {
-  animation: pulse 2s infinite;
 }
 
 @keyframes tuner-glow {

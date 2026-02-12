@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { useAudioStore } from '../stores/audioStore';
-import { DroneConfig } from '../types/audio';
 import { startDrone, stopDrone, initAudio, setMasterVolume as setEngineVolume } from '../lib/audioEngine';
 
 const AudioControls: React.FC = React.memo(() => {
@@ -87,49 +86,81 @@ const AudioControls: React.FC = React.memo(() => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          {/* Note Selection */}
           <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Note</label>
-            <select
-              value={droneConfig.note}
-              onChange={(e) => setDroneConfig({ note: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
-              style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-            >
+            <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Note</label>
+            <div className="flex flex-wrap gap-1">
               {noteOptions.map(note => (
-                <option key={note} value={note}>{note}</option>
+                <button
+                  key={note}
+                  onClick={() => setDroneConfig({ note })}
+                  className={`px-2 py-1 rounded text-sm font-medium transition-all min-w-[36px] ${
+                    droneConfig.note === note ? 'btn-primary' : ''
+                  }`}
+                  style={droneConfig.note !== note ? {
+                    backgroundColor: 'var(--bg-primary)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)'
+                  } : {}}
+                >
+                  {note}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
+
+          {/* Octave Selection */}
           <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Octave</label>
-            <select
-              value={droneConfig.octave}
-              onChange={(e) => setDroneConfig({ octave: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
-              style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-            >
+            <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Octave</label>
+            <div className="flex gap-2">
               {[1, 2, 3, 4].map(oct => (
-                <option key={oct} value={oct}>{oct}</option>
+                <button
+                  key={oct}
+                  onClick={() => setDroneConfig({ octave: oct })}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    droneConfig.octave === oct ? 'btn-primary' : ''
+                  }`}
+                  style={droneConfig.octave !== oct ? {
+                    backgroundColor: 'var(--bg-primary)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)'
+                  } : {}}
+                >
+                  {oct}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
+
+          {/* Waveform Selection */}
           <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Waveform</label>
-            <select
-              value={droneConfig.waveform}
-              onChange={(e) => setDroneConfig({ waveform: e.target.value as DroneConfig['waveform'] })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
-              style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-            >
-              <option value="sine">Sine</option>
-              <option value="triangle">Triangle</option>
-              <option value="sawtooth">Sawtooth</option>
-              <option value="square">Square</option>
-            </select>
+            <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Waveform</label>
+            <div className="flex flex-wrap gap-2">
+              {(['sine', 'triangle', 'sawtooth', 'square'] as const).map(wave => (
+                <button
+                  key={wave}
+                  onClick={() => setDroneConfig({ waveform: wave })}
+                  className={`px-3 py-2 rounded-lg font-medium transition-all text-sm capitalize ${
+                    droneConfig.waveform === wave ? 'btn-primary' : ''
+                  }`}
+                  style={droneConfig.waveform !== wave ? {
+                    backgroundColor: 'var(--bg-primary)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-color)'
+                  } : {}}
+                >
+                  {wave}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Volume Slider */}
           <div>
-            <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Volume</label>
+            <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Volume: {Math.round(droneConfig.volume * 100)}%
+            </label>
             <input
               type="range"
               min="0"

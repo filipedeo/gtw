@@ -238,56 +238,57 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
   return (
     <div className="space-y-6">
-      {/* Mode & Key Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            Mode / Pattern
-          </label>
-          <select
-            value={selectedModeIndex}
-            onChange={(e) => setSelectedModeIndex(parseInt(e.target.value))}
-            className="w-full px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
-            }}
-          >
-            {MODES.map((mode, idx) => (
-              <option key={mode.name} value={idx}>
-                Pattern {idx + 1} - {mode.displayName}
-              </option>
-            ))}
-          </select>
+      {/* Mode / Pattern Selection */}
+      <div>
+        <label
+          className="block text-sm font-medium mb-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Mode / Pattern
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {MODES.map((mode, idx) => (
+            <button
+              key={mode.name}
+              onClick={() => setSelectedModeIndex(idx)}
+              className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                selectedModeIndex === idx ? 'btn-primary' : ''
+              }`}
+              style={selectedModeIndex !== idx ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {idx + 1}. {mode.displayName}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <div>
-          <label
-            className="block text-sm font-medium mb-2"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            Key
-          </label>
-          <select
-            value={selectedKey}
-            onChange={(e) => setSelectedKey(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
-            }}
-          >
-            {KEYS.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
+      {/* Key Selection */}
+      <div>
+        <label
+          className="block text-sm font-medium mb-2"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Key
+        </label>
+        <div className="flex flex-wrap gap-1">
+          {KEYS.map((key) => (
+            <button
+              key={key}
+              onClick={() => setSelectedKey(key)}
+              className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                selectedKey === key ? 'btn-primary' : ''
+              }`}
+              style={selectedKey !== key ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {key}
+            </button>
+          ))}
         </div>
       </div>
 

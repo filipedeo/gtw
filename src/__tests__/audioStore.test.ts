@@ -9,7 +9,7 @@ const defaultDroneConfig = {
 };
 
 const defaultMetronomeConfig = {
-  bpm: 80,
+  bpm: 120,
   timeSignature: [4, 4] as [number, number],
   volume: 0.7,
   accentFirst: true,

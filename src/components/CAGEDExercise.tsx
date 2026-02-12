@@ -259,22 +259,25 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
 
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Key
+            Key ({scaleType === 'major' ? 'Major' : 'Minor'})
           </label>
-          <select
-            value={selectedKey}
-            onChange={(e) => setSelectedKey(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)'
-            }}
-          >
+          <div className="flex flex-wrap gap-1">
             {KEYS.map(key => (
-              <option key={key} value={key}>{key} {scaleType === 'major' ? 'Major' : 'Minor'}</option>
+              <button
+                key={key}
+                onClick={() => setSelectedKey(key)}
+                className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                  selectedKey === key ? 'btn-primary' : ''
+                }`}
+                style={selectedKey !== key ? {
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)'
+                } : {}}
+              >
+                {key}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       </div>
 

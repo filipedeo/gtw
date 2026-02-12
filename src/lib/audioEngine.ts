@@ -169,19 +169,6 @@ export function stopDrone(): void {
   }
 }
 
-export function updateDroneVolume(volume: number): void {
-  if (droneGain) {
-    droneGain.gain.rampTo(volume * 0.5, 0.1);
-  }
-}
-
-export function updateDroneNote(note: string, octave: number): void {
-  if (droneOscillator) {
-    const frequency = Tone.Frequency(`${note}${octave}`).toFrequency();
-    droneOscillator.frequency.rampTo(frequency, 0.2);
-  }
-}
-
 export async function startMetronome(config: MetronomeConfig): Promise<void> {
   if (!isInitialized) await initAudio();
   
@@ -241,10 +228,6 @@ export function stopMetronome(): void {
   } catch (e) {
     console.error('Failed to stop metronome:', e);
   }
-}
-
-export function updateMetronomeBPM(bpm: number): void {
-  Tone.Transport.bpm.value = bpm;
 }
 
 export async function startTunerTone(frequency: number, volume: number = 0.3): Promise<void> {
@@ -316,17 +299,3 @@ export function setMasterVolume(volume: number): void {
   Tone.Destination.volume.value = Tone.gainToDb(Math.max(0.01, volume));
 }
 
-export function disposeAll(): void {
-  stopDrone();
-  stopTunerTone();
-  stopMetronome();
-  if (synth) {
-    synth.dispose();
-    synth = null;
-  }
-  isInitialized = false;
-}
-
-export function isAudioInitialized(): boolean {
-  return isInitialized;
-}
