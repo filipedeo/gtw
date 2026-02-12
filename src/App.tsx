@@ -16,9 +16,10 @@ import { useGuitarStore } from './stores/guitarStore'
 import { useExerciseStore } from './stores/exerciseStore'
 import { useThemeStore } from './stores/themeStore'
 
+type SidePanel = 'settings' | 'audio' | null
+
 function App() {
-  const [showSettings, setShowSettings] = useState(false)
-  const [showAudioControls, setShowAudioControls] = useState(false)
+  const [sidePanel, setSidePanel] = useState<SidePanel>(null)
   const [showDrawer, setShowDrawer] = useState(false)
   const [activeToolsTab, setActiveToolsTab] = useState<ActiveToolTab>(null)
   const { instrument, stringCount, setStringCount, setInstrument } = useGuitarStore()
@@ -26,69 +27,26 @@ function App() {
   const { setTheme, theme } = useThemeStore()
   const { isDesktop } = useBreakpoint()
 
-  // Refs for focus management
-  const settingsButtonRef = useRef<HTMLButtonElement>(null)
-  const audioButtonRef = useRef<HTMLButtonElement>(null)
-  const settingsModalRef = useRef<HTMLDivElement>(null)
-  const audioModalRef = useRef<HTMLDivElement>(null)
   const hamburgerButtonRef = useRef<HTMLButtonElement>(null)
+  const sidePanelRef = useRef<HTMLDivElement>(null)
 
   // Initialize theme on mount
   useEffect(() => {
     setTheme(theme)
   }, [])
 
-  // Handle Escape key to close modals — drawer first in cascade
+  // Handle Escape key to close panels
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       if (showDrawer) { setShowDrawer(false); return }
-      if (showSettings) setShowSettings(false)
-      if (showAudioControls) setShowAudioControls(false)
+      if (sidePanel) setSidePanel(null)
     }
-  }, [showDrawer, showSettings, showAudioControls])
+  }, [showDrawer, sidePanel])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
-
-  // Focus first element when settings modal opens
-  useEffect(() => {
-    if (showSettings && settingsModalRef.current) {
-      const focusable = settingsModalRef.current.querySelectorAll<HTMLElement>(
-        'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusable.length > 0) {
-        focusable[0].focus()
-      }
-    }
-  }, [showSettings])
-
-  // Focus first element when audio modal opens
-  useEffect(() => {
-    if (showAudioControls && audioModalRef.current) {
-      const focusable = audioModalRef.current.querySelectorAll<HTMLElement>(
-        'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusable.length > 0) {
-        focusable[0].focus()
-      }
-    }
-  }, [showAudioControls])
-
-  // Return focus when settings modal closes
-  useEffect(() => {
-    if (!showSettings && settingsButtonRef.current) {
-      settingsButtonRef.current.focus()
-    }
-  }, [showSettings])
-
-  // Return focus when audio modal closes
-  useEffect(() => {
-    if (!showAudioControls && audioButtonRef.current) {
-      audioButtonRef.current.focus()
-    }
-  }, [showAudioControls])
 
   // Return focus when drawer closes
   useEffect(() => {
@@ -97,32 +55,8 @@ function App() {
     }
   }, [showDrawer])
 
-  // Handle focus trapping within modals
-  const handleModalKeyDown = (e: React.KeyboardEvent, modalRef: React.RefObject<HTMLDivElement | null>) => {
-    if (e.key !== 'Tab' || !modalRef.current) return
-
-    const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-      'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    if (focusable.length === 0) return
-
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
-  }
-
-  // Close modal when clicking backdrop
-  const handleBackdropClick = (e: React.MouseEvent, closeModal: () => void) => {
-    if (e.target === e.currentTarget) {
-      closeModal()
-    }
+  const togglePanel = (panel: 'settings' | 'audio') => {
+    setSidePanel(prev => prev === panel ? null : panel)
   }
 
   // Handle tool selection from mobile drawer
@@ -145,60 +79,67 @@ function App() {
             </div>
             <PracticeTimer />
             <MetronomeIndicator />
-            {/* Instrument + string count badge — desktop only */}
-            <button
-              onClick={() => {
-                if (instrument === 'guitar') {
-                  setStringCount(stringCount === 6 ? 7 : 6);
-                } else {
-                  const bassOptions = [4, 5, 6] as const;
-                  const idx = bassOptions.indexOf(stringCount as 4 | 5 | 6);
-                  setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
-                }
-              }}
-              className="hidden lg:inline-flex text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-              title={`${instrument === 'guitar' ? 'Guitar' : 'Bass'} — click to change string count`}
-              aria-label={`Currently ${stringCount}-string ${instrument}. Click to change.`}
-            >
-              {instrument === 'bass' ? '🎸 Bass' : '🎸'} {stringCount}-string
-            </button>
-            {/* Instrument toggle — desktop only */}
-            <button
-              onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
-              className="hidden lg:inline-flex text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-              title={`Switch to ${instrument === 'guitar' ? 'bass' : 'guitar'}`}
-            >
-              {instrument === 'guitar' ? 'Bass' : 'Guitar'}
-            </button>
+            {/* Instrument badge — desktop only */}
+            <div className="hidden lg:flex items-center gap-1">
+              <button
+                onClick={() => {
+                  if (instrument === 'guitar') {
+                    setStringCount(stringCount === 6 ? 7 : 6);
+                  } else {
+                    const bassOptions = [4, 5, 6] as const;
+                    const idx = bassOptions.indexOf(stringCount as 4 | 5 | 6);
+                    setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
+                  }
+                }}
+                className="text-xs px-2 py-1 rounded-l-full font-mono cursor-pointer transition-all hover:brightness-110"
+                style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.85 }}
+                title="Click to change string count"
+                aria-label={`Currently ${stringCount}-string ${instrument}. Click to change.`}
+              >
+                {stringCount}s
+              </button>
+              <button
+                onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
+                className="text-xs px-2 py-1 rounded-r-full font-mono cursor-pointer transition-all hover:brightness-110"
+                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                title={`Switch to ${instrument === 'guitar' ? 'bass' : 'guitar'}`}
+              >
+                {instrument === 'guitar' ? '→ Bass' : '→ Guitar'}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <ThemeToggle />
-            {/* Drone button — desktop only */}
+            {/* Drone toggle — desktop only */}
             <button
-              ref={audioButtonRef}
-              onClick={() => setShowAudioControls(!showAudioControls)}
-              className="hidden lg:inline-flex btn-secondary items-center gap-2"
+              onClick={() => togglePanel('audio')}
+              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                sidePanel === 'audio' ? 'ring-2 ring-offset-1' : ''
+              }`}
+              style={{
+                backgroundColor: sidePanel === 'audio' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                color: sidePanel === 'audio' ? 'white' : 'var(--text-secondary)',
+              }}
               aria-label="Toggle drone and volume controls"
-              aria-expanded={showAudioControls}
-              aria-haspopup="dialog"
+              aria-expanded={sidePanel === 'audio'}
             >
-              <span>🔊</span>
-              <span className="hidden sm:inline">Drone</span>
+              🔊 <span className="hidden xl:inline">Drone</span>
             </button>
-            {/* Settings button — desktop only */}
+            {/* Settings toggle — desktop only */}
             <button
-              ref={settingsButtonRef}
-              onClick={() => setShowSettings(!showSettings)}
-              className="hidden lg:inline-flex btn-secondary items-center gap-2"
+              onClick={() => togglePanel('settings')}
+              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                sidePanel === 'settings' ? 'ring-2 ring-offset-1' : ''
+              }`}
+              style={{
+                backgroundColor: sidePanel === 'settings' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                color: sidePanel === 'settings' ? 'white' : 'var(--text-secondary)',
+              }}
               aria-label="Toggle settings"
-              aria-expanded={showSettings}
-              aria-haspopup="dialog"
+              aria-expanded={sidePanel === 'settings'}
             >
-              <span>⚙️</span>
-              <span className="hidden sm:inline">Settings</span>
+              ⚙️ <span className="hidden xl:inline">Settings</span>
             </button>
             {/* Hamburger — mobile/tablet only */}
             <button
@@ -249,42 +190,96 @@ function App() {
             <ExerciseContainer />
           </div>
 
-          {/* Right Column - Progress & Info — desktop only */}
+          {/* Right Column — desktop only */}
           {isDesktop && (
             <div className="space-y-6">
-              <ProgressDashboard />
-
-              {currentExercise && (
-                <div className="card">
-                  <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    Exercise Info
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {currentExercise.description}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.9 }}
+              {/* Side Panel: Settings or Audio (replaces right column content when open) */}
+              {sidePanel === 'settings' && (
+                <div
+                  ref={sidePanelRef}
+                  className="card animate-fade-in"
+                  role="region"
+                  aria-label="Settings"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                      Settings
+                    </h2>
+                    <button
+                      onClick={() => setSidePanel(null)}
+                      className="p-1.5 rounded-lg transition-colors hover:opacity-70"
+                      style={{ color: 'var(--text-muted)' }}
+                      aria-label="Close settings"
                     >
-                      Difficulty: {currentExercise.difficulty}/5
-                    </span>
-                    <span
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ backgroundColor: 'var(--success)', color: 'white' }}
-                    >
-                      {currentExercise.type}
-                    </span>
-                    {currentExercise.audioRequired && (
-                      <span
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ backgroundColor: 'var(--warning)', color: 'white' }}
-                      >
-                        🔊 Audio
-                      </span>
-                    )}
+                      ✕
+                    </button>
                   </div>
+                  <SettingsPanel />
                 </div>
+              )}
+
+              {sidePanel === 'audio' && (
+                <div
+                  ref={sidePanelRef}
+                  className="card animate-fade-in"
+                  role="region"
+                  aria-label="Drone and Volume Controls"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                      Drone & Volume
+                    </h2>
+                    <button
+                      onClick={() => setSidePanel(null)}
+                      className="p-1.5 rounded-lg transition-colors hover:opacity-70"
+                      style={{ color: 'var(--text-muted)' }}
+                      aria-label="Close audio controls"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <AudioControls />
+                </div>
+              )}
+
+              {/* Default right column content (when no panel open) */}
+              {!sidePanel && (
+                <>
+                  <ProgressDashboard />
+
+                  {currentExercise && (
+                    <div className="card">
+                      <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        Exercise Info
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        {currentExercise.description}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.9 }}
+                        >
+                          Difficulty: {currentExercise.difficulty}/5
+                        </span>
+                        <span
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ backgroundColor: 'var(--success)', color: 'white' }}
+                        >
+                          {currentExercise.type}
+                        </span>
+                        {currentExercise.audioRequired && (
+                          <span
+                            className="text-xs px-2 py-1 rounded"
+                            style={{ backgroundColor: 'var(--warning)', color: 'white' }}
+                          >
+                            🔊 Audio
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -298,79 +293,6 @@ function App() {
           onClose={() => setShowDrawer(false)}
           onSelectTool={handleSelectTool}
         />
-      )}
-
-      {/* Audio Controls Slide-out — desktop only */}
-      {isDesktop && showAudioControls && (
-        <div
-          className="fixed inset-0 z-50 flex justify-end"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Drone and Volume Controls"
-          onKeyDown={(e) => handleModalKeyDown(e, audioModalRef)}
-        >
-          <div
-            className="absolute inset-0 bg-black/50 cursor-pointer"
-            aria-hidden="true"
-            onClick={() => setShowAudioControls(false)}
-          />
-          <div
-            ref={audioModalRef}
-            className="relative w-full max-w-md h-full overflow-y-auto animate-fade-in"
-            style={{ backgroundColor: 'var(--bg-primary)' }}
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  Drone & Volume
-                </h2>
-                <button
-                  onClick={() => setShowAudioControls(false)}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: 'var(--text-muted)' }}
-                  aria-label="Close audio controls"
-                >
-                  ✕
-                </button>
-              </div>
-              <AudioControls />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Settings Modal — desktop only */}
-      {isDesktop && showSettings && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => handleBackdropClick(e, () => setShowSettings(false))}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Settings"
-          onKeyDown={(e) => handleModalKeyDown(e, settingsModalRef)}
-        >
-          <div
-            ref={settingsModalRef}
-            className="rounded-xl p-4 md:p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto animate-fade-in"
-            style={{ backgroundColor: 'var(--bg-primary)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                Settings
-              </h2>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="p-2 rounded-lg transition-colors"
-                style={{ color: 'var(--text-muted)' }}
-                aria-label="Close settings"
-              >
-                ✕
-              </button>
-            </div>
-            <SettingsPanel />
-          </div>
-        </div>
       )}
     </div>
   )

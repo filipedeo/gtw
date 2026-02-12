@@ -7,8 +7,14 @@ interface PracticeRatingProps {
   exerciseType: string;
 }
 
+const RATING_LABELS: Record<number, { label: string; bg: string; color: string }> = {
+  1: { label: 'Struggled', bg: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)' },
+  3: { label: 'OK', bg: 'rgba(251, 191, 36, 0.1)', color: 'var(--warning)' },
+  5: { label: 'Nailed It', bg: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' },
+};
+
 const PracticeRating: React.FC<PracticeRatingProps> = React.memo(({ exerciseId, exerciseType }) => {
-  const [rated, setRated] = useState(false);
+  const [ratedQuality, setRatedQuality] = useState<number | null>(null);
   const { recordExerciseCompletion, updateReviewItem } = useProgressStore();
   const { startTime } = useExerciseStore();
 
@@ -17,16 +23,18 @@ const PracticeRating: React.FC<PracticeRatingProps> = React.memo(({ exerciseId, 
     const score = quality >= 4 ? 0.9 : quality >= 3 ? 0.7 : 0.4;
     recordExerciseCompletion(exerciseId, score, timeSpent, exerciseType);
     updateReviewItem(exerciseId, quality);
-    setRated(true);
+    setRatedQuality(quality);
   };
 
-  if (rated) {
+  if (ratedQuality !== null) {
+    const info = RATING_LABELS[ratedQuality] || RATING_LABELS[3];
     return (
       <div
-        className="p-3 rounded-lg text-center text-sm font-medium"
-        style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}
+        className="p-3 rounded-lg text-center text-sm font-medium flex items-center justify-center gap-2"
+        style={{ backgroundColor: info.bg, color: info.color }}
       >
-        Practice recorded
+        <span>{ratedQuality >= 4 ? '✓' : ratedQuality >= 3 ? '•' : '↻'}</span>
+        <span>Recorded: {info.label}</span>
       </div>
     );
   }

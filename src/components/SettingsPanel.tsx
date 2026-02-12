@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useProgressStore } from '../stores/progressStore';
 import { useThemeStore } from '../stores/themeStore';
 import { STANDARD_TUNINGS, DisplayMode, Instrument } from '../types/guitar';
 
 const SettingsPanel: React.FC = () => {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const {
     instrument,
     stringCount,
@@ -37,8 +38,11 @@ const SettingsPanel: React.FC = () => {
   };
 
   const handleResetProgress = () => {
-    if (window.confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+    if (showResetConfirm) {
       resetProgress();
+      setShowResetConfirm(false);
+    } else {
+      setShowResetConfirm(true);
     }
   };
 
@@ -202,19 +206,45 @@ const SettingsPanel: React.FC = () => {
         <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
           Data Management
         </h4>
-        <button
-          onClick={handleResetProgress}
-          className="w-full py-2 px-4 rounded-lg transition-colors"
-          style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            color: 'var(--error)'
-          }}
-        >
-          Reset All Progress
-        </button>
-        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-          This will clear all your practice history and progress data.
-        </p>
+        {showResetConfirm ? (
+          <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <p className="text-sm font-medium" style={{ color: 'var(--error)' }}>
+              Are you sure? This will permanently delete all your practice history and progress.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleResetProgress}
+                className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: 'var(--error)', color: 'white' }}
+              >
+                Yes, Reset Everything
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleResetProgress}
+              className="w-full py-2 px-4 rounded-lg transition-colors"
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--error)'
+              }}
+            >
+              Reset All Progress
+            </button>
+            <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+              This will clear all your practice history and progress data.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

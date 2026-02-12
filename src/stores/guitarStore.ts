@@ -106,6 +106,7 @@ export const useGuitarStore = create<GuitarState>()(
         tuning: state.tuning,
         fretCount: state.fretCount,
         displayMode: state.displayMode,
+        showAllNotes: state.showAllNotes,
       }),
     }
   )
