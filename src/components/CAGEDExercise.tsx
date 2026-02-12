@@ -39,6 +39,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
   const [showChord, setShowChord] = useState(true);
   const [showScale, setShowScale] = useState(false);
   const [showRoots, setShowRoots] = useState(true);
+  const [showAllShapes, setShowAllShapes] = useState(false);
 
   // Get the shape based on exercise ID
   useEffect(() => {
@@ -56,39 +57,35 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     else if (exercise.id === 'caged-12') { setScaleType('minor'); }
   }, [exercise.id]);
 
-  // Calculate the barre/root fret position for the selected key
-  const getRootFret = (): number => {
-    const shapeData = CAGED_SHAPES[selectedShape];
+  // Calculate the barre/root fret position for a given shape and the selected key
+  const getRootFretForShape = (shape: string): number => {
+    const shapeData = CAGED_SHAPES[shape];
     const keyIndex = KEYS.indexOf(selectedKey);
     const baseKeyIndex = KEYS.indexOf(shapeData.baseKey);
-    
+
     // Calculate how many semitones to move from the base key
     const semitones = (keyIndex - baseKeyIndex + 12) % 12;
-    
+
     // For shapes based on open chords (E, A, D), the base position is fret 0
     // For C shape, base position is fret 3 (open C chord root is at fret 3 of A string)
     // For G shape, base position is fret 3 (open G chord root is at fret 3 of low E string)
     let baseFret = 0;
-    if (selectedShape === 'C') baseFret = 3;
-    if (selectedShape === 'G') baseFret = 3;
-    
+    if (shape === 'C') baseFret = 3;
+    if (shape === 'G') baseFret = 3;
+
     return baseFret + semitones;
   };
 
-  // Update fretboard when shape/key changes
-  useEffect(() => {
-    if (!isActive) return;
-
-    const shapeData = CAGED_SHAPES[selectedShape];
-    const rootFret = getRootFret();
+  // Compute chord and/or scale positions for a given shape
+  const getPositionsForShape = (shape: string): { chord: FretPosition[]; scale: FretPosition[] } => {
+    const shapeData = CAGED_SHAPES[shape];
+    const rootFret = getRootFretForShape(shape);
     const chordPositions: FretPosition[] = [];
     const scalePositions: FretPosition[] = [];
 
-    // Select chord/scale data based on scale type
     const chordData = scaleType === 'minor' ? shapeData.minorChordPositions : shapeData.chordPositions;
     const scaleData = scaleType === 'minor' ? shapeData.minorScalePattern : shapeData.scalePattern;
 
-    // Always compute chord positions
     chordData.forEach(pos => {
       const fret = rootFret + pos.fretOffset;
       const adjustedString = pos.string + stringOffset;
@@ -97,7 +94,6 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       }
     });
 
-    // Always compute scale positions
     scaleData.forEach(([string, fretOffset]) => {
       const fret = rootFret + fretOffset;
       const adjustedString = string + stringOffset;
@@ -106,26 +102,74 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       }
     });
 
-    if (showChord && showScale) {
-      // Chord = primary, scale-only = secondary
-      setHighlightedPositions(chordPositions);
-      const scaleOnly = scalePositions.filter(sp =>
-        !chordPositions.some(cp => cp.string === sp.string && cp.fret === sp.fret)
-      );
-      setSecondaryHighlightedPositions(scaleOnly);
-    } else if (showChord) {
-      setHighlightedPositions(chordPositions);
-      setSecondaryHighlightedPositions([]);
-    } else if (showScale) {
-      setHighlightedPositions(scalePositions);
-      setSecondaryHighlightedPositions([]);
+    return { chord: chordPositions, scale: scalePositions };
+  };
+
+  // Update fretboard when shape/key changes
+  useEffect(() => {
+    if (!isActive) return;
+
+    if (showAllShapes) {
+      const allShapes = ['C', 'A', 'G', 'E', 'D'];
+      const currentPrimary: FretPosition[] = [];
+      const otherSecondary: FretPosition[] = [];
+
+      for (const shape of allShapes) {
+        const { chord, scale } = getPositionsForShape(shape);
+
+        if (showChord && showScale) {
+          // For the current shape: chord = primary; for other shapes: everything = secondary
+          if (shape === selectedShape) {
+            currentPrimary.push(...chord);
+            // Scale-only notes (not in chord) also go to primary for current shape
+            scale.forEach(sp => {
+              if (!chord.some(cp => cp.string === sp.string && cp.fret === sp.fret)) {
+                currentPrimary.push(sp);
+              }
+            });
+          } else {
+            otherSecondary.push(...chord, ...scale);
+          }
+        } else if (showChord) {
+          if (shape === selectedShape) {
+            currentPrimary.push(...chord);
+          } else {
+            otherSecondary.push(...chord);
+          }
+        } else if (showScale) {
+          if (shape === selectedShape) {
+            currentPrimary.push(...scale);
+          } else {
+            otherSecondary.push(...scale);
+          }
+        }
+      }
+
+      setHighlightedPositions(currentPrimary);
+      setSecondaryHighlightedPositions(otherSecondary);
     } else {
-      setHighlightedPositions([]);
-      setSecondaryHighlightedPositions([]);
+      const { chord: chordPositions, scale: scalePositions } = getPositionsForShape(selectedShape);
+
+      if (showChord && showScale) {
+        setHighlightedPositions(chordPositions);
+        const scaleOnly = scalePositions.filter(sp =>
+          !chordPositions.some(cp => cp.string === sp.string && cp.fret === sp.fret)
+        );
+        setSecondaryHighlightedPositions(scaleOnly);
+      } else if (showChord) {
+        setHighlightedPositions(chordPositions);
+        setSecondaryHighlightedPositions([]);
+      } else if (showScale) {
+        setHighlightedPositions(scalePositions);
+        setSecondaryHighlightedPositions([]);
+      } else {
+        setHighlightedPositions([]);
+        setSecondaryHighlightedPositions([]);
+      }
     }
 
     setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
-  }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
+  }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, showAllShapes, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {
@@ -275,6 +319,15 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
             className="rounded"
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Highlight Roots</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showAllShapes}
+            onChange={(e) => setShowAllShapes(e.target.checked)}
+            className="rounded"
+          />
+          <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Show All Shapes</span>
         </label>
         <DisplayModeToggle />
       </div>

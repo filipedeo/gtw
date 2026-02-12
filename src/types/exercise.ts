@@ -7,7 +7,8 @@ export type ExerciseType =
   | 'caged-system'
   | 'three-nps'
   | 'pentatonic'
-  | 'chord-progression';
+  | 'chord-progression'
+  | 'jam-mode';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
