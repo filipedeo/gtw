@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getNoteAtPosition, getPositionsForNote, getIntervalBetweenPositions, getRandomPosition } from '../utils/fretboardCalculations';
+import { getNoteAtPosition, getPositionsForNote, getIntervalBetweenPositions, getRandomPosition, getScalePositions } from '../utils/fretboardCalculations';
 import { STANDARD_TUNINGS, Tuning } from '../types/guitar';
 import { Note } from 'tonal';
 
@@ -478,6 +478,12 @@ describe('getPositionsForNote', () => {
     const positions = getPositionsForNote('X', tuning, stringCount);
     expect(positions).toEqual([]);
   });
+
+  it('respects maxFret parameter - higher maxFret yields more positions', () => {
+    const positions5 = getPositionsForNote('E', tuning, stringCount, 5);
+    const positions22 = getPositionsForNote('E', tuning, stringCount, 22);
+    expect(positions22.length).toBeGreaterThan(positions5.length);
+  });
 });
 
 describe('getIntervalBetweenPositions', () => {
@@ -554,11 +560,40 @@ describe('getRandomPosition', () => {
 
   it('should work for 7-string guitar', () => {
     const stringCount = 7;
-    
+
     for (let i = 0; i < 100; i++) {
       const pos = getRandomPosition(stringCount);
       expect(pos.string).toBeGreaterThanOrEqual(0);
       expect(pos.string).toBeLessThan(stringCount);
     }
+  });
+});
+
+describe('getScalePositions', () => {
+  const tuning6 = STANDARD_TUNINGS['standard-6'];
+
+  it('defaults to maxFret 12', () => {
+    const positions = getScalePositions(['C', 'D', 'E', 'F', 'G', 'A', 'B'], tuning6, 6);
+    const maxFret = Math.max(...positions.map(p => p.fret));
+    expect(maxFret).toBeLessThanOrEqual(12);
+  });
+
+  it('respects custom maxFret parameter', () => {
+    const positions = getScalePositions(['C', 'D', 'E', 'F', 'G', 'A', 'B'], tuning6, 6, 22);
+    const maxFret = Math.max(...positions.map(p => p.fret));
+    expect(maxFret).toBeGreaterThan(12);
+  });
+
+  it('returns positions for all strings', () => {
+    const positions = getScalePositions(['C', 'D', 'E', 'F', 'G', 'A', 'B'], tuning6, 6);
+    const strings = new Set(positions.map(p => p.string));
+    expect(strings.size).toBe(6);
+  });
+
+  it('includes open string positions (fret 0) when they match scale notes', () => {
+    // Standard tuning low E string open = E, which is in C major
+    const positions = getScalePositions(['C', 'D', 'E', 'F', 'G', 'A', 'B'], tuning6, 6);
+    const openPositions = positions.filter(p => p.fret === 0);
+    expect(openPositions.length).toBeGreaterThan(0);
   });
 });

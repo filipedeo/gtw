@@ -16,6 +16,7 @@ interface ModalPracticeExerciseProps {
 
 // Map exercise IDs to initial mode selection
 const EXERCISE_MODE_MAP: Record<string, string> = {
+  'modal-ionian': 'ionian',
   'modal-1': 'dorian',
   'modal-2': 'mixolydian',
   'modal-3': 'lydian',
@@ -29,13 +30,14 @@ const EXERCISE_MODE_MAP: Record<string, string> = {
 };
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise }) => {
-  const { stringCount, tuning, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
 
   const [selectedMode, setSelectedMode] = useState('dorian');
   const [selectedKey, setSelectedKey] = useState('A');
   const [showCharacteristicNote, setShowCharacteristicNote] = useState(true);
+  const [showFullFretboard, setShowFullFretboard] = useState(false);
 
   const keys = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
@@ -46,6 +48,8 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
     const mode = EXERCISE_MODE_MAP[exercise.id];
     if (mode) setSelectedMode(mode);
   }, [exercise.id]);
+
+  const maxFret = showFullFretboard ? fretCount : 12;
 
   // Update fretboard when mode/key changes
   useEffect(() => {
@@ -60,12 +64,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
           const charNote = scaleNotes[currentModeInfo.characteristicDegree];
           const charNormalized = normalizeNoteName(charNote);
           const mainNotes = scaleNotes.filter((_, i) => i !== currentModeInfo.characteristicDegree);
-          const mainPositions = getScalePositions(mainNotes, tuning, stringCount, 12);
-          const charPositions = getScalePositions([charNormalized], tuning, stringCount, 12);
+          const mainPositions = getScalePositions(mainNotes, tuning, stringCount, maxFret);
+          const charPositions = getScalePositions([charNormalized], tuning, stringCount, maxFret);
           setHighlightedPositions(mainPositions);
           setSecondaryHighlightedPositions(charPositions);
         } else {
-          const positions = getScalePositions(scaleNotes, tuning, stringCount, 12);
+          const positions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
           setHighlightedPositions(positions);
           setSecondaryHighlightedPositions([]);
         }
@@ -74,8 +78,8 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
     } catch (e) {
       console.error('Error getting mode notes:', e);
     }
-  }, [selectedMode, selectedKey, showCharacteristicNote, isActive, stringCount, tuning,
-      currentModeInfo, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
+  }, [selectedMode, selectedKey, showCharacteristicNote, showFullFretboard, isActive, stringCount, tuning,
+      currentModeInfo, maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
 
   // Update drone when key changes
   useEffect(() => {
@@ -186,6 +190,15 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
             className="rounded"
           />
           Highlight characteristic note
+        </label>
+        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+          <input
+            type="checkbox"
+            checked={showFullFretboard}
+            onChange={(e) => setShowFullFretboard(e.target.checked)}
+            className="rounded"
+          />
+          Full fretboard
         </label>
         <DisplayModeToggle />
       </div>

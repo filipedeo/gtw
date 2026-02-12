@@ -103,9 +103,18 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
   // Set initial mode based on exercise ID
   useEffect(() => {
-    if (exercise.id === 'three-nps-1') setSelectedModeIndex(0); // Ionian
-    else if (exercise.id === 'three-nps-2') setSelectedModeIndex(1); // Dorian
-    // three-nps-3 is "All 7 Modes" - default to Ionian
+    const modeMap: Record<string, number> = {
+      'three-nps-1': 0,          // Ionian
+      'three-nps-2': 1,          // Dorian
+      'three-nps-phrygian': 2,   // Phrygian
+      'three-nps-lydian': 3,     // Lydian
+      'three-nps-mixolydian': 4, // Mixolydian
+      'three-nps-aeolian': 5,    // Aeolian
+      'three-nps-locrian': 6,    // Locrian
+    };
+    const index = modeMap[exercise.id];
+    if (index !== undefined) setSelectedModeIndex(index);
+    // three-nps-3 is "All 7 Modes" - defaults to Ionian (0)
   }, [exercise.id]);
 
   const selectedMode = MODES[selectedModeIndex];
