@@ -434,7 +434,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     <div className="space-y-6">
       {/* Mode Selector (pentatonic-5 only) */}
       {isModeCentric && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Target Mode
@@ -464,27 +464,32 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           </div>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              Key
+              Key ({selectedModeDisplayName})
             </label>
-            <select
-              value={selectedKey}
-              onChange={e => setSelectedKey(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg"
-              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
-            >
+            <div className="flex flex-wrap gap-1">
               {KEYS.map(key => (
-                <option key={key} value={key}>
-                  {key} {selectedModeDisplayName}
-                </option>
+                <button
+                  key={key}
+                  onClick={() => setSelectedKey(key)}
+                  className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                    selectedKey === key ? 'btn-primary' : ''
+                  }`}
+                  style={selectedKey !== key ? {
+                    backgroundColor: 'var(--bg-tertiary)',
+                    color: 'var(--text-secondary)'
+                  } : {}}
+                >
+                  {key}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Scale Type & Key (non-pentatonic-5) */}
       {!isModeCentric && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <>
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               Scale Type
@@ -505,22 +510,27 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              Key
+              Key ({scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic)
             </label>
-            <select
-              value={selectedKey}
-              onChange={e => setSelectedKey(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg"
-              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
-            >
+            <div className="flex flex-wrap gap-1">
               {KEYS.map(key => (
-                <option key={key} value={key}>
-                  {key} {scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic
-                </option>
+                <button
+                  key={key}
+                  onClick={() => setSelectedKey(key)}
+                  className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                    selectedKey === key ? 'btn-primary' : ''
+                  }`}
+                  style={selectedKey !== key ? {
+                    backgroundColor: 'var(--bg-tertiary)',
+                    color: 'var(--text-secondary)'
+                  } : {}}
+                >
+                  {key}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Shape Selection */}

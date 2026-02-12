@@ -73,7 +73,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
   const [selectedProgressionIndex, setSelectedProgressionIndex] = useState(() =>
     getDefaultProgressionIndex(exercise.id)
   );
-  const [bpm, setBpm] = useState(100);
+  const [bpm, setBpm] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentChordIndex, setCurrentChordIndex] = useState(0);
   const [showFullFretboard, setShowFullFretboard] = useState(false);
@@ -213,57 +213,63 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
 
   return (
     <div className="space-y-6">
-      {/* Key + Progression selectors */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Key
-          </label>
-          <select
-            value={selectedKey}
-            onChange={(e) => {
-              setSelectedKey(e.target.value);
-              if (isPlayingRef.current) {
-                stopJam();
-              }
-            }}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-          >
-            {KEYS.map((key) => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
+      {/* Key Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          Key
+        </label>
+        <div className="flex flex-wrap gap-1">
+          {KEYS.map((key) => (
+            <button
+              key={key}
+              onClick={() => {
+                setSelectedKey(key);
+                if (isPlayingRef.current) {
+                  stopJam();
+                }
+              }}
+              className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                selectedKey === key ? 'btn-primary' : ''
+              }`}
+              style={selectedKey !== key ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {key}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Progression
-          </label>
-          <select
-            value={selectedProgressionIndex}
-            onChange={(e) => {
-              setSelectedProgressionIndex(parseInt(e.target.value));
-              if (isPlayingRef.current) {
-                stopJam();
-              }
-            }}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-          >
-            {genres.map(genre => (
-              <optgroup key={genre} label={genre}>
-                {JAM_PROGRESSIONS.map((prog, idx) =>
-                  prog.genre === genre ? (
-                    <option key={idx} value={idx}>
-                      {prog.name}
-                    </option>
-                  ) : null
-                )}
-              </optgroup>
-            ))}
-          </select>
-        </div>
+      {/* Progression Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          Progression
+        </label>
+        <select
+          value={selectedProgressionIndex}
+          onChange={(e) => {
+            setSelectedProgressionIndex(parseInt(e.target.value));
+            if (isPlayingRef.current) {
+              stopJam();
+            }
+          }}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+        >
+          {genres.map(genre => (
+            <optgroup key={genre} label={genre}>
+              {JAM_PROGRESSIONS.map((prog, idx) =>
+                prog.genre === genre ? (
+                  <option key={idx} value={idx}>
+                    {prog.name}
+                  </option>
+                ) : null
+              )}
+            </optgroup>
+          ))}
+        </select>
       </div>
 
       {/* BPM slider + Play/Stop */}

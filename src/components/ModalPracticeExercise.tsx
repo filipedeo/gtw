@@ -115,37 +115,46 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
   return (
     <div className="space-y-6">
       {/* Mode Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Mode</label>
-          <select
-            value={selectedMode}
-            onChange={(e) => setSelectedMode(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-          >
-            {MODES.map((mode) => (
-              <option key={mode.name} value={mode.name}>
-                {mode.displayName}
-              </option>
-            ))}
-          </select>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Mode</label>
+        <div className="flex flex-wrap gap-2">
+          {MODES.map((mode) => (
+            <button
+              key={mode.name}
+              onClick={() => setSelectedMode(mode.name)}
+              className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                selectedMode === mode.name ? 'btn-primary' : ''
+              }`}
+              style={selectedMode !== mode.name ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {mode.displayName}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
-          <select
-            value={selectedKey}
-            onChange={(e) => setSelectedKey(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-          >
-            {keys.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
+      {/* Key Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
+        <div className="flex flex-wrap gap-1">
+          {keys.map((key) => (
+            <button
+              key={key}
+              onClick={() => setSelectedKey(key)}
+              className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                selectedKey === key ? 'btn-primary' : ''
+              }`}
+              style={selectedKey !== key ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {key}
+            </button>
+          ))}
         </div>
       </div>
 

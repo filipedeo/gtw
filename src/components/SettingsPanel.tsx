@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useProgressStore } from '../stores/progressStore';
 import { useThemeStore } from '../stores/themeStore';
-import { STANDARD_TUNINGS, DisplayMode, Instrument } from '../types/guitar';
+import { STANDARD_TUNINGS, Instrument } from '../types/guitar';
 
 const SettingsPanel: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -169,20 +169,28 @@ const SettingsPanel: React.FC = () => {
           <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
             Note Display
           </label>
-          <select
-            value={displayMode}
-            onChange={(e) => setDisplayMode(e.target.value as DisplayMode)}
-            className="w-full px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--bg-primary)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)'
-            }}
-          >
-            <option value="notes">Note Names (C, D, E...)</option>
-            <option value="intervals">Intervals (R, 2, 3...)</option>
-            <option value="degrees">Scale Degrees (1, 2, 3...)</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { value: 'notes', label: 'Notes' },
+              { value: 'intervals', label: 'Intervals' },
+              { value: 'degrees', label: 'Degrees' }
+            ] as const).map(mode => (
+              <button
+                key={mode.value}
+                onClick={() => setDisplayMode(mode.value)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                  displayMode === mode.value ? 'btn-primary' : ''
+                }`}
+                style={displayMode !== mode.value ? {
+                  backgroundColor: 'var(--bg-primary)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-color)'
+                } : {}}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Show All Notes */}
