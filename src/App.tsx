@@ -21,7 +21,7 @@ function App() {
   const [showAudioControls, setShowAudioControls] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
   const [activeToolsTab, setActiveToolsTab] = useState<ActiveToolTab>(null)
-  const { stringCount, setStringCount } = useGuitarStore()
+  const { instrument, stringCount, setStringCount, setInstrument } = useGuitarStore()
   const { currentExercise } = useExerciseStore()
   const { setTheme, theme } = useThemeStore()
   const { isDesktop } = useBreakpoint()
@@ -145,15 +145,32 @@ function App() {
             </div>
             <PracticeTimer />
             <MetronomeIndicator />
-            {/* 6-string toggle — desktop only */}
+            {/* Instrument + string count badge — desktop only */}
             <button
-              onClick={() => setStringCount(stringCount === 6 ? 7 : 6)}
+              onClick={() => {
+                if (instrument === 'guitar') {
+                  setStringCount(stringCount === 6 ? 7 : 6);
+                } else {
+                  const bassOptions = [4, 5, 6] as const;
+                  const idx = bassOptions.indexOf(stringCount as 4 | 5 | 6);
+                  setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
+                }
+              }}
               className="hidden lg:inline-flex text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-              title={`Click to switch to ${stringCount === 6 ? 7 : 6}-string guitar`}
-              aria-label={`Currently ${stringCount}-string guitar. Click to switch to ${stringCount === 6 ? 7 : 6}-string`}
+              title={`${instrument === 'guitar' ? 'Guitar' : 'Bass'} — click to change string count`}
+              aria-label={`Currently ${stringCount}-string ${instrument}. Click to change.`}
             >
-              {stringCount}-string
+              {instrument === 'bass' ? '🎸 Bass' : '🎸'} {stringCount}-string
+            </button>
+            {/* Instrument toggle — desktop only */}
+            <button
+              onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
+              className="hidden lg:inline-flex text-xs px-2 py-1 rounded-full font-mono cursor-pointer transition-all hover:scale-105"
+              style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+              title={`Switch to ${instrument === 'guitar' ? 'bass' : 'guitar'}`}
+            >
+              {instrument === 'guitar' ? 'Bass' : 'Guitar'}
             </button>
           </div>
 

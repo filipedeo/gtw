@@ -162,11 +162,15 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     setShowFeedback(false);
   }, [mode, generateChordNotes]);
 
+  // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
+  const generateQuestionRef = useRef(generateQuestion);
+  generateQuestionRef.current = generateQuestion;
+
   useEffect(() => {
     if (isActive) {
-      generateQuestion();
+      generateQuestionRef.current();
     }
-  }, [isActive, generateQuestion]);
+  }, [isActive]);
 
   const handlePlayAgain = async () => {
     await initAudio();

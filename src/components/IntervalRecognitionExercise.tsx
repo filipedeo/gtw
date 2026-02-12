@@ -160,17 +160,21 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     
   }, [stringCount, tuning, exercise.difficulty, availableIntervals, setHighlightedPositions]);
 
+  // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
+  const generateQuestionRef = useRef(generateQuestion);
+  generateQuestionRef.current = generateQuestion;
+
   useEffect(() => {
     if (isActive) {
-      generateQuestion();
+      generateQuestionRef.current();
     } else {
       clearHighlights();
     }
-    
+
     return () => {
       clearHighlights();
     };
-  }, [isActive, generateQuestion, clearHighlights]);
+  }, [isActive, clearHighlights]);
 
   const handlePlayAgain = () => {
     if (!rootPosition || !targetPosition) return;

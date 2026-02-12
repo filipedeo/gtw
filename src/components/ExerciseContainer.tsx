@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useProgressStore } from '../stores/progressStore';
-import { getExercises, getExerciseCategories } from '../api/exercises';
+import { useGuitarStore } from '../stores/guitarStore';
+import { getExercises, formatTypeLabel } from '../api/exercises';
 import { useSwipe } from '../hooks/useSwipe';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorBoundary from './ErrorBoundary';
@@ -17,6 +18,9 @@ const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
 const ChordProgressionExercise = lazy(() => import('./ChordProgressionExercise'));
 const JamModeExercise = lazy(() => import('./JamModeExercise'));
+const ArpeggioExercise = lazy(() => import('./ArpeggioExercise'));
+const WalkingBassExercise = lazy(() => import('./WalkingBassExercise'));
+const BassPositionExercise = lazy(() => import('./BassPositionExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const {
@@ -28,19 +32,39 @@ const ExerciseContainer: React.FC = () => {
     setSelectedCategory,
   } = useExerciseStore();
 
+  const { instrument } = useGuitarStore();
   const { updateStreak } = useProgressStore();
   const [showInstructions, setShowInstructions] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const categories = getExerciseCategories();
-  
-  const filteredExercises = useMemo(() => 
-    selectedCategory === 'all' 
-      ? exercises 
-      : exercises.filter(ex => ex.type === selectedCategory),
-    [exercises, selectedCategory]
+  // Filter exercises by instrument first, then derive categories from that
+  const instrumentExercises = useMemo(() =>
+    exercises.filter(ex => {
+      const instruments = ex.instruments ?? ['guitar', 'bass'];
+      return instruments.includes(instrument);
+    }),
+    [exercises, instrument]
+  );
+
+  const categories = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const ex of instrumentExercises) {
+      seen.set(ex.type, (seen.get(ex.type) ?? 0) + 1);
+    }
+    return Array.from(seen.entries()).map(([type, count]) => ({
+      type,
+      label: formatTypeLabel(type),
+      count,
+    }));
+  }, [instrumentExercises]);
+
+  const filteredExercises = useMemo(() =>
+    selectedCategory === 'all'
+      ? instrumentExercises
+      : instrumentExercises.filter(ex => ex.type === selectedCategory),
+    [instrumentExercises, selectedCategory]
   );
 
   // Calculate the current index within the filtered list
@@ -88,6 +112,16 @@ const ExerciseContainer: React.FC = () => {
         setIsLoading(false);
       });
   };
+
+  // When instrument changes, reset to 'all' if current category is empty for new instrument
+  useEffect(() => {
+    if (selectedCategory !== 'all') {
+      const hasExercises = instrumentExercises.some(ex => ex.type === selectedCategory);
+      if (!hasExercises) {
+        setSelectedCategory('all');
+      }
+    }
+  }, [instrument, instrumentExercises, selectedCategory, setSelectedCategory]);
 
   // When category changes, if current exercise is not in filtered list, select first filtered exercise
   useEffect(() => {
@@ -153,6 +187,11 @@ const ExerciseContainer: React.FC = () => {
         return <ChordProgressionExercise exercise={currentExercise} />;
       case 'jam-mode':
         return <JamModeExercise exercise={currentExercise} />;
+      case 'arpeggio':
+        return <ArpeggioExercise exercise={currentExercise} />;
+      case 'bass-technique':
+        if (currentExercise.id.startsWith('bass-walk')) return <WalkingBassExercise exercise={currentExercise} />;
+        return <BassPositionExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">
@@ -216,7 +255,7 @@ const ExerciseContainer: React.FC = () => {
             color: 'var(--text-secondary)' 
           } : {}}
         >
-          All ({exercises.length})
+          All ({instrumentExercises.length})
         </button>
         {categories.map(cat => (
           <button

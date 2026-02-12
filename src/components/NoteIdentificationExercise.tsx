@@ -101,20 +101,24 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     
   }, [stringCount, tuning, maxFret, setHighlightedPositions, setRootNote]);
 
-  // Generate first question when exercise starts
+  // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
+  const generateQuestionRef = useRef(generateQuestion);
+  generateQuestionRef.current = generateQuestion;
+
+  // Generate first question when exercise starts (only on isActive transition)
   useEffect(() => {
     if (isActive) {
-      generateQuestion();
+      generateQuestionRef.current();
     } else {
       clearHighlights();
       setRevealedPositions([]);
     }
-    
+
     return () => {
       clearHighlights();
       setRevealedPositions([]);
     };
-  }, [isActive, generateQuestion, clearHighlights]);
+  }, [isActive, clearHighlights]);
 
   const handlePlayAgain = () => {
     if (fullNote) {
