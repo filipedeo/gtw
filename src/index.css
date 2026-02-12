@@ -297,4 +297,3 @@ input[type="checkbox"] {
 .bg-primary { background-color: var(--bg-primary); }
 .bg-secondary { background-color: var(--bg-secondary); }
 .bg-tertiary { background-color: var(--bg-tertiary); }
-.border-default { border-color: var(--border-color); }
