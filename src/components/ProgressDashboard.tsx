@@ -3,7 +3,7 @@ import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import SessionPlanner from './SessionPlanner';
 
-const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = ({ showSessionPlanner = true }) => {
+const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo(({ showSessionPlanner = true }) => {
   const { progress, getNextReviews } = useProgressStore();
   const { sessionResults } = useExerciseStore();
 
@@ -183,6 +183,6 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = ({ showSes
     </div>
     </>
   );
-};
+});
 
 export default ProgressDashboard;

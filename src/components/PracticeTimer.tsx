@@ -6,7 +6,7 @@ interface PracticeTimerProps {
 
 const TARGET_PRESETS = [5, 10, 15, 30, 60];
 
-const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTarget }) => {
+const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes: initialTarget }) => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState<number | null>(initialTarget ?? null);
@@ -208,6 +208,6 @@ const PracticeTimer: React.FC<PracticeTimerProps> = ({ targetMinutes: initialTar
       )}
     </div>
   );
-};
+});
 
 export default PracticeTimer;

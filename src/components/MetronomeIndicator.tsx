@@ -2,7 +2,7 @@ import React from 'react';
 import { useAudioStore } from '../stores/audioStore';
 import { stopMetronome } from '../lib/audioEngine';
 
-const MetronomeIndicator: React.FC = () => {
+const MetronomeIndicator: React.FC = React.memo(() => {
   const { isMetronomeActive, metronomeConfig, setMetronomeActive } = useAudioStore();
 
   if (!isMetronomeActive) return null;
@@ -37,6 +37,6 @@ const MetronomeIndicator: React.FC = () => {
       <span className="text-xs opacity-70">{tsLabel}</span>
     </button>
   );
-};
+});
 
 export default MetronomeIndicator;

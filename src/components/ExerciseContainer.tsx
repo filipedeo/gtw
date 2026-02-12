@@ -200,7 +200,6 @@ const ExerciseContainer: React.FC = () => {
   }
 
   return (
-    <ErrorBoundary>
     <div ref={containerRef} className="card" data-exercise-container>
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
@@ -332,13 +331,14 @@ const ExerciseContainer: React.FC = () => {
 
       {/* Exercise Content */}
       <div className="min-h-[200px]">
-        <Suspense fallback={<LoadingSpinner message="Loading exercise..." />}>
-          {renderExercise()}
-        </Suspense>
+        <ErrorBoundary key={currentExercise?.id}>
+          <Suspense fallback={<LoadingSpinner message="Loading exercise..." />}>
+            {renderExercise()}
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
     </div>
-    </ErrorBoundary>
   );
 };
 

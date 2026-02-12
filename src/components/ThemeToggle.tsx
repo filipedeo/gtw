@@ -1,6 +1,7 @@
+import React from 'react';
 import { useThemeStore } from '../stores/themeStore';
 
-const ThemeToggle: React.FC = () => {
+const ThemeToggle: React.FC = React.memo(() => {
   const { resolvedTheme, setTheme } = useThemeStore();
 
   // Simple toggle between light and dark (no system mode)
@@ -32,6 +33,6 @@ const ThemeToggle: React.FC = () => {
       <span className="hidden sm:inline text-sm">{getLabel()}</span>
     </button>
   );
-};
+});
 
 export default ThemeToggle;

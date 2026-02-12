@@ -6,7 +6,7 @@ interface DisplayModeToggleProps {
   compact?: boolean;
 }
 
-const DisplayModeToggle: React.FC<DisplayModeToggleProps> = ({ compact = false }) => {
+const DisplayModeToggle: React.FC<DisplayModeToggleProps> = React.memo(({ compact = false }) => {
   const { displayMode, setDisplayMode } = useGuitarStore();
 
   const modes: { value: DisplayMode; label: string; shortLabel: string }[] = [
@@ -39,6 +39,6 @@ const DisplayModeToggle: React.FC<DisplayModeToggleProps> = ({ compact = false }
       ))}
     </div>
   );
-};
+});
 
 export default DisplayModeToggle;
