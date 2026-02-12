@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Note } from 'tonal';
 import { Exercise } from '../types/exercise';
-import { FretPosition, normalizeNoteName } from '../types/guitar';
+import { FretPosition, Tuning, normalizeNoteName } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useAudioStore } from '../stores/audioStore';
 import { useExerciseStore } from '../stores/exerciseStore';
@@ -73,7 +73,7 @@ function getPentatonicBox(
   key: string,
   scaleType: ScaleType,
   boxIndex: number,
-  tuning: { notes: string[] },
+  tuning: Tuning,
   stringCount: number,
 ): FretPosition[] {
   const scaleName = scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic';
@@ -86,7 +86,7 @@ function getPentatonicBox(
   // Scan lowest string up to fret 22 for pentatonic notes
   const lowFrets: { fret: number; chroma: number }[] = [];
   for (let f = 0; f <= 22; f++) {
-    const note = getNoteAtPosition({ string: 0, fret: f }, tuning as any, stringCount);
+    const note = getNoteAtPosition({ string: 0, fret: f }, tuning, stringCount);
     const ch = Note.get(note).chroma;
     if (ch !== undefined && scaleChromas.includes(ch)) {
       lowFrets.push({ fret: f, chroma: ch });
@@ -108,7 +108,7 @@ function getPentatonicBox(
   for (let s = 0; s < stringCount; s++) {
     const frets: number[] = [];
     for (let f = 0; f <= 22; f++) {
-      const note = getNoteAtPosition({ string: s, fret: f }, tuning as any, stringCount);
+      const note = getNoteAtPosition({ string: s, fret: f }, tuning, stringCount);
       const ch = Note.get(note).chroma;
       if (ch !== undefined && scaleChromas.includes(ch)) {
         frets.push(f);
@@ -163,7 +163,7 @@ function getExtensionPositions(
   pentatonicPositions: FretPosition[],
   key: string,
   scaleType: ScaleType,
-  tuning: { notes: string[] },
+  tuning: Tuning,
   stringCount: number,
 ): FretPosition[] {
   if (pentatonicPositions.length === 0) return [];
@@ -184,7 +184,7 @@ function getExtensionPositions(
   const positions: FretPosition[] = [];
   for (let s = 0; s < stringCount; s++) {
     for (let f = Math.max(0, minFret - 1); f <= maxFret + 1; f++) {
-      const note = getNoteAtPosition({ string: s, fret: f }, tuning as any, stringCount);
+      const note = getNoteAtPosition({ string: s, fret: f }, tuning, stringCount);
       const ch = Note.get(note).chroma;
       if (ch !== undefined && extensionChromas.includes(ch)) {
         positions.push({ string: s, fret: f });

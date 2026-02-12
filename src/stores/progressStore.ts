@@ -103,8 +103,9 @@ export const useProgressStore = create<ProgressState>()(
       
       updateStreak: () => set((state) => {
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const lastPractice = state.progress.lastPracticeDate;
-        
+
         if (!lastPractice) {
           return {
             progress: {
@@ -114,9 +115,10 @@ export const useProgressStore = create<ProgressState>()(
             },
           };
         }
-        
+
         const lastDate = new Date(lastPractice);
-        const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+        lastDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
         
         if (diffDays === 0) {
           return state;

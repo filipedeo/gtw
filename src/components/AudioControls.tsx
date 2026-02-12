@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useAudioStore } from '../stores/audioStore';
-import { startDrone, stopDrone, initAudio } from '../lib/audioEngine';
+import { DroneConfig } from '../types/audio';
+import { startDrone, stopDrone, initAudio, setMasterVolume as setEngineVolume } from '../lib/audioEngine';
 
 const AudioControls: React.FC = () => {
   const {
@@ -64,7 +65,11 @@ const AudioControls: React.FC = () => {
           min="0"
           max="100"
           value={masterVolume * 100}
-          onChange={(e) => setMasterVolume(parseInt(e.target.value) / 100)}
+          onChange={(e) => {
+            const vol = parseInt(e.target.value) / 100;
+            setMasterVolume(vol);
+            setEngineVolume(vol);
+          }}
           className="w-full"
         />
       </div>
@@ -113,7 +118,7 @@ const AudioControls: React.FC = () => {
             <label className="block text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>Waveform</label>
             <select
               value={droneConfig.waveform}
-              onChange={(e) => setDroneConfig({ waveform: e.target.value as any })}
+              onChange={(e) => setDroneConfig({ waveform: e.target.value as DroneConfig['waveform'] })}
               className="w-full px-3 py-2 border rounded-lg text-sm"
               style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
             >

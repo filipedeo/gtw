@@ -121,19 +121,3 @@ export function getRandomPosition(
   return { string, fret };
 }
 
-/**
- * Get all notes for a given scale in a specific position range
- */
-export function getAllNotesForScale(
-  _root: string,
-  _scaleType: string,
-  _tuning: Tuning,
-  _stringCount: number,
-  _startFret: number = 0,
-  _endFret: number = 12
-): FretPosition[] {
-  // This would use tonal.js to get scale notes
-  // For now, return empty array - will be implemented with theoryEngine
-  // Parameters prefixed with _ to indicate intentionally unused
-  return [];
-}

@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import { Exercise, ExerciseContent, ExerciseResult } from '../types/exercise';
+import { Exercise, ExerciseResult } from '../types/exercise';
 
 interface ExerciseState {
   // Current exercise
   currentExercise: Exercise | null;
-  currentContent: ExerciseContent | null;
   exerciseIndex: number;
 
   // Exercise list
@@ -24,7 +23,7 @@ interface ExerciseState {
 
   // Actions
   setExercises: (exercises: Exercise[]) => void;
-  setCurrentExercise: (exercise: Exercise | null, content?: ExerciseContent | null) => void;
+  setCurrentExercise: (exercise: Exercise | null) => void;
   setSelectedCategory: (category: string) => void;
   startExercise: () => void;
   endExercise: (result: ExerciseResult) => void;
@@ -38,7 +37,6 @@ interface ExerciseState {
 export const useExerciseStore = create<ExerciseState>((set, get) => ({
   // Initial state
   currentExercise: null,
-  currentContent: null,
   exerciseIndex: 0,
   exercises: [],
   selectedCategory: 'all',
@@ -52,9 +50,8 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   setExercises: (exercises) => set({ exercises }),
   setSelectedCategory: (category) => set({ selectedCategory: category }),
   
-  setCurrentExercise: (exercise, content = null) => set({
+  setCurrentExercise: (exercise) => set({
     currentExercise: exercise,
-    currentContent: content,
     attempts: 0,
     correctAnswers: 0,
     isActive: true,
@@ -86,7 +83,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
       set({
         exerciseIndex: newIndex,
         currentExercise: exercises[newIndex],
-        currentContent: null,
+
         isActive: true,
         startTime: Date.now(),
         attempts: 0,
@@ -102,7 +99,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
       set({
         exerciseIndex: newIndex,
         currentExercise: exercises[newIndex],
-        currentContent: null,
+
         isActive: true,
         startTime: Date.now(),
         attempts: 0,
@@ -117,7 +114,7 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
       set({
         exerciseIndex: index,
         currentExercise: exercises[index],
-        currentContent: null,
+
         isActive: true,
         startTime: Date.now(),
         attempts: 0,
@@ -128,7 +125,6 @@ export const useExerciseStore = create<ExerciseState>((set, get) => ({
   
   resetSession: () => set({
     currentExercise: null,
-    currentContent: null,
     exerciseIndex: 0,
     isActive: false,
     startTime: null,

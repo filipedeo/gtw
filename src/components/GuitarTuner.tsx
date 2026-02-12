@@ -60,17 +60,20 @@ const GuitarTuner: React.FC = () => {
       return;
     }
 
+    let mic: MicrophoneManager | null = null;
     try {
       setMicError(null);
-      const mic = new MicrophoneManager();
+      mic = new MicrophoneManager();
       mic.onPitchDetected = (result) => {
         setDetectedPitch(result);
       };
       await mic.start();
       micRef.current = mic;
       setListening(true);
-    } catch (e: any) {
-      if (e.name === 'NotAllowedError') {
+    } catch (e: unknown) {
+      // Ensure partially-initialized mic is cleaned up on failure
+      mic?.stop();
+      if (e instanceof DOMException && e.name === 'NotAllowedError') {
         setMicError('Microphone access denied. Please allow microphone access in your browser settings.');
       } else {
         setMicError('Could not access microphone. Please check your device settings.');

@@ -56,7 +56,7 @@ const SessionPlanner: React.FC = () => {
     () => new Set(getExerciseCategories().map((c) => c.type))
   );
 
-  const { progress, getNextReviews, spacedRepetition } = useProgressStore();
+  const { progress, getNextReviews } = useProgressStore();
   const { setCurrentExercise, exercises: storeExercises, goToExercise, setSelectedCategory } =
     useExerciseStore();
 
@@ -108,7 +108,7 @@ const SessionPlanner: React.FC = () => {
       const poolSize = Math.max(1, Math.ceil(sorted.length / 2));
       return sorted[Math.floor(Math.random() * poolSize)];
     },
-    [allExercises, progress, getNextReviews, spacedRepetition]
+    [allExercises, progress, getNextReviews]
   );
 
   // Generate a plan from enabled categories and time preset

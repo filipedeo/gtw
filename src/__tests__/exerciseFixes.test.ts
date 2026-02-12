@@ -34,29 +34,6 @@ describe('SCALE_DEGREES mutation fix', () => {
     expect([...shuffled].sort()).toEqual([...SCALE_DEGREES].sort());
   });
 
-  it('demonstrates the original bug: in-place .sort() mutates the array', () => {
-    // Create a fresh array to simulate the bug
-    const mutable = ['1', '2', '3', '4', '5', '6', '7'];
-    const originalOrder = [...mutable];
-
-    // Bug pattern: calling .sort() on the array directly mutates it
-    mutable.sort(() => Math.random() - 0.5);
-
-    // After multiple sorts, the array is very likely to differ from its original order.
-    // We cannot be 100% certain a single shuffle changes order (theoretically it
-    // could return the same order), so we run many iterations to prove the point.
-    let mutated = false;
-    for (let i = 0; i < 50; i++) {
-      const arr = ['1', '2', '3', '4', '5', '6', '7'];
-      arr.sort(() => Math.random() - 0.5);
-      if (arr.join(',') !== originalOrder.join(',')) {
-        mutated = true;
-        break;
-      }
-    }
-    expect(mutated).toBe(true);
-  });
-
   it('spread-copy pattern preserves original across repeated shuffles', () => {
     const DEGREES = ['1', '2', '3', '4', '5', '6', '7'];
     const snapshot = DEGREES.join(',');

@@ -188,8 +188,8 @@ describe('getChordNotes / getChordInfo', () => {
 
   it('getChordInfo returns name and intervals', () => {
     const info = getChordInfo('Cmaj');
-    expect(info.name).toBeTruthy();
-    expect(info.intervals).toBeTruthy();
+    expect(info.name).toBe('C major');
+    expect(info.intervals).toEqual(['1P', '3M', '5P']);
   });
 });
 
@@ -199,17 +199,12 @@ describe('getChordNotes / getChordInfo', () => {
 describe('detectChord', () => {
   it('C, E, G detected as C major', () => {
     const results = detectChord(['C', 'E', 'G']);
-    expect(results.length).toBeGreaterThan(0);
-    // Should include CM or C
-    const hasCMajor = results.some(r => r.includes('C'));
-    expect(hasCMajor).toBe(true);
+    expect(results[0]).toBe('CM');
   });
 
   it('A, C, E detected as Am', () => {
     const results = detectChord(['A', 'C', 'E']);
-    expect(results.length).toBeGreaterThan(0);
-    const hasAMinor = results.some(r => r.includes('A'));
-    expect(hasAMinor).toBe(true);
+    expect(results[0]).toBe('Am');
   });
 });
 

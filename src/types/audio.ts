@@ -1,5 +1,3 @@
-// Note type is available from guitar.ts if needed for future audio features
-
 export type DroneConfig = {
   note: string;
   octave: number;
@@ -12,22 +10,6 @@ export type MetronomeConfig = {
   timeSignature: [number, number];
   volume: number;
   accentFirst: boolean;
-};
-
-export type ChordProgression = {
-  chords: string[];
-  durations: number[]; // in beats
-  bpm: number;
-};
-
-export type AudioState = {
-  isPlaying: boolean;
-  isDroneActive: boolean;
-  isMetronomeActive: boolean;
-  droneConfig: DroneConfig;
-  metronomeConfig: MetronomeConfig;
-  masterVolume: number;
-  currentNote: string | null;
 };
 
 export type PlaybackOptions = {

@@ -11,8 +11,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "dexie": "^4.3.0",
-    "jotai": "^2.17.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tonal": "^6.4.3",
@@ -23,10 +21,9 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
     "jsdom": "^27.0.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.1.18",

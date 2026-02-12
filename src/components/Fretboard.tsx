@@ -5,6 +5,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { FretPosition, NOTE_NAMES, normalizeNoteName } from '../types/guitar';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
+import { FRETBOARD_THEME_COLORS } from '../constants/fretboardTheme';
 
 interface FretboardProps {
   onNoteClick?: (position: FretPosition, note: string) => void;
@@ -63,43 +64,7 @@ const Fretboard: React.FC<FretboardProps> = ({
   const canvasHeight = PADDING_Y * 2 + STRING_SPACING * (stringCount - 1);
 
   // Theme colors
-  const colors = resolvedTheme === 'dark' ? {
-    wood: '#2c1810',
-    woodGradient: '#1e1008',
-    woodGrain: 'rgba(255, 200, 150, 0.04)',
-    nut: '#d4c5a0',
-    nutShadow: 'rgba(0,0,0,0.5)',
-    fret: '#a0a0a0',
-    fretShine: '#c8c8c8',
-    string: '#b0b0b0',
-    stringShine: '#d0d0d0',
-    dot: '#c8b888',
-    dotGlow: 'rgba(200, 184, 136, 0.25)',
-    text: '#e2e8f0',
-    textMuted: '#8896a8',
-    fretNumber: '#7a8494',
-    noteHighlight: '#60a5fa',
-    noteRoot: '#f87171',
-    noteDefault: 'rgba(100, 116, 139, 0.4)',
-  } : {
-    wood: '#c4956a',
-    woodGradient: '#a87d56',
-    woodGrain: 'rgba(0, 0, 0, 0.04)',
-    nut: '#f5f0e0',
-    nutShadow: 'rgba(0,0,0,0.3)',
-    fret: '#b8b8b8',
-    fretShine: '#d8d8d8',
-    string: '#4a4a4a',
-    stringShine: '#6a6a6a',
-    dot: '#f0e8d8',
-    dotGlow: 'rgba(240, 232, 216, 0.5)',
-    text: '#374151',
-    textMuted: '#6b7280',
-    fretNumber: '#9ca3af',
-    noteHighlight: '#3b82f6',
-    noteRoot: '#ef4444',
-    noteDefault: 'rgba(107, 114, 128, 0.3)',
-  };
+  const colors = FRETBOARD_THEME_COLORS[resolvedTheme];
 
   // Observe container width
   useEffect(() => {
@@ -593,12 +558,6 @@ const Fretboard: React.FC<FretboardProps> = ({
         role="img"
         aria-label={`Guitar fretboard with ${stringCount} strings and ${fretCount} frets. ${getHighlightedNotesDescription()}`}
         tabIndex={interactive ? 0 : undefined}
-        onKeyDown={interactive ? (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            // Announce to screen reader that the fretboard is interactive
-          }
-        } : undefined}
       />
       {/* Visually hidden description for screen readers */}
       <span className="sr-only">

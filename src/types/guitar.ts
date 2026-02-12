@@ -17,20 +17,7 @@ export type Tuning = {
   notes: string[]; // e.g., ['E2', 'A2', 'D3', 'G3', 'B3', 'E4']
 };
 
-export type GuitarConfig = {
-  stringCount: 6 | 7;
-  tuning: Tuning;
-  fretCount: number;
-};
-
 export type DisplayMode = 'notes' | 'intervals' | 'degrees';
-
-export type FretboardState = {
-  highlightedPositions: FretPosition[];
-  rootNote: Note | null;
-  displayMode: DisplayMode;
-  showAllNotes: boolean;
-};
 
 // Standard tunings
 export const STANDARD_TUNINGS: Record<string, Tuning> = {

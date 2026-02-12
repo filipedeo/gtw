@@ -31,9 +31,3 @@ export type UserProgress = {
   strongAreas: string[];
 };
 
-export type DailyStats = {
-  date: Date;
-  exercisesCompleted: number;
-  timeSpent: number;
-  accuracy: number;
-};
