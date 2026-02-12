@@ -16,7 +16,7 @@ interface ArpeggioExerciseProps {
 }
 
 /** Chord type (quality of the third) */
-type ChordType = 'major' | 'minor' | 'dominant' | 'diminished' | 'augmented' | 'sus2' | 'sus4';
+type ChordType = 'major' | 'minor' | 'dominant' | 'diminished' | 'half-diminished' | 'augmented' | 'sus2' | 'sus4' | 'altered';
 
 /** Chord extension level */
 type ChordExtension = 'triad' | '7' | '9' | '11' | '13' | '6' | 'add9';
@@ -46,7 +46,9 @@ const CHORD_TYPE_OPTIONS: { value: ChordType; label: string; shortLabel: string 
   { value: 'major', label: 'Major', shortLabel: 'Maj' },
   { value: 'minor', label: 'Minor', shortLabel: 'Min' },
   { value: 'dominant', label: 'Dominant', shortLabel: 'Dom' },
+  { value: 'altered', label: 'Altered Dominant', shortLabel: 'Alt' },
   { value: 'diminished', label: 'Diminished', shortLabel: 'Dim' },
+  { value: 'half-diminished', label: 'Half-Diminished', shortLabel: 'm7b5' },
   { value: 'augmented', label: 'Augmented', shortLabel: 'Aug' },
   { value: 'sus2', label: 'Suspended 2', shortLabel: 'Sus2' },
   { value: 'sus4', label: 'Suspended 4', shortLabel: 'Sus4' },
@@ -74,7 +76,7 @@ const EXERCISE_CHORD_MAP: Record<string, { type: ChordType; extension: ChordExte
   'guitar-arp-3': { type: 'dominant', extension: '7' },
   'guitar-arp-4': { type: 'diminished', extension: '7' },
   'guitar-arp-5': { type: 'augmented', extension: 'triad' },
-  'guitar-arp-6': { type: 'minor', extension: '7' }, // m7b5 is handled specially
+  'guitar-arp-6': { type: 'half-diminished', extension: '7' },
 };
 
 /** Get valid extensions for each chord type */
@@ -86,8 +88,12 @@ function getValidExtensions(chordType: ChordType): ChordExtension[] {
       return ['triad', '6', '7', 'add9', '9', '11', '13'];
     case 'dominant':
       return ['7', '9', '11', '13']; // Dominant implies 7th
+    case 'altered':
+      return ['7', '9']; // Altered dominant: 7alt, 7#9 (common jazz voicings)
     case 'diminished':
       return ['triad', '7']; // dim7 is the common extended form
+    case 'half-diminished':
+      return ['7']; // Half-diminished is always a 7th chord (m7b5)
     case 'augmented':
       return ['triad', '7']; // aug7 exists but less common
     case 'sus2':
@@ -133,12 +139,22 @@ function buildChordSymbol(chordType: ChordType, extension: ChordExtension): stri
         case '13': return '13';
         default: return '7';
       }
+    case 'altered':
+      // Altered dominant: uses the altered scale (b9, #9, #11, b13)
+      switch (extension) {
+        case '7': return '7alt'; // 7alt = 7 with altered tensions
+        case '9': return '7#9'; // Common "Hendrix chord"
+        default: return '7alt';
+      }
     case 'diminished':
       switch (extension) {
         case 'triad': return 'dim';
         case '7': return 'dim7';
         default: return 'dim7';
       }
+    case 'half-diminished':
+      // Half-diminished = m7b5 (minor 3rd, diminished 5th, minor 7th)
+      return 'm7b5';
     case 'augmented':
       switch (extension) {
         case 'triad': return 'aug';
@@ -172,17 +188,20 @@ function getChordToneLabels(chordType: ChordType, extension: ChordExtension): st
     labels.push('Major 2nd');
   } else if (chordType === 'sus4') {
     labels.push('Perfect 4th');
-  } else if (chordType === 'minor' || chordType === 'diminished') {
+  } else if (chordType === 'minor' || chordType === 'diminished' || chordType === 'half-diminished') {
     labels.push('Minor 3rd');
   } else {
+    // Major, dominant, altered, augmented all have major 3rd
     labels.push('Major 3rd');
   }
   
   // Add 5th based on type
-  if (chordType === 'diminished') {
+  if (chordType === 'diminished' || chordType === 'half-diminished') {
     labels.push('Diminished 5th');
   } else if (chordType === 'augmented') {
     labels.push('Augmented 5th');
+  } else if (chordType === 'altered') {
+    labels.push('Altered 5th (b5/#5)');
   } else {
     labels.push('Perfect 5th');
   }
@@ -204,7 +223,11 @@ function getChordToneLabels(chordType: ChordType, extension: ChordExtension): st
     
     // Add 9th if applicable
     if (extension === '9' || extension === '11' || extension === '13') {
-      labels.push('Major 9th');
+      if (chordType === 'altered') {
+        labels.push('Altered 9th (#9)');
+      } else {
+        labels.push('Major 9th');
+      }
     }
     
     // Add 11th if applicable

@@ -21,8 +21,8 @@ function chromaSet(notes: string[]): Set<number> {
 // MODES constant
 // ---------------------------------------------------------------------------
 describe('MODES constant', () => {
-  it('has 10 entries (7 diatonic modes + 3 additional scales)', () => {
-    expect(MODES).toHaveLength(10);
+  it('has 25 entries (7 diatonic + 7 harmonic minor + 7 melodic minor + 3 symmetric + 1 other)', () => {
+    expect(MODES).toHaveLength(25);
   });
 
   it('first 7 modes are in order: ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian', () => {
