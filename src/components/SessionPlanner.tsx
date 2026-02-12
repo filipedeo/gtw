@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
-import { getExercises, getExerciseCategories } from '../api/exercises';
+import { useGuitarStore } from '../stores/guitarStore';
+import { getExercises, formatTypeLabel } from '../api/exercises';
 import { Exercise } from '../types/exercise';
 
 type TimePreset = '15' | '30' | '60';
@@ -42,23 +43,42 @@ const SessionPlanner: React.FC = () => {
   const [removedItem, setRemovedItem] = useState<{ item: PlanItem; index: number } | null>(null);
   const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  // Derive categories dynamically from exercise data — new types are included automatically
-  const allCategories = useMemo(() => {
-    const cats = getExerciseCategories();
-    return cats.map((cat, i) => ({
-      type: cat.type,
-      label: cat.label,
-      color: getCategoryColor(cat.type, i),
-    }));
-  }, []);
-
-  const [enabledCategories, setEnabledCategories] = useState<Set<string>>(
-    () => new Set(getExerciseCategories().map((c) => c.type))
-  );
-
+  const { instrument } = useGuitarStore();
   const { progress, getNextReviews } = useProgressStore();
   const { setCurrentExercise, exercises: storeExercises, goToExercise, setSelectedCategory } =
     useExerciseStore();
+
+  // Filter exercises by current instrument
+  const instrumentExercises = useMemo(() =>
+    allExercises.filter(ex => {
+      const instruments = ex.instruments ?? ['guitar', 'bass'];
+      return instruments.includes(instrument);
+    }),
+    [allExercises, instrument]
+  );
+
+  // Derive categories from instrument-filtered exercises
+  const allCategories = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const ex of instrumentExercises) {
+      seen.set(ex.type, (seen.get(ex.type) ?? 0) + 1);
+    }
+    return Array.from(seen.entries()).map(([type], i) => ({
+      type,
+      label: formatTypeLabel(type),
+      color: getCategoryColor(type, i),
+    }));
+  }, [instrumentExercises]);
+
+  const [enabledCategories, setEnabledCategories] = useState<Set<string>>(() => new Set());
+
+  // Sync enabled categories and clear stale plan when instrument changes
+  useEffect(() => {
+    setEnabledCategories(new Set(allCategories.map((c) => c.type)));
+    setPlan([]);
+    setSelectedTime(null);
+    setSessionActive(false);
+  }, [allCategories]);
 
   // Load exercises on mount
   useEffect(() => {
@@ -75,7 +95,7 @@ const SessionPlanner: React.FC = () => {
   // Pick a random exercise for a given category, weighted by priority
   const pickExerciseForCategory = useCallback(
     (category: string): Exercise | null => {
-      const categoryExercises = allExercises.filter((ex) => ex.type === category);
+      const categoryExercises = instrumentExercises.filter((ex) => ex.type === category);
       if (categoryExercises.length === 0) return null;
 
       // Build a weighted pool: due reviews first, weak areas next, then least practiced
@@ -108,7 +128,7 @@ const SessionPlanner: React.FC = () => {
       const poolSize = Math.max(1, Math.ceil(sorted.length / 2));
       return sorted[Math.floor(Math.random() * poolSize)];
     },
-    [allExercises, progress, getNextReviews]
+    [instrumentExercises, progress, getNextReviews]
   );
 
   // Generate a plan from enabled categories and time preset

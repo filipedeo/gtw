@@ -1,0 +1,18 @@
+[     955ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:5173/node_modules/.vite/deps/tone.js?v=b6d84560:7607
+[     956ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://localhost:5173/node_modules/.vite/deps/tone.js?v=b6d84560:2864
+[  467983ms] ReferenceError: getExerciseCategories is not defined
+    at http://localhost:5173/src/components/SessionPlanner.tsx?t=1770927317541:46:18
+    at updateMemo (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:6545:21)
+    at Object.useMemo (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:18969:20)
+    at exports.useMemo (http://localhost:5173/node_modules/.vite/deps/chunk-S73QDKPN.js?v=b6d84560:947:36)
+    at SessionPlanner (http://localhost:5173/src/components/SessionPlanner.tsx?t=1770927317541:45:25)
+    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:18509:20)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:5654:24)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:7475:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:8525:20)
+    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:997:72)
+[  467950ms] [WARNING] %s
+
+%s
+ An error occurred in the <SessionPlanner> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=b6d84560:6965

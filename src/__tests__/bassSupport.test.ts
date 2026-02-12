@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { STANDARD_TUNINGS, Instrument } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
-import { getExercises } from '../api/exercises';
+import { getExercises, formatTypeLabel } from '../api/exercises';
 
 describe('Bass tunings', () => {
   it('bass standard 4-string has correct notes', () => {
@@ -172,5 +172,100 @@ describe('Exercise filtering by instrument', () => {
       return instruments.includes('bass') && ex.type === 'jam-mode';
     });
     expect(bassJam.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Bug regression: instrument-filtered categories', () => {
+  it('bass-only categories do not appear when filtering for guitar', async () => {
+    const exercises = await getExercises();
+    const guitarExercises = exercises.filter(ex => {
+      const instruments = ex.instruments ?? (['guitar', 'bass'] as Instrument[]);
+      return instruments.includes('guitar');
+    });
+    const guitarCategories = new Set(guitarExercises.map(ex => ex.type));
+    // bass-technique should NOT be in guitar categories
+    expect(guitarCategories.has('bass-technique')).toBe(false);
+  });
+
+  it('guitar-only categories do not appear when filtering for bass', async () => {
+    const exercises = await getExercises();
+    const bassExercises = exercises.filter(ex => {
+      const instruments = ex.instruments ?? (['guitar', 'bass'] as Instrument[]);
+      return instruments.includes('bass');
+    });
+    const bassCategories = new Set(bassExercises.map(ex => ex.type));
+    // caged-system and chord-voicing should NOT be in bass categories
+    expect(bassCategories.has('caged-system')).toBe(false);
+    expect(bassCategories.has('chord-voicing')).toBe(false);
+  });
+
+  it('deriving categories from filtered exercises matches expected types', async () => {
+    const exercises = await getExercises();
+
+    // Simulate the same filtering logic used in SessionPlanner
+    const filterForInstrument = (inst: Instrument) => {
+      const filtered = exercises.filter(ex => {
+        const instruments = ex.instruments ?? (['guitar', 'bass'] as Instrument[]);
+        return instruments.includes(inst);
+      });
+      const seen = new Map<string, number>();
+      for (const ex of filtered) {
+        seen.set(ex.type, (seen.get(ex.type) ?? 0) + 1);
+      }
+      return Array.from(seen.entries()).map(([type, count]) => ({
+        type,
+        label: formatTypeLabel(type),
+        count,
+      }));
+    };
+
+    const guitarCats = filterForInstrument('guitar');
+    const bassCats = filterForInstrument('bass');
+
+    // Guitar should have caged-system, bass should not
+    expect(guitarCats.some(c => c.type === 'caged-system')).toBe(true);
+    expect(bassCats.some(c => c.type === 'caged-system')).toBe(false);
+
+    // Bass should have bass-technique, guitar should not
+    expect(bassCats.some(c => c.type === 'bass-technique')).toBe(true);
+    expect(guitarCats.some(c => c.type === 'bass-technique')).toBe(false);
+  });
+});
+
+describe('Bug regression: string numbering', () => {
+  it('string display uses standard notation (1 = highest)', () => {
+    // Standard guitar: string index 0 = low E, index 5 = high E
+    // Display should be: string 1 = high E (index 5), string 6 = low E (index 0)
+    const stringCount = 6;
+
+    // Test the conversion formula used in NoteIdentificationExercise
+    const displayString = (stringIndex: number) => stringCount - stringIndex;
+
+    // Low E (index 0) → String 6
+    expect(displayString(0)).toBe(6);
+    // A (index 1) → String 5
+    expect(displayString(1)).toBe(5);
+    // D (index 2) → String 4
+    expect(displayString(2)).toBe(4);
+    // G (index 3) → String 3
+    expect(displayString(3)).toBe(3);
+    // B (index 4) → String 2
+    expect(displayString(4)).toBe(2);
+    // High E (index 5) → String 1
+    expect(displayString(5)).toBe(1);
+  });
+
+  it('string display works for bass (4-string)', () => {
+    const stringCount = 4;
+    const displayString = (stringIndex: number) => stringCount - stringIndex;
+
+    // E (index 0) → String 4
+    expect(displayString(0)).toBe(4);
+    // A (index 1) → String 3
+    expect(displayString(1)).toBe(3);
+    // D (index 2) → String 2
+    expect(displayString(2)).toBe(2);
+    // G (index 3) → String 1
+    expect(displayString(3)).toBe(1);
   });
 });
