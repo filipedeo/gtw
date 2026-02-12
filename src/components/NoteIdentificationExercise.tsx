@@ -193,7 +193,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
         <div className="flex items-center justify-center gap-4">
           {currentPosition && (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              String {currentPosition.string + 1}, Fret {currentPosition.fret}
+              String {stringCount - currentPosition.string}, Fret {currentPosition.fret}
             </p>
           )}
           <button
@@ -278,7 +278,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
             {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctNote}`}
           </p>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            {fullNote} - String {currentPosition ? currentPosition.string + 1 : ''}, Fret {currentPosition?.fret}
+            {fullNote} - String {currentPosition ? stringCount - currentPosition.string : ''}, Fret {currentPosition?.fret}
           </p>
         </div>
       )}
