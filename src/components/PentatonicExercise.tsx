@@ -228,6 +228,7 @@ function getExtensionPositions(
 
 const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => {
   const {
+    instrument,
     stringCount,
     tuning,
     setHighlightedPositions,
@@ -237,6 +238,9 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
   } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
+
+  const lowestString = stringCount <= 4 ? '4th' : stringCount === 5 ? '5th' : '6th';
+  const isBass = instrument === 'bass';
 
   const [selectedKey, setSelectedKey] = useState('A');
   const [scaleType, setScaleType] = useState<ScaleType>('minor');
@@ -699,8 +703,10 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           ) : (
             <>
               <li>Master each shape individually before connecting them</li>
+              <li>Start on the {lowestString} string and play ascending, then descend back down</li>
               <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
               <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
+              <li>{isBass ? 'Practice alternating fingers (index-middle) for consistent tone' : 'Practice alternate picking — down-up-down-up through the shape'}</li>
               <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
               <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
               <li>Use the drone to hear how pentatonic notes relate to the root</li>

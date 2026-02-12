@@ -6,6 +6,7 @@ import { FretPosition, NOTE_NAMES, normalizeNoteName } from '../types/guitar';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import { FRETBOARD_THEME_COLORS } from '../constants/fretboardTheme';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 
 interface FretboardProps {
   onNoteClick?: (position: FretPosition, note: string) => void;
@@ -40,6 +41,10 @@ const Fretboard: React.FC<FretboardProps> = ({
   
   const { masterVolume } = useAudioStore();
   const { resolvedTheme } = useThemeStore();
+  const { isMobile } = useBreakpoint();
+
+  // On mobile, cap fret rendering at 12 for better readability
+  const effectiveFretCount = isMobile ? Math.min(fretCount, 12) : fretCount;
 
   // Dynamic sizing based on container
   const STRING_SPACING = 32;
@@ -58,9 +63,9 @@ const Fretboard: React.FC<FretboardProps> = ({
 
   // Calculate fret width based on container width
   const availableWidth = containerWidth - PADDING_X * 2 - NUT_WIDTH;
-  const FRET_WIDTH = Math.max(40, Math.min(60, availableWidth / fretCount));
-  
-  const canvasWidth = PADDING_X * 2 + NUT_WIDTH + FRET_WIDTH * fretCount;
+  const FRET_WIDTH = Math.max(40, Math.min(60, availableWidth / effectiveFretCount));
+
+  const canvasWidth = PADDING_X * 2 + NUT_WIDTH + FRET_WIDTH * effectiveFretCount;
   const canvasHeight = PADDING_Y * 2 + STRING_SPACING * (stringCount - 1);
 
   // Theme colors
@@ -141,7 +146,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     // Draw frets with metallic shine
     const fretTop = PADDING_Y - 6;
     const fretBottom = PADDING_Y + STRING_SPACING * (stringCount - 1) + 6;
-    for (let fret = 1; fret <= fretCount; fret++) {
+    for (let fret = 1; fret <= effectiveFretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + fret * FRET_WIDTH;
 
       // Fret shadow (right side)
@@ -170,7 +175,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     }
 
     // Draw fret marker inlays (pearl-style dots)
-    for (let fret = 1; fret <= fretCount; fret++) {
+    for (let fret = 1; fret <= effectiveFretCount; fret++) {
       if (!DOT_FRETS.includes(fret)) continue;
       const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
       const centerY = PADDING_Y + STRING_SPACING * (stringCount - 1) / 2;
@@ -241,7 +246,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.font = '11px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    for (let fret = 1; fret <= fretCount; fret++) {
+    for (let fret = 1; fret <= effectiveFretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
       // Only show numbers at landmark frets to reduce clutter
       if (DOT_FRETS.includes(fret) || fret === 1) {
@@ -266,14 +271,16 @@ const Fretboard: React.FC<FretboardProps> = ({
     const isHovered = (pos: FretPosition): boolean =>
       hoverPosition !== null && hoverPosition.string === pos.string && hoverPosition.fret === pos.fret;
 
-    // Draw highlighted notes
+    // Draw highlighted notes (filter to visible fret range)
     highlightedPositions.forEach(pos => {
+      if (pos.fret > effectiveFretCount) return;
       const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
       drawNote(ctx, pos, true, shouldShowName, false, false, isHovered(pos));
     });
 
     // Draw secondary highlighted notes (lighter color for scale notes outside shape)
     secondaryHighlightedPositions.forEach(pos => {
+      if (pos.fret > effectiveFretCount) return;
       // Skip if already drawn as primary highlight
       if (!highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)) {
         const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
@@ -282,14 +289,14 @@ const Fretboard: React.FC<FretboardProps> = ({
     });
 
     // Draw clicked note (temporary highlight when user clicks to hear a note)
-    if (clickedPosition && !highlightedPositions.some(p => p.string === clickedPosition.string && p.fret === clickedPosition.fret)) {
+    if (clickedPosition && clickedPosition.fret <= effectiveFretCount && !highlightedPositions.some(p => p.string === clickedPosition.string && p.fret === clickedPosition.fret)) {
       drawNote(ctx, clickedPosition, true, true, true); // isClicked = true for special styling
     }
 
     // Draw all notes if enabled
     if (showAllNotes) {
       for (let string = 0; string < stringCount; string++) {
-        for (let fret = 0; fret <= fretCount; fret++) {
+        for (let fret = 0; fret <= effectiveFretCount; fret++) {
           const pos = { string, fret };
           const isClickedPos = clickedPosition && clickedPosition.string === string && clickedPosition.fret === fret;
           if (!highlightedPositions.some(p => p.string === string && p.fret === fret) && !isClickedPos) {
@@ -298,7 +305,7 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
       }
     }
-  }, [stringCount, tuning, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
+  }, [stringCount, tuning, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D,
@@ -435,7 +442,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     const visualRow = Math.round((y - PADDING_Y) / STRING_SPACING);
     const string = visualRowToStringIndex(visualRow);
     
-    if (string >= 0 && string < stringCount && fret >= 0 && fret <= fretCount) {
+    if (string >= 0 && string < stringCount && fret >= 0 && fret <= effectiveFretCount) {
       const position: FretPosition = { string, fret };
       const note = getNoteAtPosition(position, tuning, stringCount);
       
@@ -459,7 +466,7 @@ const Fretboard: React.FC<FretboardProps> = ({
         onNoteClick(position, note);
       }
     }
-  }, [interactive, stringCount, fretCount, tuning, masterVolume, onNoteClick, FRET_WIDTH, canvasWidth, canvasHeight]);
+  }, [interactive, stringCount, effectiveFretCount, tuning, masterVolume, onNoteClick, FRET_WIDTH, canvasWidth, canvasHeight]);
 
   const handleCanvasMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!interactive) {
@@ -490,7 +497,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     const visualRow = Math.round((y - PADDING_Y) / STRING_SPACING);
     const string = visualRowToStringIndex(visualRow);
 
-    if (string >= 0 && string < stringCount && fret >= 0 && fret <= fretCount) {
+    if (string >= 0 && string < stringCount && fret >= 0 && fret <= effectiveFretCount) {
       const pos: FretPosition = { string, fret };
       // Only show hover effect if this position has a highlighted note
       const isHighlighted = highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)
@@ -504,7 +511,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     } else {
       setHoverPosition(null);
     }
-  }, [interactive, stringCount, fretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, FRET_WIDTH, canvasWidth, canvasHeight]);
+  }, [interactive, stringCount, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, FRET_WIDTH, canvasWidth, canvasHeight]);
 
   const handleCanvasMouseLeave = useCallback(() => {
     setHoverPosition(null);
@@ -557,7 +564,7 @@ const Fretboard: React.FC<FretboardProps> = ({
           aspectRatio: `${canvasWidth} / ${canvasHeight}`,
         }}
         role="img"
-        aria-label={`Guitar fretboard with ${stringCount} strings and ${fretCount} frets. ${getHighlightedNotesDescription()}`}
+        aria-label={`Guitar fretboard with ${stringCount} strings and ${effectiveFretCount} frets. ${getHighlightedNotesDescription()}`}
         tabIndex={interactive ? 0 : undefined}
       />
       {/* Visually hidden description for screen readers */}

@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import * as Tone from 'tone';
 import { Exercise } from '../types/exercise';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExerciseStore } from '../stores/exerciseStore';
-import { initAudio, playChord } from '../lib/audioEngine';
-import { buildProgressionChords, getModeNotes, NOTE_NAMES } from '../lib/theoryEngine';
 import { getScalePositions } from '../utils/fretboardCalculations';
+import { getModeNotes, buildProgressionChords, NOTE_NAMES } from '../lib/theoryEngine';
+import { initAudio, playNote } from '../lib/audioEngine';
 import { normalizeNoteName } from '../types/guitar';
 import { JAM_PROGRESSIONS } from '../data/jamProgressions';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
 
-interface JamModeExerciseProps {
+interface WalkingBassExerciseProps {
   exercise: Exercise;
 }
 
@@ -20,10 +20,9 @@ const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // Map exercise IDs to default genre filter for initial progression selection
 const EXERCISE_GENRE_MAP: Record<string, string> = {
-  'jam-1': 'Blues',
-  'jam-2': 'Rock',
-  'jam-3': 'Pop',
-  'jam-4': 'Jazz',
+  'bass-walk-1': 'Blues',
+  'bass-walk-2': 'Jazz',
+  'bass-walk-3': 'Rock',
 };
 
 function getDefaultProgressionIndex(exerciseId: string): number {
@@ -31,17 +30,6 @@ function getDefaultProgressionIndex(exerciseId: string): number {
   if (!genre) return 0;
   const idx = JAM_PROGRESSIONS.findIndex(p => p.genre === genre);
   return idx >= 0 ? idx : 0;
-}
-
-/** Convert chord data (root + semitone intervals) to playable note names with octaves */
-function chordToNotes(root: string, intervals: number[]): string[] {
-  const rootIndex = NOTE_NAMES.indexOf(root);
-  if (rootIndex === -1) return [];
-  return intervals.map(semitones => {
-    const noteIndex = (rootIndex + semitones) % 12;
-    const octave = semitones >= 12 ? 4 : 3;
-    return `${NOTE_NAMES[noteIndex]}${octave}`;
-  });
 }
 
 /** Get unique genres from progressions, preserving order of first appearance */
@@ -57,7 +45,61 @@ function getGenres(): string[] {
   return genres;
 }
 
-const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
+/**
+ * Generate a walking bass line for a chord progression.
+ * Each chord gets `beatsPerChord` notes following the pattern:
+ *   Beat 1: root
+ *   Beat 2: 3rd (or 5th for triads)
+ *   Beat 3: 5th
+ *   Beat 4: chromatic approach to next chord root
+ */
+function generateWalkingLine(
+  key: string,
+  degrees: (number | string)[],
+  beatsPerChord: number
+): { note: string; chordIndex: number }[] {
+  const chords = buildProgressionChords(key, degrees);
+  const line: { note: string; chordIndex: number }[] = [];
+
+  for (let i = 0; i < chords.length; i++) {
+    const chord = chords[i];
+    const nextChord = chords[(i + 1) % chords.length];
+    const rootIndex = NOTE_NAMES.indexOf(chord.root);
+    if (rootIndex === -1) continue;
+
+    // Beat 1: root
+    line.push({ note: `${chord.root}2`, chordIndex: i });
+
+    if (beatsPerChord >= 2) {
+      // Beat 2: 3rd
+      const thirdSemitones = chord.intervals.length > 1 ? chord.intervals[1] : 4;
+      const thirdIndex = (rootIndex + thirdSemitones) % 12;
+      line.push({ note: `${NOTE_NAMES[thirdIndex]}2`, chordIndex: i });
+    }
+    if (beatsPerChord >= 3) {
+      // Beat 3: 5th
+      const fifthSemitones = chord.intervals.length > 2 ? chord.intervals[2] : 7;
+      const fifthIndex = (rootIndex + fifthSemitones) % 12;
+      line.push({ note: `${NOTE_NAMES[fifthIndex]}2`, chordIndex: i });
+    }
+    if (beatsPerChord >= 4) {
+      // Beat 4: chromatic approach to next root
+      const nextRootIndex = NOTE_NAMES.indexOf(nextChord.root);
+      if (nextRootIndex !== -1) {
+        const approachIndex = (nextRootIndex - 1 + 12) % 12;
+        line.push({ note: `${NOTE_NAMES[approachIndex]}2`, chordIndex: i });
+      } else {
+        // Fallback: repeat 5th
+        const fifthSemitones = chord.intervals.length > 2 ? chord.intervals[2] : 7;
+        const fifthIndex = (rootIndex + fifthSemitones) % 12;
+        line.push({ note: `${NOTE_NAMES[fifthIndex]}2`, chordIndex: i });
+      }
+    }
+  }
+  return line;
+}
+
+const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) => {
   const {
     stringCount,
     tuning,
@@ -69,13 +111,13 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
   } = useGuitarStore();
   const { isActive } = useExerciseStore();
 
-  const [selectedKey, setSelectedKey] = useState('A');
+  const [selectedKey, setSelectedKey] = useState('C');
   const [selectedProgressionIndex, setSelectedProgressionIndex] = useState(() =>
     getDefaultProgressionIndex(exercise.id)
   );
-  const [bpm, setBpm] = useState(100);
+  const [bpm, setBpm] = useState(80);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentChordIndex, setCurrentChordIndex] = useState(0);
+  const [currentBeatIndex, setCurrentBeatIndex] = useState(-1);
   const [showFullFretboard, setShowFullFretboard] = useState(false);
 
   const loopRef = useRef<Tone.Loop | null>(null);
@@ -92,7 +134,19 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
 
   const maxFret = showFullFretboard ? fretCount : 12;
 
-  // Update fretboard scale highlights when key/progression/chord changes
+  // Generate the walking line (memoized to prevent infinite re-render loops)
+  const walkingLine = useMemo(
+    () => generateWalkingLine(selectedKey, progression.degrees, progression.beatsPerChord),
+    [selectedKey, progression.degrees, progression.beatsPerChord]
+  );
+
+  // Collect unique note names from the walking line for secondary fretboard highlighting
+  const walkingLineNoteNames = useMemo(
+    () => [...new Set(walkingLine.map(item => normalizeNoteName(item.note.replace(/\d+$/, ''))))],
+    [walkingLine]
+  );
+
+  // Update fretboard scale highlights
   useEffect(() => {
     if (!isActive) return;
 
@@ -101,33 +155,25 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
       const scaleNotes = getModeNotes(normalizedKey, progression.suggestedScale);
 
       if (scaleNotes && scaleNotes.length > 0) {
-        // Primary: full suggested scale
         const scalePositions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
         setHighlightedPositions(scalePositions);
         setRootNote(normalizedKey);
 
-        // Secondary: chord tones of current chord
-        const chords = buildProgressionChords(selectedKey, progression.degrees);
-        if (chords.length > 0) {
-          const currentChord = chords[currentChordIndex % chords.length];
-          const chordNoteNames = currentChord.intervals.map(semitones => {
-            const rootIdx = NOTE_NAMES.indexOf(currentChord.root);
-            return NOTE_NAMES[(rootIdx + semitones) % 12];
-          });
-          const chordPositions = getScalePositions(chordNoteNames, tuning, stringCount, maxFret);
-          setSecondaryHighlightedPositions(chordPositions);
-        }
+        // Secondary: walking line chord tones
+        const walkingPositions = getScalePositions(walkingLineNoteNames, tuning, stringCount, maxFret);
+        setSecondaryHighlightedPositions(walkingPositions);
       }
     } catch (e) {
-      console.error('Error updating jam fretboard:', e);
+      console.error('Error updating walking bass fretboard:', e);
     }
   }, [
-    selectedKey, selectedProgressionIndex, currentChordIndex, showFullFretboard,
+    selectedKey, selectedProgressionIndex, showFullFretboard,
     isActive, stringCount, tuning, maxFret, progression,
+    walkingLineNoteNames,
     setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote,
   ]);
 
-  const stopJam = useCallback(() => {
+  const stopPlayback = useCallback(() => {
     if (loopRef.current) {
       loopRef.current.stop();
       loopRef.current.dispose();
@@ -137,62 +183,76 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
     Tone.getTransport().cancel();
     isPlayingRef.current = false;
     setIsPlaying(false);
-    setCurrentChordIndex(0);
+    setCurrentBeatIndex(-1);
   }, []);
 
-  const startJam = useCallback(async () => {
+  const startPlayback = useCallback(async () => {
     await initAudio();
     await Tone.start();
 
-    const chords = buildProgressionChords(selectedKey, progression.degrees);
-    if (chords.length === 0) return;
+    if (walkingLine.length === 0) return;
 
     const transport = Tone.getTransport();
     transport.bpm.value = bpm;
-    transport.cancel(); // clear previous events
+    transport.cancel();
 
     let beatIndex = 0;
-    const totalBeats = chords.length * progression.beatsPerChord;
 
     loopRef.current = new Tone.Loop((time) => {
-      const chordIndex = Math.floor(beatIndex / progression.beatsPerChord) % chords.length;
+      const currentIdx = beatIndex % walkingLine.length;
+      const noteData = walkingLine[currentIdx];
 
-      // Update UI on main thread
+      // Schedule UI update
       Tone.getDraw().schedule(() => {
-        setCurrentChordIndex(chordIndex);
+        setCurrentBeatIndex(currentIdx);
       }, time);
 
-      // Play chord on first beat of each chord
-      if (beatIndex % progression.beatsPerChord === 0) {
-        const chord = chords[chordIndex];
-        const notes = chordToNotes(chord.root, chord.intervals);
-        const chordDuration = (60 / bpm) * progression.beatsPerChord * 0.9;
-        playChord(notes, { duration: chordDuration });
+      // Play the note
+      try {
+        const synth = new Tone.Synth({
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.4 },
+        }).toDestination();
+        synth.volume.value = -6;
+        synth.triggerAttackRelease(noteData.note, '8n', time);
+        // Dispose after note plays
+        synth.triggerRelease(time + 0.4);
+        setTimeout(() => synth.dispose(), 2000);
+      } catch (e) {
+        // Fallback: use the shared playNote
+        playNote(noteData.note, { duration: 0.4, velocity: 0.7 });
       }
 
-      beatIndex = (beatIndex + 1) % totalBeats;
+      beatIndex = (beatIndex + 1) % walkingLine.length;
     }, '4n');
 
     loopRef.current.start(0);
     transport.start();
     isPlayingRef.current = true;
     setIsPlaying(true);
-  }, [selectedKey, progression, bpm]);
+  }, [bpm, walkingLine]);
 
   const handleTogglePlayback = useCallback(async () => {
     if (isPlayingRef.current) {
-      stopJam();
+      stopPlayback();
     } else {
-      await startJam();
+      await startPlayback();
     }
-  }, [startJam, stopJam]);
+  }, [startPlayback, stopPlayback]);
 
-  // Stop playback when BPM changes while playing
+  // Update BPM while playing
   useEffect(() => {
     if (isPlayingRef.current) {
       Tone.getTransport().bpm.value = bpm;
     }
   }, [bpm]);
+
+  // Stop playback when key or progression changes
+  useEffect(() => {
+    if (isPlayingRef.current) {
+      stopPlayback();
+    }
+  }, [selectedKey, selectedProgressionIndex, stopPlayback]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -221,14 +281,9 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
           </label>
           <select
             value={selectedKey}
-            onChange={(e) => {
-              setSelectedKey(e.target.value);
-              if (isPlayingRef.current) {
-                stopJam();
-              }
-            }}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+            onChange={(e) => setSelectedKey(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
           >
             {KEYS.map((key) => (
               <option key={key} value={key}>{key}</option>
@@ -242,22 +297,15 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
           </label>
           <select
             value={selectedProgressionIndex}
-            onChange={(e) => {
-              setSelectedProgressionIndex(parseInt(e.target.value));
-              if (isPlayingRef.current) {
-                stopJam();
-              }
-            }}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+            onChange={(e) => setSelectedProgressionIndex(parseInt(e.target.value))}
+            className="w-full px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
           >
             {genres.map(genre => (
               <optgroup key={genre} label={genre}>
                 {JAM_PROGRESSIONS.map((prog, idx) =>
                   prog.genre === genre ? (
-                    <option key={idx} value={idx}>
-                      {prog.name}
-                    </option>
+                    <option key={idx} value={idx}>{prog.name}</option>
                   ) : null
                 )}
               </optgroup>
@@ -279,8 +327,8 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
           </div>
           <input
             type="range"
-            min={60}
-            max={200}
+            min={40}
+            max={160}
             value={bpm}
             onChange={(e) => setBpm(parseInt(e.target.value))}
             className="w-full"
@@ -307,7 +355,8 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         </div>
         <div className="flex flex-wrap gap-2">
           {progression.numerals.map((numeral, idx) => {
-            const isCurrentChord = idx === currentChordIndex && isPlaying;
+            const isCurrentChord = isPlaying && currentBeatIndex >= 0 &&
+              walkingLine[currentBeatIndex]?.chordIndex === idx;
             const chord = chords[idx];
             const chordRoot = chord ? chord.root : '';
             return (
@@ -329,7 +378,43 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         </div>
       </div>
 
-      {/* Display options */}
+      {/* Walking Line Display */}
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+          Walking Line
+        </h4>
+        <div className="flex flex-wrap gap-1">
+          {walkingLine.map((item, idx) => {
+            const isCurrentBeat = isPlaying && idx === currentBeatIndex;
+            const noteName = item.note.replace(/\d+$/, '');
+            const beatInChord = idx % progression.beatsPerChord;
+            const isBarStart = beatInChord === 0;
+            return (
+              <React.Fragment key={idx}>
+                {isBarStart && idx > 0 && (
+                  <span className="text-xs self-center mx-0.5" style={{ color: 'var(--text-muted)' }}>|</span>
+                )}
+                <span
+                  className="inline-flex items-center justify-center w-8 h-8 rounded text-xs font-mono font-medium transition-all"
+                  style={{
+                    backgroundColor: isCurrentBeat ? 'var(--accent-primary)' : 'var(--bg-primary)',
+                    color: isCurrentBeat ? 'white' : 'var(--text-primary)',
+                    border: `1px solid ${isCurrentBeat ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                    transform: isCurrentBeat ? 'scale(1.15)' : 'scale(1)',
+                  }}
+                >
+                  {noteName}
+                </span>
+              </React.Fragment>
+            );
+          })}
+        </div>
+        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+          Pattern: Root - 3rd - 5th - Chromatic approach
+        </p>
+      </div>
+
+      {/* Display Options */}
       <div className="flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
           <input
@@ -343,20 +428,23 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         <DisplayModeToggle />
       </div>
 
-      {/* Scale info */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          Suggested Scale: {progression.suggestedScale.charAt(0).toUpperCase() + progression.suggestedScale.slice(1)}
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          The scale is highlighted on the fretboard. Chord tones of the current chord are shown with secondary highlights.
-          Target chord tones on beat 1 of each chord change for stronger phrasing.
-        </p>
-      </div>
-
       {/* Fretboard */}
       <div className="card p-4">
         <Fretboard interactive={true} />
+      </div>
+
+      {/* Practice Tips */}
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Practice Tips</h4>
+        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
+          <li>Beat 1 is always the root -- anchor the harmony on the downbeat</li>
+          <li>Beats 2 and 3 use chord tones (3rd, 5th) to outline the chord quality</li>
+          <li>Beat 4 uses a chromatic approach note to lead into the next chord</li>
+          <li>Keep your right hand steady -- the bass drives the groove</li>
+          <li>Practice at slow tempos first (60-80 BPM) and build up gradually</li>
+          <li>Try to play along with the generated line, then create your own variations</li>
+          <li>Use scale passing tones between chord tones for melodic interest</li>
+        </ul>
       </div>
 
       {/* Self-Assessment */}
@@ -365,4 +453,4 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
   );
 };
 
-export default JamModeExercise;
+export default WalkingBassExercise;

@@ -1,3 +1,5 @@
+export type Instrument = 'guitar' | 'bass';
+
 export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
 
 export type Note = {
@@ -36,7 +38,24 @@ export const STANDARD_TUNINGS: Record<string, Tuning> = {
   'drop-a-7': {
     name: 'Drop A 7-String',
     notes: ['A1', 'E2', 'A2', 'D3', 'G3', 'B3', 'E4']
-  }
+  },
+  // Bass tunings
+  'bass-standard-4': {
+    name: 'Bass Standard 4-String',
+    notes: ['E1', 'A1', 'D2', 'G2']
+  },
+  'bass-standard-5': {
+    name: 'Bass Standard 5-String',
+    notes: ['B0', 'E1', 'A1', 'D2', 'G2']
+  },
+  'bass-standard-6': {
+    name: 'Bass Standard 6-String',
+    notes: ['B0', 'E1', 'A1', 'D2', 'G2', 'C3']
+  },
+  'bass-drop-d-4': {
+    name: 'Bass Drop D 4-String',
+    notes: ['D1', 'A1', 'D2', 'G2']
+  },
 };
 
 export const NOTE_NAMES: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

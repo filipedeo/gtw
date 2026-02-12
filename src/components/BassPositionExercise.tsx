@@ -11,24 +11,20 @@ import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
 
-interface ThreeNPSExerciseProps {
+interface BassPositionExerciseProps {
   exercise: Exercise;
 }
 
 const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 /**
- * Compute 3-notes-per-string positions for a given scale.
+ * Compute 2-notes-per-string positions for a given scale.
  *
- * Algorithm:
- * 1. For each string (low to high), find every fret 0-22 that produces a note
- *    belonging to the scale.
- * 2. Starting from a target fret region, pick 3 consecutive scale frets per
- *    string that form a playable group (max 5-fret span).
- * 3. Drift the target region upward as we move to higher strings so the
- *    overall shape stays in one position on the neck.
+ * Algorithm mirrors getThreeNPSPositions from ThreeNPSExercise
+ * but selects groups of 2 consecutive scale frets per string,
+ * creating natural 4-finger bass patterns.
  */
-export function getThreeNPSPositions(
+export function getTwoNPSPositions(
   key: string,
   modeName: string,
   tuning: Tuning,
@@ -38,7 +34,6 @@ export function getThreeNPSPositions(
   const scaleNotes = getModeNotes(normalizeNoteName(key), modeName);
   if (!scaleNotes || scaleNotes.length === 0) return [];
 
-  // Normalize all scale notes for comparison
   const normalizedScaleNotes = scaleNotes.map(n => normalizeNoteName(n));
 
   const positions: FretPosition[] = [];
@@ -56,16 +51,16 @@ export function getThreeNPSPositions(
       }
     }
 
-    // Find the best group of 3 consecutive scale frets near the target position
+    // Find the best group of 2 consecutive scale frets near the target position
     let bestGroup: number[] = [];
     let bestDistance = Infinity;
 
-    for (let i = 0; i <= scaleFrets.length - 3; i++) {
-      const group = [scaleFrets[i], scaleFrets[i + 1], scaleFrets[i + 2]];
-      // The group should span at most 5 frets to be playable
-      if (group[2] - group[0] <= 5) {
-        const center = (group[0] + group[2]) / 2;
-        const dist = Math.abs(center - targetFret - 2);
+    for (let i = 0; i <= scaleFrets.length - 2; i++) {
+      const group = [scaleFrets[i], scaleFrets[i + 1]];
+      // The group should span at most 4 frets to be playable with one hand
+      if (group[1] - group[0] <= 4) {
+        const center = (group[0] + group[1]) / 2;
+        const dist = Math.abs(center - targetFret - 1);
         if (dist < bestDistance) {
           bestDistance = dist;
           bestGroup = group;
@@ -74,9 +69,8 @@ export function getThreeNPSPositions(
     }
 
     // Add positions and drift the target for the next string
-    if (bestGroup.length === 3) {
+    if (bestGroup.length === 2) {
       bestGroup.forEach(fret => positions.push({ string, fret }));
-      // Drift the target position to follow the shape
       targetFret = Math.max(targetFret, bestGroup[0]);
     }
   }
@@ -84,9 +78,8 @@ export function getThreeNPSPositions(
   return positions;
 }
 
-const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
+const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise }) => {
   const {
-    instrument,
     stringCount,
     tuning,
     setHighlightedPositions,
@@ -97,30 +90,10 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
 
-  const isBass = instrument === 'bass';
-
-  const [selectedKey, setSelectedKey] = useState<string>('C');
-  const [selectedModeIndex, setSelectedModeIndex] = useState<number>(0);
-  const [startFret, setStartFret] = useState<number>(0);
+  const [selectedKey, setSelectedKey] = useState('C');
+  const [selectedModeIndex, setSelectedModeIndex] = useState(0);
+  const [startFret, setStartFret] = useState(0);
   const [isPlayingScale, setIsPlayingScale] = useState(false);
-
-  // Set initial mode based on exercise ID
-  useEffect(() => {
-    const modeMap: Record<string, number> = {
-      'three-nps-1': 0,          // Ionian
-      'three-nps-2': 1,          // Dorian
-      'three-nps-phrygian': 2,   // Phrygian
-      'three-nps-lydian': 3,     // Lydian
-      'three-nps-mixolydian': 4, // Mixolydian
-      'three-nps-aeolian': 5,    // Aeolian
-      'three-nps-locrian': 6,    // Locrian
-      'three-nps-harmonic-minor': 7,  // Harmonic Minor
-      'three-nps-melodic-minor': 8,   // Melodic Minor
-    };
-    const index = modeMap[exercise.id];
-    if (index !== undefined) setSelectedModeIndex(index);
-    // three-nps-3 is "All 7 Modes" - defaults to Ionian (0)
-  }, [exercise.id]);
 
   const selectedMode = MODES[selectedModeIndex];
 
@@ -128,7 +101,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
   const updateFretboard = useCallback(() => {
     if (!isActive) return;
 
-    const positions = getThreeNPSPositions(
+    const positions = getTwoNPSPositions(
       selectedKey,
       selectedMode.name,
       tuning,
@@ -138,41 +111,22 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
     setHighlightedPositions(positions);
     setRootNote(normalizeNoteName(selectedKey));
-
-    // For the "All 7 Modes" exercise, show the next adjacent pattern as secondary
-    if (exercise.id === 'three-nps-3') {
-      const nextModeIndex = (selectedModeIndex + 1) % MODES.length;
-      const nextMode = MODES[nextModeIndex];
-      // The next pattern starts roughly 2-3 frets higher
-      const nextStartFret = startFret + 2;
-      const secondaryPositions = getThreeNPSPositions(
-        selectedKey,
-        nextMode.name,
-        tuning,
-        stringCount,
-        nextStartFret
-      );
-      setSecondaryHighlightedPositions(secondaryPositions);
-    } else {
-      setSecondaryHighlightedPositions([]);
-    }
+    setSecondaryHighlightedPositions([]);
   }, [
-    isActive,
-    selectedKey,
-    selectedMode,
-    selectedModeIndex,
-    tuning,
-    stringCount,
-    startFret,
-    exercise.id,
-    setHighlightedPositions,
-    setSecondaryHighlightedPositions,
-    setRootNote,
+    isActive, selectedKey, selectedMode, tuning, stringCount, startFret,
+    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote,
   ]);
 
   useEffect(() => {
     updateFretboard();
   }, [updateFretboard]);
+
+  // Update drone when key changes
+  useEffect(() => {
+    if (isDroneActive) {
+      setDroneConfig({ note: selectedKey, octave: 2 });
+    }
+  }, [selectedKey, isDroneActive, setDroneConfig]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -208,7 +162,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
     await initAudio();
     setIsPlayingScale(true);
 
-    const positions = getThreeNPSPositions(
+    const positions = getTwoNPSPositions(
       selectedKey,
       selectedMode.name,
       tuning,
@@ -222,15 +176,13 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
       return a.fret - b.fret;
     });
 
-    // Play each note with a slight delay
-    const noteDelay = 0.2;
+    const noteDelay = 0.25;
     for (let i = 0; i < sorted.length; i++) {
       const pos = sorted[i];
       const note = getNoteAtPosition(pos, tuning, stringCount);
       playNote(note, { duration: 0.4, velocity: 0.7, delay: i * noteDelay });
     }
 
-    // Wait for all notes to finish
     setTimeout(() => {
       setIsPlayingScale(false);
     }, sorted.length * noteDelay * 1000 + 500);
@@ -245,7 +197,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
             className="block text-sm font-medium mb-2"
             style={{ color: 'var(--text-primary)' }}
           >
-            Mode / Pattern
+            Mode / Scale
           </label>
           <select
             value={selectedModeIndex}
@@ -259,7 +211,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           >
             {MODES.map((mode, idx) => (
               <option key={mode.name} value={idx}>
-                Pattern {idx + 1} - {mode.displayName}
+                {mode.displayName}
               </option>
             ))}
           </select>
@@ -319,13 +271,13 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
         style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
       >
         <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          Pattern {selectedModeIndex + 1} - {selectedMode.displayName} ({selectedKey})
+          {selectedMode.displayName} ({selectedKey}) - 2 Notes Per String
         </h4>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           Characteristic note: <strong>{selectedMode.characteristicNote}</strong>
           {' '}&mdash;{' '}
-          3 notes per string starting near fret {startFret}.
-          {stringCount >= 5 && isBass ? ' Includes low B string.' : stringCount === 7 ? ' Includes low B string for 7-string coverage.' : ''}
+          2 notes per string starting near fret {startFret}.
+          This creates natural one-finger-per-fret patterns optimized for bass.
         </p>
       </div>
 
@@ -368,15 +320,14 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           className="text-sm space-y-1 list-disc list-inside"
           style={{ color: 'var(--text-secondary)' }}
         >
-          <li>Every string gets exactly 3 notes — great for even {isBass ? 'finger alternation' : 'alternate picking'}</li>
-          <li>All 7 patterns use just 3 finger shapes: whole-whole (1-3-5), whole-half (1-3-4), and half-whole (1-2-4)</li>
-          <li>Practice ascending and descending with strict {isBass ? 'alternating fingers (index-middle)' : 'alternate picking'}</li>
-          <li>Try legato (hammer-ons ascending, pull-offs descending) for smooth lines</li>
-          <li>Start slow with a metronome — increase speed only when clean</li>
-          {isBass && <li>Focus on consistent right-hand finger alternation (index-middle) for an even tone across all strings</li>}
-          <li>Use the drone to hear how each note relates to the tonal center</li>
-          <li>Connect adjacent patterns by sliding between them</li>
-          <li>Remove the highest and lowest note per string to reveal the pentatonic shape hiding inside each 3NPS pattern</li>
+          <li>2 notes per string creates natural one-finger-per-fret bass patterns</li>
+          <li>Keep your thumb anchored behind the neck for stability</li>
+          <li>Use one finger per fret within each position (index and middle, or index and ring)</li>
+          <li>Practice shifting cleanly between positions -- minimize hand movement</li>
+          <li>Use alternating right-hand fingers (index-middle) for consistent tone</li>
+          <li>Start slow with a metronome and increase speed only when clean</li>
+          <li>Use the drone to hear how each scale degree relates to the tonal center</li>
+          <li>Try playing the pattern ascending, then descending without pausing</li>
         </ul>
       </div>
 
@@ -386,4 +337,4 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
   );
 };
 
-export default ThreeNPSExercise;
+export default BassPositionExercise;

@@ -62,6 +62,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-2',
@@ -76,6 +77,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-3',
@@ -90,6 +92,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-4',
@@ -104,6 +107,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-5',
@@ -118,6 +122,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-6',
@@ -133,6 +138,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-7',
@@ -148,6 +154,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-8',
@@ -162,6 +169,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-9',
@@ -176,6 +184,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-10',
@@ -190,6 +199,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-11',
@@ -204,6 +214,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'caged-12',
@@ -219,6 +230,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
 
   // ============ 3-NOTES-PER-STRING ============
@@ -231,7 +243,7 @@ const exerciseData: Exercise[] = [
     instructions: [
       'Each string gets exactly 3 notes from the major scale',
       'All 3NPS patterns use just 3 finger shapes: W-W (1-3-5), W-H (1-3-4), H-W (1-2-4)',
-      'Practice ascending and descending with alternate picking',
+      'Practice ascending and descending with alternate picking/plucking',
       'Start slow — increase speed only when clean',
       'Remove one note per string to reveal the pentatonic shape inside',
     ],
@@ -553,6 +565,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-2',
@@ -567,6 +580,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-3',
@@ -581,6 +595,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-4',
@@ -595,6 +610,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-5',
@@ -609,6 +625,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-6',
@@ -624,6 +641,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
   {
     id: 'chord-7',
@@ -639,6 +657,7 @@ const exerciseData: Exercise[] = [
     ],
     audioRequired: true,
     fretboardRequired: true,
+    instruments: ['guitar'],
   },
 
   // ============ PENTATONIC SCALES ============
@@ -646,11 +665,11 @@ const exerciseData: Exercise[] = [
     id: 'pentatonic-1',
     type: 'pentatonic',
     title: 'Minor Pentatonic - Shape 1 (Root Position)',
-    description: 'Learn the most common pentatonic box shape. Root starts on the 6th string.',
+    description: 'Learn the most common pentatonic box shape. Root starts on the lowest string.',
     difficulty: 1,
     instructions: [
       'This is the most commonly used pentatonic shape',
-      'Root note is on the 6th and 1st strings',
+      'Root note is on the lowest and highest strings',
       'Master this shape first before moving to others',
       'Great for blues, rock, and most improvisation',
     ],
@@ -1032,6 +1051,234 @@ const exerciseData: Exercise[] = [
     audioRequired: true,
     fretboardRequired: true,
   },
+
+  // ============ ARPEGGIOS ============
+  {
+    id: 'guitar-arp-1',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Major 7',
+    description: 'Practice sweep picking major 7th arpeggios across the fretboard.',
+    difficulty: 3,
+    instructions: [
+      'Major 7 arpeggio: Root, 3rd, 5th, 7th (1-3-5-7)',
+      'Use a single continuous pick stroke across strings (sweep)',
+      'Mute each string after playing to keep notes clean',
+      'Start at a slow tempo and gradually increase speed',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'guitar-arp-2',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Minor 7',
+    description: 'Practice sweep picking minor 7th arpeggios for jazz and fusion.',
+    difficulty: 3,
+    instructions: [
+      'Minor 7 arpeggio: Root, b3rd, 5th, b7th (1-b3-5-b7)',
+      'Sweep ascending with a single down-stroke, then sweep back up',
+      'Focus on synchronizing the fretting hand with the sweep',
+      'Apply this shape over ii chords in ii-V-I progressions',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'guitar-arp-3',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Dominant 7',
+    description: 'Practice sweep picking dominant 7th arpeggios for blues and rock.',
+    difficulty: 3,
+    instructions: [
+      'Dominant 7 arpeggio: Root, 3rd, 5th, b7th (1-3-5-b7)',
+      'Essential for outlining V chords in any key',
+      'Practice the 5-string sweep pattern ascending and descending',
+      'Combine with pentatonic licks for killer blues phrasing',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'guitar-arp-4',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Diminished 7',
+    description: 'Practice sweep picking diminished 7th arpeggios — symmetrical patterns.',
+    difficulty: 3,
+    instructions: [
+      'Diminished 7: Root, b3, b5, bb7 — all minor 3rds apart',
+      'Symmetrical: same shape repeats every 3 frets',
+      'Great for creating tension before resolving to a major/minor chord',
+      'Practice connecting diminished sweeps across the neck',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'guitar-arp-5',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Augmented',
+    description: 'Practice sweep picking augmented triad arpeggios — symmetrical patterns.',
+    difficulty: 3,
+    instructions: [
+      'Augmented triad: Root, 3, #5 — all major 3rds apart',
+      'Symmetrical: same shape repeats every 4 frets',
+      'Use as passing arpeggios between chord changes',
+      'Practice 3-string sweep shapes for speed',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'guitar-arp-6',
+    type: 'arpeggio',
+    title: 'Sweep Picking - Half-Diminished',
+    description: 'Practice sweep picking min7b5 (half-diminished) arpeggios for jazz.',
+    difficulty: 4,
+    instructions: [
+      'Half-diminished: Root, b3, b5, b7 (min7b5)',
+      'Essential for the ii chord in minor key ii-V-i progressions',
+      'Often used as a substitution for dominant chords',
+      'Practice resolving to the V7 arpeggio for smooth voice leading',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['guitar'],
+  },
+  {
+    id: 'bass-arp-1',
+    type: 'arpeggio',
+    title: 'Major 7 Arpeggios',
+    description: 'Practice major 7th arpeggio shapes across the fretboard.',
+    difficulty: 2,
+    instructions: [
+      'Major 7 arpeggio: Root, 3rd, 5th, 7th (1-3-5-7)',
+      'Learn the shapes in multiple positions',
+      'Focus on smooth, even tone across all strings',
+      'Use these shapes to outline chord changes',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-arp-2',
+    type: 'arpeggio',
+    title: 'Minor 7 Arpeggios',
+    description: 'Practice minor 7th arpeggio shapes across the fretboard.',
+    difficulty: 2,
+    instructions: [
+      'Minor 7 arpeggio: Root, b3rd, 5th, b7th (1-b3-5-b7)',
+      'Essential for jazz and funk bass lines',
+      'Practice connecting arpeggios across positions',
+      'Try playing the arpeggio ascending and descending',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-arp-3',
+    type: 'arpeggio',
+    title: 'Dominant 7 Arpeggios',
+    description: 'Practice dominant 7th arpeggio shapes for blues and funk.',
+    difficulty: 2,
+    instructions: [
+      'Dominant 7 arpeggio: Root, 3rd, 5th, b7th (1-3-5-b7)',
+      'The dominant 7 sound is essential for blues bass',
+      'Practice these shapes over a blues progression',
+      'Try adding chromatic approach notes between arpeggio tones',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-arp-4',
+    type: 'arpeggio',
+    title: 'Arpeggio Inversions',
+    description: 'Learn to play arpeggios starting from different chord tones (inversions).',
+    difficulty: 3,
+    instructions: [
+      'Root position: start on the root (1-3-5-7)',
+      '1st inversion: start on the 3rd (3-5-7-1)',
+      '2nd inversion: start on the 5th (5-7-1-3)',
+      '3rd inversion: start on the 7th (7-1-3-5)',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+
+  // ============ BASS TECHNIQUE ============
+  {
+    id: 'bass-walk-1',
+    type: 'bass-technique',
+    title: 'Walking Bass - Blues',
+    description: 'Learn to create walking bass lines over a 12-bar blues progression.',
+    difficulty: 2,
+    instructions: [
+      'Walking bass uses chord tones + approach notes',
+      'Beat 1: always play the root of the chord',
+      'Beats 2-3: use chord tones (3rd, 5th)',
+      'Beat 4: chromatic approach to the next chord root',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-walk-2',
+    type: 'bass-technique',
+    title: 'Walking Bass - Jazz Standards',
+    description: 'Practice walking bass over ii-V-I and other jazz progressions.',
+    difficulty: 3,
+    instructions: [
+      'Jazz walking bass outlines the harmony clearly',
+      'Use guide tones (3rds and 7ths) to define chord quality',
+      'Practice smooth voice leading between chords',
+      'Add scale passing tones for melodic interest',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-walk-3',
+    type: 'bass-technique',
+    title: 'Walking Bass - Rock/Pop',
+    description: 'Create walking bass lines over common rock and pop progressions.',
+    difficulty: 2,
+    instructions: [
+      'Rock walking bass is simpler than jazz',
+      'Focus on root-5th patterns as your foundation',
+      'Add passing tones between chord roots',
+      'Keep the rhythm steady — the bass drives the groove',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
+  {
+    id: 'bass-pos-1',
+    type: 'bass-technique',
+    title: 'Positional Playing',
+    description: 'Practice scales using 2-notes-per-string patterns optimized for bass technique.',
+    difficulty: 2,
+    instructions: [
+      '2 notes per string creates natural 4-finger bass patterns',
+      'Keep your thumb anchored behind the neck',
+      'Use one finger per fret within each position',
+      'Practice shifting cleanly between positions',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+    instruments: ['bass'],
+  },
 ];
 
 /**
@@ -1068,7 +1315,7 @@ export async function getExercisesByDifficulty(difficulty: Difficulty): Promise<
 }
 
 /** Human-readable labels for exercise types. New types without an entry get auto-formatted. */
-const CATEGORY_LABELS: Record<string, string> = {
+export const CATEGORY_LABELS: Record<string, string> = {
   'note-identification': 'Note Identification',
   'caged-system': 'CAGED System',
   'pentatonic': 'Pentatonic Scales',
@@ -1079,9 +1326,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   'ear-training': 'Ear Training',
   'chord-progression': 'Chord Progressions',
   'jam-mode': 'Jam Mode',
+  'arpeggio': 'Arpeggios',
+  'bass-technique': 'Bass Technique',
 };
 
-function formatTypeLabel(type: string): string {
+export function formatTypeLabel(type: string): string {
   return CATEGORY_LABELS[type] ??
     type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }

@@ -1,3 +1,5 @@
+import type { Instrument } from './guitar';
+
 export type ExerciseType =
   | 'note-identification'
   | 'modal-practice'
@@ -8,7 +10,9 @@ export type ExerciseType =
   | 'three-nps'
   | 'pentatonic'
   | 'chord-progression'
-  | 'jam-mode';
+  | 'jam-mode'
+  | 'bass-technique'
+  | 'arpeggio';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
@@ -21,6 +25,7 @@ export type Exercise = {
   instructions: string[];
   audioRequired: boolean;
   fretboardRequired: boolean;
+  instruments?: Instrument[];
 };
 
 export type ExerciseResult = {

@@ -2,24 +2,30 @@ import React from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useProgressStore } from '../stores/progressStore';
 import { useThemeStore } from '../stores/themeStore';
-import { STANDARD_TUNINGS, DisplayMode } from '../types/guitar';
+import { STANDARD_TUNINGS, DisplayMode, Instrument } from '../types/guitar';
 
 const SettingsPanel: React.FC = () => {
-  const { 
-    stringCount, 
-    tuning, 
+  const {
+    instrument,
+    stringCount,
+    tuning,
     displayMode,
     showAllNotes,
-    setStringCount, 
+    setInstrument,
+    setStringCount,
     setTuning,
     setDisplayMode,
     toggleShowAllNotes,
   } = useGuitarStore();
-  
+
   const { resetProgress } = useProgressStore();
   const { theme, setTheme } = useThemeStore();
 
-  const handleStringCountChange = (count: 6 | 7) => {
+  const handleInstrumentChange = (inst: Instrument) => {
+    setInstrument(inst);
+  };
+
+  const handleStringCountChange = (count: 4 | 5 | 6 | 7) => {
     setStringCount(count);
   };
 
@@ -36,9 +42,14 @@ const SettingsPanel: React.FC = () => {
     }
   };
 
+  const stringOptions: (4 | 5 | 6 | 7)[] = instrument === 'bass' ? [4, 5, 6] : [6, 7];
+
   const availableTunings = Object.entries(STANDARD_TUNINGS).filter(([key]) => {
-    if (stringCount === 6) return key.includes('-6');
-    return key.includes('-7');
+    if (instrument === 'bass') {
+      return key.startsWith('bass-') && STANDARD_TUNINGS[key].notes.length === stringCount;
+    }
+    if (stringCount === 6) return key.includes('-6') && !key.startsWith('bass-');
+    return key.includes('-7') && !key.startsWith('bass-');
   });
 
   return (
@@ -67,42 +78,54 @@ const SettingsPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Guitar Configuration */}
+      {/* Instrument & Guitar Configuration */}
       <div>
         <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
-          Guitar Configuration
+          Instrument
         </h4>
-        
+
+        {/* Instrument Toggle */}
+        <div className="mb-4">
+          <div className="flex gap-2">
+            {(['guitar', 'bass'] as Instrument[]).map(inst => (
+              <button
+                key={inst}
+                onClick={() => handleInstrumentChange(inst)}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                  instrument === inst ? 'btn-primary' : ''
+                }`}
+                style={instrument !== inst ? {
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)'
+                } : {}}
+              >
+                {inst === 'guitar' ? '🎸 Guitar' : '🎸 Bass'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* String Count */}
         <div className="mb-4">
           <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
             Number of Strings
           </label>
           <div className="flex gap-2">
-            <button
-              onClick={() => handleStringCountChange(6)}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
-                stringCount === 6 ? 'btn-primary' : ''
-              }`}
-              style={stringCount !== 6 ? {
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)'
-              } : {}}
-            >
-              6 Strings
-            </button>
-            <button
-              onClick={() => handleStringCountChange(7)}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
-                stringCount === 7 ? 'btn-primary' : ''
-              }`}
-              style={stringCount !== 7 ? {
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)'
-              } : {}}
-            >
-              7 Strings
-            </button>
+            {stringOptions.map(count => (
+              <button
+                key={count}
+                onClick={() => handleStringCountChange(count)}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                  stringCount === count ? 'btn-primary' : ''
+                }`}
+                style={stringCount !== count ? {
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)'
+                } : {}}
+              >
+                {count} Strings
+              </button>
+            ))}
           </div>
         </div>
 
@@ -136,7 +159,7 @@ const SettingsPanel: React.FC = () => {
         <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
           Display Settings
         </h4>
-        
+
         {/* Display Mode */}
         <div className="mb-4">
           <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>

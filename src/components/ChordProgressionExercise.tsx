@@ -174,11 +174,15 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
     playProgressionAudio(chords);
   }, [pool, playProgressionAudio]);
 
+  // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
+  const generateQuestionRef = useRef(generateQuestion);
+  generateQuestionRef.current = generateQuestion;
+
   useEffect(() => {
     if (isActive) {
-      generateQuestion();
+      generateQuestionRef.current();
     }
-  }, [isActive, generateQuestion]);
+  }, [isActive]);
 
   const handlePlayAgain = async () => {
     await initAudio();
