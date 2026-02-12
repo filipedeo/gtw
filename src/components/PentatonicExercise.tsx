@@ -99,7 +99,7 @@ function getConflictChromas(key: string, scaleType: ScaleType, targetMode: strin
  * 4. For each string, pick the best pair of consecutive pentatonic frets
  *    within a ≤4-fret span near the start fret
  */
-function getPentatonicBox(
+export function getPentatonicBox(
   key: string,
   scaleType: ScaleType,
   boxIndex: number,
@@ -242,6 +242,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
   const [scaleType, setScaleType] = useState<ScaleType>('minor');
   const [selectedBox, setSelectedBox] = useState(0);
   const [showFullScale, setShowFullScale] = useState(false);
+  const [showAllShapes, setShowAllShapes] = useState(false);
   const [isPlayingScale, setIsPlayingScale] = useState(false);
   const [selectedTargetMode, setSelectedTargetMode] = useState<string | null>(null);
 
@@ -314,7 +315,21 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     const pentPositions = getPentatonicBox(selectedKey, scaleType, selectedBox, tuning, stringCount);
     setRootNote(normalizeNoteName(selectedKey));
 
-    if (showFullScale) {
+    if (showAllShapes) {
+      // Collect all boxes: current box = primary, other 4 = secondary
+      const allPositions: FretPosition[] = [];
+      const currentBoxPositions: FretPosition[] = [];
+      for (let box = 0; box < 5; box++) {
+        const boxPositions = getPentatonicBox(selectedKey, scaleType, box, tuning, stringCount);
+        if (box === selectedBox) {
+          currentBoxPositions.push(...boxPositions);
+        } else {
+          allPositions.push(...boxPositions);
+        }
+      }
+      setHighlightedPositions(currentBoxPositions);
+      setSecondaryHighlightedPositions(allPositions);
+    } else if (showFullScale) {
       const targetMode = exercise.id === 'pentatonic-5' ? (selectedTargetMode || undefined) : undefined;
 
       // Filter out pentatonic notes that conflict with the target scale
@@ -341,7 +356,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       setHighlightedPositions(pentPositions);
       setSecondaryHighlightedPositions([]);
     }
-  }, [isActive, selectedKey, scaleType, selectedBox, showFullScale, tuning, stringCount,
+  }, [isActive, selectedKey, scaleType, selectedBox, showFullScale, showAllShapes, tuning, stringCount,
       selectedTargetMode, exercise.id,
       setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
 
@@ -612,7 +627,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">
-        {!isModeCentric && (
+        {!isModeCentric && !showAllShapes && (
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -622,6 +637,22 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
             />
             <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
               Show Full Scale (+{extNames.join(', ')})
+            </span>
+          </label>
+        )}
+        {!isModeCentric && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showAllShapes}
+              onChange={e => {
+                setShowAllShapes(e.target.checked);
+                if (e.target.checked) setShowFullScale(false);
+              }}
+              className="rounded"
+            />
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+              Show All Shapes
             </span>
           </label>
         )}

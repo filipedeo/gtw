@@ -970,6 +970,68 @@ const exerciseData: Exercise[] = [
     audioRequired: true,
     fretboardRequired: true,
   },
+
+  // ============ JAM MODE ============
+  {
+    id: 'jam-1',
+    type: 'jam-mode',
+    title: 'Blues Jam',
+    description: 'Jam over a 12-bar blues progression with the blues scale displayed on the fretboard.',
+    difficulty: 2,
+    instructions: [
+      'Select a key and hit Play to start the backing track',
+      'The blues scale is highlighted on the fretboard — improvise!',
+      'Start with simple phrases using the pentatonic + blue note',
+      'Try to follow the chord changes by targeting chord tones',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'jam-2',
+    type: 'jam-mode',
+    title: 'Rock Jam',
+    description: 'Jam over common rock progressions using Mixolydian and pentatonic scales.',
+    difficulty: 2,
+    instructions: [
+      'Rock progressions often use I, IV, V, and bVII chords',
+      'Mixolydian mode works great over dominant-flavored rock',
+      'Mix pentatonic licks with scale runs for variety',
+      'Pay attention to the b7 — it defines the rock sound',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'jam-3',
+    type: 'jam-mode',
+    title: 'Pop Jam',
+    description: 'Jam over popular chord progressions using the major scale and its modes.',
+    difficulty: 2,
+    instructions: [
+      'The I-V-vi-IV progression is used in hundreds of hit songs',
+      'The major scale covers all the diatonic chords cleanly',
+      'Try emphasizing chord tones on beat 1 of each chord change',
+      'Experiment with different modes over different chords',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'jam-4',
+    type: 'jam-mode',
+    title: 'Jazz Jam',
+    description: 'Practice jazz improvisation over ii-V-I and other standard jazz progressions.',
+    difficulty: 3,
+    instructions: [
+      'The ii-V-I is the most common jazz progression',
+      'Dorian over ii, Mixolydian over V, Ionian over I',
+      'Start with the scale, then target chord tones and guide tones',
+      'Use chromatic approach notes to connect chord tones smoothly',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
 ];
 
 /**
@@ -1016,6 +1078,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   'chord-voicing': 'Chord Voicings',
   'ear-training': 'Ear Training',
   'chord-progression': 'Chord Progressions',
+  'jam-mode': 'Jam Mode',
 };
 
 function formatTypeLabel(type: string): string {
