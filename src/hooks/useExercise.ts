@@ -4,6 +4,7 @@ import { useProgressStore } from '../stores/progressStore';
 
 interface UseExerciseOptions {
   exerciseId: string;
+  exerciseType?: string;
   totalQuestions?: number;
   onComplete?: (score: number) => void;
 }
@@ -27,7 +28,7 @@ interface UseExerciseReturn {
 const DEFAULT_TOTAL_QUESTIONS = 10;
 
 export function useExercise(options: UseExerciseOptions): UseExerciseReturn {
-  const { exerciseId, totalQuestions = DEFAULT_TOTAL_QUESTIONS, onComplete } = options;
+  const { exerciseId, exerciseType, totalQuestions = DEFAULT_TOTAL_QUESTIONS, onComplete } = options;
 
   // Store hooks
   const { isActive, recordAttempt, endExercise, startTime } = useExerciseStore();
@@ -80,7 +81,7 @@ export function useExercise(options: UseExerciseOptions): UseExerciseReturn {
           const timeSpent = startTime ? (Date.now() - startTime) / 1000 : 0;
 
           // Record to progress/spaced repetition system
-          recordExerciseCompletion(exerciseId, finalScore, timeSpent);
+          recordExerciseCompletion(exerciseId, finalScore, timeSpent, exerciseType);
 
           // Update review item with quality based on score
           // Quality: 5 = perfect, 4 = good, 3 = acceptable, 2 = hard, 1 = failed
@@ -114,6 +115,7 @@ export function useExercise(options: UseExerciseOptions): UseExerciseReturn {
       totalQuestions,
       startTime,
       exerciseId,
+      exerciseType,
       recordAttempt,
       recordExerciseCompletion,
       updateReviewItem,

@@ -6,6 +6,7 @@ import { useExerciseStore } from '../stores/exerciseStore';
 import { playChord, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
+import PracticeRating from './PracticeRating';
 
 interface ChordVoicingExerciseProps {
   exercise: Exercise;
@@ -667,6 +668,9 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
           <li>Try playing ii-V-I progressions using these voicings</li>
         </ul>
       </div>
+
+      {/* Self-Assessment */}
+      <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );
 };

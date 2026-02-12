@@ -674,6 +674,57 @@ const exerciseData: Exercise[] = [
     audioRequired: true,
     fretboardRequired: false,
   },
+
+  // ============ HARMONIC & MELODIC MINOR ============
+  {
+    id: 'modal-8',
+    type: 'modal-practice',
+    title: 'Harmonic Minor Scale',
+    description: 'Practice the harmonic minor scale — essential for V7→i resolution in minor keys.',
+    difficulty: 3,
+    instructions: [
+      'Harmonic minor = natural minor with a raised 7th (M7 instead of b7)',
+      'The augmented 2nd between b6 and M7 gives it a distinctive "exotic" sound',
+      'Creates a dominant V chord in minor keys (essential for classical and jazz)',
+      'Practice resolving the M7 up to the root for strong cadences',
+      'Compare with natural minor (Aeolian) to hear the raised 7th',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'modal-9',
+    type: 'modal-practice',
+    title: 'Melodic Minor Scale (Ascending)',
+    description: 'Practice the melodic minor scale — natural 6th and major 7th over a minor tonic.',
+    difficulty: 3,
+    instructions: [
+      'Melodic minor = natural minor with raised 6th and 7th',
+      'Removes the awkward augmented 2nd from harmonic minor',
+      'Parent scale of Lydian Dominant, Altered, and other jazz modes',
+      'Compare with Dorian (shares the natural 6th) and harmonic minor (shares the M7)',
+      'Used extensively in jazz improvisation',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
+  {
+    id: 'modal-10',
+    type: 'modal-practice',
+    title: 'Blues Scale',
+    description: 'Practice the blues scale — minor pentatonic with the added b5 "blue note".',
+    difficulty: 2,
+    instructions: [
+      'Blues scale = minor pentatonic + b5 (the "blue note")',
+      'Formula: 1, b3, 4, b5, 5, b7 — six notes total',
+      'The b5 creates tension that resolves to either the 4th or the 5th',
+      'Use the blue note as a passing tone — don\'t linger on it',
+      'Essential for blues, rock, jazz, and funk improvisation',
+      'Play over a dominant 7th drone for the classic blues sound',
+    ],
+    audioRequired: true,
+    fretboardRequired: true,
+  },
 ];
 
 /**

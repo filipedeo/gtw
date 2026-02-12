@@ -16,6 +16,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
     exerciseId: exercise.id,
+    exerciseType: exercise.type,
     totalQuestions: 10,
   });
   

@@ -8,6 +8,7 @@ import { startDrone, stopDrone, playChord, initAudio } from '../lib/audioEngine'
 import { CAGED_SHAPES, KEYS } from '../lib/cagedPatterns';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
+import PracticeRating from './PracticeRating';
 
 interface CAGEDExerciseProps {
   exercise: Exercise;
@@ -315,6 +316,9 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           <li>Say the note names aloud as you play</li>
         </ul>
       </div>
+
+      {/* Self-Assessment */}
+      <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );
 };

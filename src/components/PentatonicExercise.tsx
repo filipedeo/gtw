@@ -10,6 +10,7 @@ import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
+import PracticeRating from './PracticeRating';
 
 interface PentatonicExerciseProps {
   exercise: Exercise;
@@ -469,6 +470,9 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           )}
         </ul>
       </div>
+
+      {/* Self-Assessment */}
+      <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );
 };

@@ -13,6 +13,7 @@ export type SpacedRepetitionData = {
 
 export type ExerciseProgress = {
   exerciseId: string;
+  exerciseType?: string;
   totalAttempts: number;
   correctAttempts: number;
   averageTime: number;
