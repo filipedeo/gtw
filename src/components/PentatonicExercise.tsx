@@ -11,6 +11,8 @@ import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface PentatonicExerciseProps {
   exercise: Exercise;
@@ -533,6 +535,35 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
         </>
       )}
 
+      {/* Scale Notes Display */}
+      {!isModeCentric && (
+        <ScaleNotesDisplay
+          keyName={selectedKey}
+          scaleName={scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic'}
+          displayName={scaleType === 'minor' ? 'Minor Pentatonic' : 'Major Pentatonic'}
+          formula={scaleType === 'minor' ? '1–♭3–4–5–♭7' : '1–2–3–5–6'}
+        />
+      )}
+
+      {/* Mode-Centric Scale Display */}
+      {isModeCentric && (
+        <>
+          <ScaleNotesDisplay
+            keyName={selectedKey}
+            scaleName={scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic'}
+            displayName={scaleType === 'minor' ? 'Minor Pentatonic' : 'Major Pentatonic'}
+            formula={scaleType === 'minor' ? '1–♭3–4–5–♭7' : '1–2–3–5–6'}
+          />
+          {selectedTargetMode && (
+            <ScaleNotesDisplay
+              keyName={selectedKey}
+              scaleName={selectedTargetMode}
+              displayName={selectedModeDisplayName}
+            />
+          )}
+        </>
+      )}
+
       {/* Shape Selection */}
       <div>
         <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -553,90 +584,93 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       </div>
 
       {/* Shape Info */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {isModeCentric
-            ? `Shape ${selectedBox + 1} — ${selectedKey} ${selectedModeDisplayName}`
-            : `Shape ${selectedBox + 1} — ${selectedKey} ${scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic`}
-        </h4>
-        <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
-          <p>
-            Starts from the <strong>{currentDegreeLabel}</strong> ({startNote}) on the lowest string
-          </p>
-          {isModeCentric ? (
-            <p>
-              {scaleType === 'minor' ? 'Minor' : 'Major'} pentatonic + <strong>{extNames.join(', ')}</strong>
-              {conflictNames.length > 0 && <>, replacing <strong>{conflictNames.join(', ')}</strong></>}
-              {' '}= {selectedKey} {selectedModeDisplayName}
-            </p>
-          ) : (
-            <p>
-              Extends to: <strong>{startNote} {currentModeName}</strong> by adding {extNames.join(' and ')}
-            </p>
-          )}
-          {scaleType === 'minor' && (
-            <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
-              Minor pentatonic = 1 b3 4 5 b7 — missing the 2nd and 6th degrees
-            </p>
-          )}
-          {scaleType === 'major' && (
-            <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
-              Major pentatonic = 1 2 3 5 6 — missing the 4th and 7th degrees
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Extension Notes Info (pentatonic-5 only) */}
-      {isModeCentric && extNames.length > 0 && (
-        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+      <CollapsibleSection title="Shape Info" defaultOpen={true}>
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
           <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-            Extension Notes for {selectedKey} {selectedModeDisplayName}
+            {isModeCentric
+              ? `Shape ${selectedBox + 1} — ${selectedKey} ${selectedModeDisplayName}`
+              : `Shape ${selectedBox + 1} — ${selectedKey} ${scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic`}
           </h4>
           <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
             <p>
-              {extNames.length} note{extNames.length !== 1 ? 's' : ''} that distinguish {selectedModeDisplayName} from the {scaleType} pentatonic: <strong>{extNames.join(', ')}</strong>
+              Starts from the <strong>{currentDegreeLabel}</strong> ({startNote}) on the lowest string
             </p>
-            {conflictNames.length > 0 && (
+            {isModeCentric ? (
               <p>
-                The pentatonic&apos;s <strong>{conflictNames.join(', ')}</strong> {conflictNames.length === 1 ? 'is' : 'are'} not part of {selectedModeDisplayName} and {conflictNames.length === 1 ? 'is' : 'are'} hidden from the display.
+                {scaleType === 'minor' ? 'Minor' : 'Major'} pentatonic + <strong>{extNames.join(', ')}</strong>
+                {conflictNames.length > 0 && <>, replacing <strong>{conflictNames.join(', ')}</strong></>}
+                {' '}= {selectedKey} {selectedModeDisplayName}
+              </p>
+            ) : (
+              <p>
+                Extends to: <strong>{startNote} {currentModeName}</strong> by adding {extNames.join(' and ')}
               </p>
             )}
-            <p>
-              These are the same pitch classes in every shape — only their fretboard positions change as you move across shapes.
-            </p>
+            {scaleType === 'minor' && (
+              <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
+                Minor pentatonic = 1 b3 4 5 b7 — missing the 2nd and 6th degrees
+              </p>
+            )}
+            {scaleType === 'major' && (
+              <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
+                Major pentatonic = 1 2 3 5 6 — missing the 4th and 7th degrees
+              </p>
+            )}
           </div>
         </div>
+      </CollapsibleSection>
+
+      {/* Extension Notes Info (pentatonic-5 only) */}
+      {isModeCentric && extNames.length > 0 && (
+        <CollapsibleSection title="Extension Notes" defaultOpen={true}>
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+            <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+              Extension Notes for {selectedKey} {selectedModeDisplayName}
+            </h4>
+            <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
+              <p>
+                {extNames.length} note{extNames.length !== 1 ? 's' : ''} that distinguish {selectedModeDisplayName} from the {scaleType} pentatonic: <strong>{extNames.join(', ')}</strong>
+              </p>
+              {conflictNames.length > 0 && (
+                <p>
+                  The pentatonic&apos;s <strong>{conflictNames.join(', ')}</strong> {conflictNames.length === 1 ? 'is' : 'are'} not part of {selectedModeDisplayName} and {conflictNames.length === 1 ? 'is' : 'are'} hidden from the display.
+                </p>
+              )}
+              <p>
+                These are the same pitch classes in every shape — only their fretboard positions change as you move across shapes.
+              </p>
+            </div>
+          </div>
+        </CollapsibleSection>
       )}
 
       {/* Shape → Mode Reference (pentatonic-4 only) */}
       {exercise.id === 'pentatonic-4' && (
-        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
-          <h4 className="font-medium mb-3" style={{ color: 'var(--accent-primary)' }}>
-            Shape → Mode Reference
-          </h4>
-          <div className="grid grid-cols-1 gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {[0, 1, 2, 3, 4].map(box => {
-              const modeName = MODE_NAMES[modeIndices[box]];
-              const degreeLabel = degreeLabels[box];
-              const isSelected = selectedBox === box;
-              return (
-                <button
-                  key={box}
-                  onClick={() => setSelectedBox(box)}
-                  className="text-left p-2 rounded transition-all"
-                  style={{
-                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                    color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    fontWeight: isSelected ? 'bold' : 'normal',
-                  }}
-                >
-                  Shape {box + 1} ({degreeLabel}) → {modeName}
-                </button>
-              );
-            })}
+        <CollapsibleSection title="Shape → Mode Reference" defaultOpen={true}>
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
+            <div className="grid grid-cols-1 gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {[0, 1, 2, 3, 4].map(box => {
+                const modeName = MODE_NAMES[modeIndices[box]];
+                const degreeLabel = degreeLabels[box];
+                const isSelected = selectedBox === box;
+                return (
+                  <button
+                    key={box}
+                    onClick={() => setSelectedBox(box)}
+                    className="text-left p-2 rounded transition-all"
+                    style={{
+                      backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                      color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      fontWeight: isSelected ? 'bold' : 'normal',
+                    }}
+                  >
+                    Shape {box + 1} ({degreeLabel}) → {modeName}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </CollapsibleSection>
       )}
 
       {/* Display Options */}
@@ -696,40 +730,39 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Practice Tips
-        </h4>
-        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
-          {isModeCentric ? (
-            <>
-              <li>Cycle through all 5 shapes to see how {extNames.join(', ')} appear in different positions</li>
-              <li>The extension notes are always the same pitch classes — notice how their fretboard locations shift per shape</li>
-              {conflictNames.length > 0 && (
-                <li>The pentatonic&apos;s {conflictNames.join(', ')} {conflictNames.length === 1 ? 'is' : 'are'} replaced in {selectedModeDisplayName} — practice hearing the difference</li>
-              )}
-              <li>Try switching between scales (e.g., Dorian vs Harmonic Minor) to see which notes change</li>
-              <li>Use the drone to hear the color of {selectedModeDisplayName} over the root</li>
-              <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
-              <li>Practice improvising in each shape using the pentatonic backbone + the extension notes</li>
-            </>
-          ) : (
-            <>
-              <li>Master each shape individually before connecting them</li>
-              <li>Start on the {lowestString} string and play ascending, then descend back down</li>
-              <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
-              <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
-              <li>{isBass ? 'Practice alternating fingers (index-middle) for consistent tone' : 'Practice alternate picking — down-up-down-up through the shape'}</li>
-              <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
-              <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
-              <li>Use the drone to hear how pentatonic notes relate to the root</li>
-              {showFullScale && (
-                <li>The faded notes ({extNames.join(' and ')}) turn this shape into {startNote} {currentModeName}</li>
-              )}
-            </>
-          )}
-        </ul>
-      </div>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+          <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
+            {isModeCentric ? (
+              <>
+                <li>Cycle through all 5 shapes to see how {extNames.join(', ')} appear in different positions</li>
+                <li>The extension notes are always the same pitch classes — notice how their fretboard locations shift per shape</li>
+                {conflictNames.length > 0 && (
+                  <li>The pentatonic&apos;s {conflictNames.join(', ')} {conflictNames.length === 1 ? 'is' : 'are'} replaced in {selectedModeDisplayName} — practice hearing the difference</li>
+                )}
+                <li>Try switching between scales (e.g., Dorian vs Harmonic Minor) to see which notes change</li>
+                <li>Use the drone to hear the color of {selectedModeDisplayName} over the root</li>
+                <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
+                <li>Practice improvising in each shape using the pentatonic backbone + the extension notes</li>
+              </>
+            ) : (
+              <>
+                <li>Master each shape individually before connecting them</li>
+                <li>Start on the {lowestString} string and play ascending, then descend back down</li>
+                <li>Look for the "rectangle" — two adjacent strings where the minor 3rd intervals sit; the 2 extension notes always land here</li>
+                <li>Toggle "Show Full Scale" to see how adding 2 notes turns the pentatonic into a full mode</li>
+                <li>{isBass ? 'Practice alternating fingers (index-middle) for consistent tone' : 'Practice alternate picking — down-up-down-up through the shape'}</li>
+                <li>Try the same lick in all 5 shapes to build fretboard freedom</li>
+                <li>Each box connects to the next — the top notes of one box overlap with the bottom of the next</li>
+                <li>Use the drone to hear how pentatonic notes relate to the root</li>
+                {showFullScale && (
+                  <li>The faded notes ({extNames.join(' and ')}) turn this shape into {startNote} {currentModeName}</li>
+                )}
+              </>
+            )}
+          </ul>
+        </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

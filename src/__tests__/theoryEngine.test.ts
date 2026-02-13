@@ -329,42 +329,50 @@ describe('MODES constant', () => {
     expect(MODES[6].name).toBe('locrian');
   });
 
-  it('dorian has characteristic note 6', () => {
+  it('dorian has characteristic note Major 6th', () => {
     const dorian = MODES.find(m => m.name === 'dorian');
-    expect(dorian?.characteristicNote).toBe('6');
+    expect(dorian?.characteristicNote).toBe('Major 6th (M6)');
   });
 
-  it('phrygian has characteristic note b2', () => {
+  it('phrygian has characteristic note Minor 2nd', () => {
     const phrygian = MODES.find(m => m.name === 'phrygian');
-    expect(phrygian?.characteristicNote).toBe('b2');
+    expect(phrygian?.characteristicNote).toBe('Minor 2nd (b2)');
   });
 
-  it('lydian has characteristic note #4', () => {
+  it('lydian has characteristic note Augmented 4th', () => {
     const lydian = MODES.find(m => m.name === 'lydian');
-    expect(lydian?.characteristicNote).toBe('#4');
+    expect(lydian?.characteristicNote).toBe('Augmented 4th (#4)');
   });
 
-  it('mixolydian has characteristic note b7', () => {
+  it('mixolydian has characteristic note Minor 7th', () => {
     const mixo = MODES.find(m => m.name === 'mixolydian');
-    expect(mixo?.characteristicNote).toBe('b7');
+    expect(mixo?.characteristicNote).toBe('Minor 7th (b7)');
   });
 
-  it('aeolian has characteristic note b6', () => {
+  it('aeolian has characteristic note Minor 6th', () => {
     const aeolian = MODES.find(m => m.name === 'aeolian');
-    expect(aeolian?.characteristicNote).toBe('b6');
+    expect(aeolian?.characteristicNote).toBe('Minor 6th (b6)');
   });
 
-  it('locrian has characteristic note b5', () => {
+  it('locrian has characteristic note Diminished 5th', () => {
     const locrian = MODES.find(m => m.name === 'locrian');
-    expect(locrian?.characteristicNote).toBe('b5');
+    expect(locrian?.characteristicNote).toBe('Diminished 5th (b5)');
   });
 
-  it('each mode has name, displayName, and characteristicNote', () => {
+  it('each mode has name, displayName, characteristicNote, formula, and description', () => {
     for (const mode of MODES) {
       expect(mode.name).toBeTruthy();
       expect(mode.displayName).toBeTruthy();
       expect(mode.characteristicNote).toBeTruthy();
+      expect(mode.formula).toBeTruthy();
+      expect(mode.description).toBeTruthy();
     }
+  });
+
+  it('ionian characteristic degree is 3 (P4)', () => {
+    const ionian = MODES.find(m => m.name === 'ionian');
+    expect(ionian?.characteristicDegree).toBe(3);
+    expect(ionian?.characteristicNote).toBe('Perfect 4th (P4)');
   });
 });
 

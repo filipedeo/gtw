@@ -11,6 +11,8 @@ import { JAM_PROGRESSIONS } from '../data/jamProgressions';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface WalkingBassExerciseProps {
   exercise: Exercise;
@@ -274,11 +276,8 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
   return (
     <div className="space-y-6">
       {/* Key Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Key
-        </label>
-        <div className="flex flex-wrap gap-1">
+      <CollapsibleSection title="Key" defaultOpen={true}>
+        <div className="flex flex-wrap gap-1 pt-1">
           {KEYS.map((key) => (
             <button
               key={key}
@@ -295,7 +294,14 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* Scale Notes */}
+      <ScaleNotesDisplay
+        keyName={selectedKey}
+        scaleName={progression.suggestedScale}
+        displayName={progression.suggestedScale}
+      />
 
       {/* Progression Selection */}
       <div>
@@ -460,18 +466,19 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Practice Tips</h4>
-        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
-          <li>Beat 1 is always the root -- anchor the harmony on the downbeat</li>
-          <li>Beats 2 and 3 use chord tones (3rd, 5th) to outline the chord quality</li>
-          <li>Beat 4 uses a chromatic approach note to lead into the next chord</li>
-          <li>Keep your right hand steady -- the bass drives the groove</li>
-          <li>Practice at slow tempos first (60-80 BPM) and build up gradually</li>
-          <li>Try to play along with the generated line, then create your own variations</li>
-          <li>Use scale passing tones between chord tones for melodic interest</li>
-        </ul>
-      </div>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+          <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
+            <li>Beat 1 is always the root -- anchor the harmony on the downbeat</li>
+            <li>Beats 2 and 3 use chord tones (3rd, 5th) to outline the chord quality</li>
+            <li>Beat 4 uses a chromatic approach note to lead into the next chord</li>
+            <li>Keep your right hand steady -- the bass drives the groove</li>
+            <li>Practice at slow tempos first (60-80 BPM) and build up gradually</li>
+            <li>Try to play along with the generated line, then create your own variations</li>
+            <li>Use scale passing tones between chord tones for melodic interest</li>
+          </ul>
+        </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

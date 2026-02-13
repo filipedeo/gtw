@@ -11,6 +11,8 @@ import { JAM_PROGRESSIONS } from '../data/jamProgressions';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface JamModeExerciseProps {
   exercise: Exercise;
@@ -214,10 +216,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
   return (
     <div className="space-y-6">
       {/* Key Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Key
-        </label>
+      <CollapsibleSection title="Key" defaultOpen={true}>
         <div className="flex flex-wrap gap-1">
           {KEYS.map((key) => (
             <button
@@ -240,7 +239,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Progression Selection */}
       <div>
@@ -335,6 +334,12 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         </div>
       </div>
 
+      <ScaleNotesDisplay
+        keyName={selectedKey}
+        scaleName={progression.suggestedScale}
+        displayName={progression.suggestedScale}
+      />
+
       {/* Display options */}
       <div className="flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
@@ -350,15 +355,12 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Scale info */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          Suggested Scale: {progression.suggestedScale.charAt(0).toUpperCase() + progression.suggestedScale.slice(1)}
-        </h4>
+      <CollapsibleSection title="Scale Info" defaultOpen={true}>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           The scale is highlighted on the fretboard. Chord tones of the current chord are shown with secondary highlights.
           Target chord tones on beat 1 of each chord change for stronger phrasing.
         </p>
-      </div>
+      </CollapsibleSection>
 
       {/* Fretboard */}
       <div className="card p-4">

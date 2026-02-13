@@ -21,10 +21,10 @@ const INTERVALS = [
   { name: 'Perfect 4th', short: 'P4', semitones: 5, song: '"Here Comes the Bride"' },
   { name: 'Tritone', short: 'TT', semitones: 6, song: '"The Simpsons" theme' },
   { name: 'Perfect 5th', short: 'P5', semitones: 7, song: '"Star Wars" theme' },
-  { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Love Story" (theme)' },
+  { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Go Down Moses" (Let my people go)' },
   { name: 'Major 6th', short: 'M6', semitones: 9, song: '"My Bonnie Lies Over the Ocean"' },
   { name: 'Minor 7th', short: 'm7', semitones: 10, song: '"Somewhere" (West Side Story)' },
-  { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Superman Theme" (first two notes)' },
+  { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Take On Me" (first two vocal notes)' },
   { name: 'Octave', short: 'P8', semitones: 12, song: '"Somewhere Over the Rainbow"' },
 ];
 

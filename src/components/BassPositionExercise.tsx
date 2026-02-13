@@ -10,6 +10,8 @@ import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface BassPositionExerciseProps {
   exercise: Exercise;
@@ -191,41 +193,31 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
   return (
     <div className="space-y-6">
       {/* Mode / Scale Selection */}
-      <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          Mode / Scale
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {MODES.map((mode, idx) => (
-            <button
-              key={mode.name}
-              onClick={() => setSelectedModeIndex(idx)}
-              className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
-                selectedModeIndex === idx ? 'btn-primary' : ''
-              }`}
-              style={selectedModeIndex !== idx ? {
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)'
-              } : {}}
-            >
-              {mode.displayName}
-            </button>
-          ))}
+      <CollapsibleSection title="Mode / Pattern" defaultOpen={true}>
+        <div className="pt-1">
+          <div className="flex flex-wrap gap-2">
+            {MODES.map((mode, idx) => (
+              <button
+                key={mode.name}
+                onClick={() => setSelectedModeIndex(idx)}
+                className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                  selectedModeIndex === idx ? 'btn-primary' : ''
+                }`}
+                style={selectedModeIndex !== idx ? {
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)'
+                } : {}}
+              >
+                {mode.displayName}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Key Selection */}
-      <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          Key
-        </label>
-        <div className="flex flex-wrap gap-1">
+      <CollapsibleSection title="Key" defaultOpen={true}>
+        <div className="flex flex-wrap gap-1 pt-1">
           {KEYS.map((key) => (
             <button
               key={key}
@@ -242,7 +234,15 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* Scale Notes Display */}
+      <ScaleNotesDisplay
+        keyName={selectedKey}
+        scaleName={selectedMode.name}
+        displayName={selectedMode.displayName}
+        formula={selectedMode.formula}
+      />
 
       {/* Start Fret Selection */}
       <div>
@@ -267,20 +267,22 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
       </div>
 
       {/* Pattern Info */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {selectedMode.displayName} ({selectedKey}) - 2 Notes Per String
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Characteristic note: <strong>{selectedMode.characteristicNote}</strong>
-          {' '}&mdash;{' '}
-          2 notes per string starting near fret {startFret}.
-          This creates natural one-finger-per-fret patterns optimized for bass.
-        </p>
-      </div>
+      <CollapsibleSection title="Pattern Info" defaultOpen={true}>
+        <div
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+        >
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            {selectedMode.displayName} ({selectedKey}) - 2 Notes Per String
+          </h4>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Characteristic note: <strong>{selectedMode.characteristicNote}</strong>
+            {' '}&mdash;{' '}
+            2 notes per string starting near fret {startFret}.
+            This creates natural one-finger-per-fret patterns optimized for bass.
+          </p>
+        </div>
+      </CollapsibleSection>
 
       {/* Display Mode Toggle */}
       <div className="flex items-center justify-between">
@@ -310,13 +312,7 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
       </div>
 
       {/* Practice Tips */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Practice Tips
-        </h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul
           className="text-sm space-y-1 list-disc list-inside"
           style={{ color: 'var(--text-secondary)' }}
@@ -330,7 +326,7 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
           <li>Use the drone to hear how each scale degree relates to the tonal center</li>
           <li>Try playing the pattern ascending, then descending without pausing</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

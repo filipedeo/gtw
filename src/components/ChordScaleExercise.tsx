@@ -8,8 +8,11 @@ import { getModeNotes } from '../lib/theoryEngine';
 import { getChordNotes } from '../lib/theoryEngine';
 import { startDrone, stopDrone, playChord, initAudio } from '../lib/audioEngine';
 import { normalizeNoteName } from '../types/guitar';
+import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface ChordScaleExerciseProps {
   exercise: Exercise;
@@ -38,7 +41,7 @@ const MINOR_CHORD_SCALES: ChordScalePairing = {
     { name: 'dorian', displayName: 'Dorian', description: 'Most versatile - bright minor sound with natural 6' },
     { name: 'aeolian', displayName: 'Aeolian (Natural Minor)', description: 'Darker sound - b6 can clash' },
     { name: 'phrygian', displayName: 'Phrygian', description: 'Dark, Spanish flavor - b2 is distinctive' },
-    { name: 'melodic minor', displayName: 'Melodic Minor', description: 'Bright minor with natural 6 & 7' },
+    { name: 'melodic minor', displayName: 'Melodic Minor', description: 'Over mMaj7 chords — natural 7 clashes with m7 chord\'s b7' },
   ],
 };
 
@@ -66,8 +69,8 @@ const DIMINISHED_CHORD_SCALES: ChordScalePairing = {
   chordType: 'Diminished 7',
   chordSymbol: 'dim7',
   scales: [
-    { name: 'diminished', displayName: 'Diminished (H-W)', description: 'Half-whole pattern - 8 symmetric notes' },
-    { name: 'whole-half diminished', displayName: 'Diminished (W-H)', description: 'Whole-half pattern - alternate fingering' },
+    { name: 'half-whole diminished', displayName: 'Diminished (H-W)', description: 'Half-whole pattern - standard choice over dim7 chords' },
+    { name: 'diminished', displayName: 'Diminished (W-H)', description: 'Whole-half pattern - also used over dominant 7(b9) chords' },
   ],
 };
 
@@ -185,8 +188,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
     return (
       <div className="space-y-6">
         {/* Key Selection */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
+        <CollapsibleSection title="Key" defaultOpen={true}>
           <div className="flex flex-wrap gap-1">
             {KEYS.map((key) => (
               <button
@@ -204,7 +206,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
 
         {/* Exercise Instructions */}
         <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
@@ -241,8 +243,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
   return (
     <div className="space-y-6">
       {/* Key Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
+      <CollapsibleSection title="Key" defaultOpen={true}>
         <div className="flex flex-wrap gap-1">
           {KEYS.map((key) => (
             <button
@@ -260,7 +261,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Chord Info */}
       <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
@@ -281,9 +282,16 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
         </p>
       </div>
 
+      {selectedScale && (
+        <ScaleNotesDisplay
+          keyName={selectedKey}
+          scaleName={selectedScale}
+          displayName={currentScaleInfo?.displayName || selectedScale}
+        />
+      )}
+
       {/* Scale Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Scale Options</label>
+      <CollapsibleSection title="Scale Options" defaultOpen={true}>
         <div className="space-y-2">
           {pairing.scales.map((scale) => (
             <button
@@ -302,7 +310,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Current Scale Info */}
       {currentScaleInfo && (
@@ -316,6 +324,11 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
           </p>
         </div>
       )}
+
+      {/* Embedded Fretboard */}
+      <div className="card p-4">
+        <Fretboard interactive={true} />
+      </div>
 
       {/* Controls Row */}
       <div className="flex flex-wrap items-center gap-4">
@@ -342,8 +355,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Practice Tips</h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           <li>Play the chord, then improvise using the selected scale</li>
           <li>Target chord tones (bright notes) on beats 1 and 3</li>
@@ -351,7 +363,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
           <li>Try each scale option and listen for the different colors</li>
           <li>Practice voice leading: find smooth paths between chord tones</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

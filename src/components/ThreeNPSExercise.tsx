@@ -6,10 +6,13 @@ import { useAudioStore } from '../stores/audioStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { getModeNotes, MODES } from '../lib/theoryEngine';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
+import { Note } from 'tonal';
 import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface ThreeNPSExerciseProps {
   exercise: Exercise;
@@ -38,8 +41,8 @@ export function getThreeNPSPositions(
   const scaleNotes = getModeNotes(normalizeNoteName(key), modeName);
   if (!scaleNotes || scaleNotes.length === 0) return [];
 
-  // Normalize all scale notes for comparison
-  const normalizedScaleNotes = scaleNotes.map(n => normalizeNoteName(n));
+  // Use chroma (pitch class) comparison to handle double accidentals correctly
+  const scaleChromas = scaleNotes.map(n => Note.get(n).chroma).filter((c): c is number => c !== undefined);
 
   const positions: FretPosition[] = [];
   let targetFret = startFret;
@@ -50,8 +53,8 @@ export function getThreeNPSPositions(
     for (let fret = 0; fret <= 22; fret++) {
       const pos = { string, fret };
       const note = getNoteAtPosition(pos, tuning, stringCount);
-      const noteName = normalizeNoteName(note.replace(/\d/, ''));
-      if (normalizedScaleNotes.includes(noteName)) {
+      const noteChroma = Note.get(note).chroma;
+      if (noteChroma !== undefined && scaleChromas.includes(noteChroma)) {
         scaleFrets.push(fret);
       }
     }
@@ -141,8 +144,12 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
     // For the "All 7 Modes" exercise, show the next adjacent pattern as secondary
     if (exercise.id === 'three-nps-3') {
-      const nextModeIndex = (selectedModeIndex + 1) % MODES.length;
-      const nextMode = MODES[nextModeIndex];
+      // Cycle within the same mode category (e.g., diatonic modes 0-6)
+      const currentCategory = selectedMode.category;
+      const sameCategoryModes = MODES.filter(m => m.category === currentCategory);
+      const currentCatIndex = sameCategoryModes.findIndex(m => m.name === selectedMode.name);
+      const nextCatIndex = (currentCatIndex + 1) % sameCategoryModes.length;
+      const nextMode = sameCategoryModes[nextCatIndex];
       // The next pattern starts roughly 2-3 frets higher
       const nextStartFret = startFret + 2;
       const secondaryPositions = getThreeNPSPositions(
@@ -239,41 +246,31 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
   return (
     <div className="space-y-6">
       {/* Mode / Pattern Selection */}
-      <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          Mode / Pattern
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {MODES.map((mode, idx) => (
-            <button
-              key={mode.name}
-              onClick={() => setSelectedModeIndex(idx)}
-              className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
-                selectedModeIndex === idx ? 'btn-primary' : ''
-              }`}
-              style={selectedModeIndex !== idx ? {
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)'
-              } : {}}
-            >
-              {idx + 1}. {mode.displayName}
-            </button>
-          ))}
+      <CollapsibleSection title="Mode / Pattern" defaultOpen={true}>
+        <div className="pt-1">
+          <div className="flex flex-wrap gap-2">
+            {MODES.map((mode, idx) => (
+              <button
+                key={mode.name}
+                onClick={() => setSelectedModeIndex(idx)}
+                className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                  selectedModeIndex === idx ? 'btn-primary' : ''
+                }`}
+                style={selectedModeIndex !== idx ? {
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)'
+                } : {}}
+              >
+                {idx + 1}. {mode.displayName}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Key Selection */}
-      <div>
-        <label
-          className="block text-sm font-medium mb-2"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          Key
-        </label>
-        <div className="flex flex-wrap gap-1">
+      <CollapsibleSection title="Key" defaultOpen={true}>
+        <div className="flex flex-wrap gap-1 pt-1">
           {KEYS.map((key) => (
             <button
               key={key}
@@ -290,7 +287,15 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* Scale Notes Display */}
+      <ScaleNotesDisplay
+        keyName={selectedKey}
+        scaleName={selectedMode.name}
+        displayName={selectedMode.displayName}
+        formula={selectedMode.formula}
+      />
 
       {/* Start Fret Selection */}
       <div>
@@ -315,20 +320,22 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Pattern Info */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          Pattern {selectedModeIndex + 1} - {selectedMode.displayName} ({selectedKey})
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Characteristic note: <strong>{selectedMode.characteristicNote}</strong>
-          {' '}&mdash;{' '}
-          3 notes per string starting near fret {startFret}.
-          {stringCount >= 5 && isBass ? ' Includes low B string.' : stringCount === 7 ? ' Includes low B string for 7-string coverage.' : ''}
-        </p>
-      </div>
+      <CollapsibleSection title="Pattern Info" defaultOpen={true}>
+        <div
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+        >
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            Pattern {selectedModeIndex + 1} - {selectedMode.displayName} ({selectedKey})
+          </h4>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Characteristic note: <strong>{selectedMode.characteristicNote}</strong>
+            {' '}&mdash;{' '}
+            3 notes per string starting near fret {startFret}.
+            {stringCount >= 5 && isBass ? ' Includes low B string.' : stringCount === 7 ? ' Includes low B string for 7-string coverage.' : ''}
+          </p>
+        </div>
+      </CollapsibleSection>
 
       {/* Display Mode Toggle */}
       <div className="flex items-center justify-between">
@@ -358,13 +365,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Practice Tips */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Practice Tips
-        </h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul
           className="text-sm space-y-1 list-disc list-inside"
           style={{ color: 'var(--text-secondary)' }}
@@ -379,7 +380,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           <li>Connect adjacent patterns by sliding between them</li>
           <li>Remove the highest and lowest note per string to reveal the pentatonic shape hiding inside each 3NPS pattern</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

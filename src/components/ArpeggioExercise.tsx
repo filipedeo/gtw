@@ -10,6 +10,7 @@ import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
 
 interface ArpeggioExerciseProps {
   exercise: Exercise;
@@ -627,10 +628,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Key selector */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Key
-        </label>
+      <CollapsibleSection title="Key" defaultOpen={true}>
         <div className="flex flex-wrap gap-1">
           {KEYS.map((key) => (
             <button
@@ -648,7 +646,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Position Selection */}
       <div>
@@ -725,33 +723,35 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Chord Tones Info */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {selectedKey}{chordSymbol} Arpeggio
-        </h4>
-        <div className="flex flex-wrap gap-3">
-          {chordNotes.map((note, idx) => {
-            const isActiveNote = activeNoteIndex === idx;
-            return (
-              <div
-                key={idx}
-                className="flex flex-col items-center px-3 py-2 rounded-lg transition-all"
-                style={{
-                  backgroundColor: isActiveNote ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                  border: `1px solid ${isActiveNote ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                  color: isActiveNote ? 'white' : 'var(--text-primary)',
-                  transform: isActiveNote ? 'scale(1.1)' : 'scale(1)',
-                }}
-              >
-                <span className="text-sm font-bold">{note}</span>
-                <span className="text-xs" style={{ opacity: 0.7 }}>
-                  {toneLabels[idx] || ''}
-                </span>
-              </div>
-            );
-          })}
+      <CollapsibleSection title="Chord Tones" defaultOpen={true}>
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            {selectedKey}{chordSymbol} Arpeggio
+          </h4>
+          <div className="flex flex-wrap gap-3">
+            {chordNotes.map((note, idx) => {
+              const isActiveNote = activeNoteIndex === idx;
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-col items-center px-3 py-2 rounded-lg transition-all"
+                  style={{
+                    backgroundColor: isActiveNote ? 'var(--accent-primary)' : 'var(--bg-primary)',
+                    border: `1px solid ${isActiveNote ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                    color: isActiveNote ? 'white' : 'var(--text-primary)',
+                    transform: isActiveNote ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                >
+                  <span className="text-sm font-bold">{note}</span>
+                  <span className="text-xs" style={{ opacity: 0.7 }}>
+                    {toneLabels[idx] || ''}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Display Options */}
       <div className="flex items-center gap-4">
@@ -790,8 +790,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Practice Tips</h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           {isGuitar ? (
             <>
@@ -817,7 +816,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
           )}
           <li>Use the drone to hear how each arpeggio tone relates to the root</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

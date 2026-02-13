@@ -7,6 +7,7 @@ import { playChord, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
 
 interface ChordVoicingExerciseProps {
   exercise: Exercise;
@@ -515,10 +516,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
   return (
     <div className="space-y-6">
       {/* Key Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Key
-        </label>
+      <CollapsibleSection title="Key" defaultOpen={true}>
         <div className="flex gap-1.5 flex-wrap">
           {KEYS.map(key => (
             <button
@@ -536,7 +534,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* String Set Selection (triads only) */}
       {availableStringSets && (
@@ -565,32 +563,34 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       )}
 
       {/* Chord Info */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {selectedKey} {voicingName} - {currentInversion?.name}
-        </h4>
-        <div className="flex gap-2 text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>
-          <span>Intervals:</span>
-          {currentInversion?.intervals.map((interval, idx) => (
-            <span
-              key={idx}
-              className="px-2 py-0.5 rounded"
-              style={{ backgroundColor: 'var(--bg-tertiary)' }}
-            >
-              {interval}
+      <CollapsibleSection title="Chord Info" defaultOpen={true}>
+        <div
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+        >
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            {selectedKey} {voicingName} - {currentInversion?.name}
+          </h4>
+          <div className="flex gap-2 text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>
+            <span>Intervals:</span>
+            {currentInversion?.intervals.map((interval, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-0.5 rounded"
+                style={{ backgroundColor: 'var(--bg-tertiary)' }}
+              >
+                {interval}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              Position: fret {rootFret}
             </span>
-          ))}
+            <DisplayModeToggle compact />
+          </div>
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Position: fret {rootFret}
-          </span>
-          <DisplayModeToggle compact />
-        </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Inversion Selection */}
       <div>
@@ -652,13 +652,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       </div>
 
       {/* Practice Tips */}
-      <div
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Practice Tips
-        </h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           <li>Learn all inversions in one position before moving</li>
           <li>Practice voice leading between inversions</li>
@@ -667,7 +661,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
           <li>Identify the root note in each inversion</li>
           <li>Try playing ii-V-I progressions using these voicings</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

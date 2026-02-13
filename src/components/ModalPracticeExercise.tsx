@@ -7,8 +7,11 @@ import { getScalePositions } from '../utils/fretboardCalculations';
 import { getModeNotes, MODES } from '../lib/theoryEngine';
 import { startDrone, stopDrone, initAudio } from '../lib/audioEngine';
 import { normalizeNoteName } from '../types/guitar';
+import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
+import ScaleNotesDisplay from './ScaleNotesDisplay';
 
 interface ModalPracticeExerciseProps {
   exercise: Exercise;
@@ -28,6 +31,15 @@ const EXERCISE_MODE_MAP: Record<string, string> = {
   'modal-9': 'melodic minor',
   'modal-10': 'blues',
 };
+
+// Group modes by category for organized display
+const MODE_CATEGORIES = [
+  { label: 'Diatonic', category: 'major' },
+  { label: 'Harmonic Minor', category: 'harmonic-minor' },
+  { label: 'Melodic Minor', category: 'melodic-minor' },
+  { label: 'Symmetric', category: 'symmetric' },
+  { label: 'Other', category: 'other' },
+];
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise }) => {
   const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
@@ -115,31 +127,41 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
   return (
     <div className="space-y-6">
       {/* Mode Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Mode</label>
-        <div className="flex flex-wrap gap-2">
-          {MODES.map((mode) => (
-            <button
-              key={mode.name}
-              onClick={() => setSelectedMode(mode.name)}
-              className={`px-3 py-2 rounded-lg font-medium transition-all text-sm ${
-                selectedMode === mode.name ? 'btn-primary' : ''
-              }`}
-              style={selectedMode !== mode.name ? {
-                backgroundColor: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)'
-              } : {}}
-            >
-              {mode.displayName}
-            </button>
-          ))}
+      <CollapsibleSection title="Mode" defaultOpen={true}>
+        <div className="space-y-2 pt-1">
+          {MODE_CATEGORIES.map(cat => {
+            const modesInCat = MODES.filter(m => m.category === cat.category);
+            if (modesInCat.length === 0) return null;
+            return (
+              <div key={cat.category}>
+                <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>{cat.label}</div>
+                <div className="flex flex-wrap gap-1">
+                  {modesInCat.map((mode) => (
+                    <button
+                      key={mode.name}
+                      onClick={() => setSelectedMode(mode.name)}
+                      className={`px-2 py-1.5 rounded-lg font-medium transition-all text-xs ${
+                        selectedMode === mode.name ? 'btn-primary' : ''
+                      }`}
+                      style={selectedMode !== mode.name ? {
+                        backgroundColor: 'var(--bg-tertiary)',
+                        color: 'var(--text-secondary)',
+                        minHeight: 'auto',
+                      } : { minHeight: 'auto' }}
+                    >
+                      {mode.displayName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Key Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>Key</label>
-        <div className="flex flex-wrap gap-1">
+      <CollapsibleSection title="Key" defaultOpen={true}>
+        <div className="flex flex-wrap gap-1 pt-1">
           {keys.map((key) => (
             <button
               key={key}
@@ -156,18 +178,30 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
             </button>
           ))}
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* Scale Notes Display */}
+      {currentModeInfo && (
+        <ScaleNotesDisplay
+          keyName={selectedKey}
+          scaleName={selectedMode}
+          displayName={currentModeInfo.displayName}
+          formula={currentModeInfo.formula}
+        />
+      )}
 
       {/* Mode Info */}
       {currentModeInfo && (
         <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
           <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>{currentModeInfo.displayName}</h4>
+          <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+            {currentModeInfo.description}
+          </p>
           <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
             <strong>Characteristic Note:</strong> {currentModeInfo.characteristicNote}
           </p>
-          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
-            Focus on emphasizing the characteristic note in your playing.
-            This is what gives the mode its unique sound.
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            This note distinguishes the mode from its neighbors. Emphasize it in your playing.
           </p>
         </div>
       )}
@@ -189,8 +223,13 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
         </button>
       </div>
 
+      {/* Embedded Fretboard */}
+      <div className="card p-4">
+        <Fretboard interactive={true} />
+      </div>
+
       {/* Display Options */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
@@ -213,16 +252,17 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
       </div>
 
       {/* Practice Tips */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--warning)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--warning)' }}>Practice Tips</h4>
-        <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
-          <li>Start and end your phrases on the root note ({selectedKey})</li>
-          <li>Emphasize the characteristic note ({currentModeInfo?.characteristicNote})</li>
-          <li>Try playing the scale ascending and descending</li>
-          <li>Create short melodic phrases using the highlighted notes</li>
-          <li>Listen to how the mode sounds against the drone</li>
-        </ul>
-      </div>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false} titleColor="var(--warning)">
+        <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--warning)' }}>
+          <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
+            <li>Start and end your phrases on the root note ({selectedKey})</li>
+            <li>Emphasize the characteristic note ({currentModeInfo?.characteristicNote})</li>
+            <li>Try playing the scale ascending and descending</li>
+            <li>Create short melodic phrases using the highlighted notes</li>
+            <li>Listen to how the mode sounds against the drone</li>
+          </ul>
+        </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />

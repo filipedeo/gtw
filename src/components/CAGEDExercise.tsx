@@ -9,6 +9,7 @@ import { CAGED_SHAPES, KEYS } from '../lib/cagedPatterns';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import CollapsibleSection from './CollapsibleSection';
 
 interface CAGEDExerciseProps {
   exercise: Exercise;
@@ -232,67 +233,65 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
         </div>
       </div>
 
-      {/* Shape & Key Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            CAGED Shape
-          </label>
-          <div className="flex gap-2">
-            {['C', 'A', 'G', 'E', 'D'].map(shape => (
-              <button
-                key={shape}
-                onClick={() => setSelectedShape(shape)}
-                className={`flex-1 py-2 rounded-lg font-bold transition-all ${
-                  selectedShape === shape ? 'btn-primary' : ''
-                }`}
-                style={selectedShape !== shape ? {
-                  backgroundColor: 'var(--bg-tertiary)',
-                  color: 'var(--text-secondary)'
-                } : {}}
-              >
-                {shape}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-            Key ({scaleType === 'major' ? 'Major' : 'Minor'})
-          </label>
-          <div className="flex flex-wrap gap-1">
-            {KEYS.map(key => (
-              <button
-                key={key}
-                onClick={() => setSelectedKey(key)}
-                className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
-                  selectedKey === key ? 'btn-primary' : ''
-                }`}
-                style={selectedKey !== key ? {
-                  backgroundColor: 'var(--bg-tertiary)',
-                  color: 'var(--text-secondary)'
-                } : {}}
-              >
-                {key}
-              </button>
-            ))}
-          </div>
+      {/* Shape Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          CAGED Shape
+        </label>
+        <div className="flex gap-2">
+          {['C', 'A', 'G', 'E', 'D'].map(shape => (
+            <button
+              key={shape}
+              onClick={() => setSelectedShape(shape)}
+              className={`flex-1 py-2 rounded-lg font-bold transition-all ${
+                selectedShape === shape ? 'btn-primary' : ''
+              }`}
+              style={selectedShape !== shape ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {shape}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Key Selection */}
+      <CollapsibleSection title="Key" defaultOpen={true}>
+        <div className="flex flex-wrap gap-1">
+          {KEYS.map(key => (
+            <button
+              key={key}
+              onClick={() => setSelectedKey(key)}
+              className={`px-3 py-2 rounded-lg font-medium transition-all min-w-[44px] ${
+                selectedKey === key ? 'btn-primary' : ''
+              }`}
+              style={selectedKey !== key ? {
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-secondary)'
+              } : {}}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </CollapsibleSection>
 
       {/* Shape Info */}
-      <div 
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
-          {shapeData.name} - {selectedKey} {scaleType === 'major' ? 'Major' : 'Minor'}
-        </h4>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {shapeData.description}
-        </p>
-      </div>
+      <CollapsibleSection title="Shape Info" defaultOpen={true}>
+        <div
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+        >
+          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            {shapeData.name} - {selectedKey} {scaleType === 'major' ? 'Major' : 'Minor'}
+          </h4>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {shapeData.description}
+          </p>
+        </div>
+      </CollapsibleSection>
 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">
@@ -357,13 +356,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       </div>
 
       {/* Practice Tips */}
-      <div 
-        className="p-4 rounded-lg"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
-      >
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Practice Tips
-        </h4>
+      <CollapsibleSection title="Practice Tips" defaultOpen={false}>
         <ul className="text-sm space-y-1 list-disc list-inside" style={{ color: 'var(--text-secondary)' }}>
           <li>Play the chord shape first, then find the scale notes around it</li>
           <li>Identify the Root (red), 3rd, and 5th within the shape</li>
@@ -371,7 +364,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           <li>Try improvising using only notes within this position</li>
           <li>Say the note names aloud as you play</li>
         </ul>
-      </div>
+      </CollapsibleSection>
 
       {/* Self-Assessment */}
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
