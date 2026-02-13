@@ -116,27 +116,27 @@ describe('Interval song references', () => {
     { name: 'Perfect 4th', short: 'P4', semitones: 5, song: '"Here Comes the Bride"' },
     { name: 'Tritone', short: 'TT', semitones: 6, song: '"The Simpsons" theme' },
     { name: 'Perfect 5th', short: 'P5', semitones: 7, song: '"Star Wars" theme' },
-    { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Love Story" (theme)' },
+    { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Go Down Moses" (Let my people go)' },
     { name: 'Major 6th', short: 'M6', semitones: 9, song: '"My Bonnie Lies Over the Ocean"' },
     { name: 'Minor 7th', short: 'm7', semitones: 10, song: '"Somewhere" (West Side Story)' },
-    { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Superman Theme" (first two notes)' },
+    { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Take On Me" (first two vocal notes)' },
     { name: 'Octave', short: 'P8', semitones: 12, song: '"Somewhere Over the Rainbow"' },
   ];
 
-  it('minor 6th should reference "Love Story"', () => {
+  it('minor 6th should reference "Go Down Moses"', () => {
     const m6 = INTERVALS.find(i => i.short === 'm6');
     expect(m6).toBeDefined();
     expect(m6!.name).toBe('Minor 6th');
     expect(m6!.semitones).toBe(8);
-    expect(m6!.song).toContain('Love Story');
+    expect(m6!.song).toContain('Go Down Moses');
   });
 
-  it('major 7th should reference "Superman Theme"', () => {
+  it('major 7th should reference "Take On Me"', () => {
     const M7 = INTERVALS.find(i => i.short === 'M7');
     expect(M7).toBeDefined();
     expect(M7!.name).toBe('Major 7th');
     expect(M7!.semitones).toBe(11);
-    expect(M7!.song).toContain('Superman Theme');
+    expect(M7!.song).toContain('Take On Me');
   });
 
   it('should contain all 12 intervals from minor 2nd to octave', () => {

@@ -242,7 +242,7 @@ const exerciseData: Exercise[] = [
     difficulty: 2,
     instructions: [
       'Play the C shape chord, then slide up to the A shape in the same key',
-      'The A shape root is 3 frets above the C shape root (same string)',
+      'The A shape root shares the same fret as the C shape root on the A string, but the pattern extends higher',
       'Find common tones between the two shapes to guide your transition',
       'Practice the scale in C shape, then seamlessly continue in A shape',
       'Use the overlapping frets as "pivot points" for smooth movement',
@@ -275,8 +275,8 @@ const exerciseData: Exercise[] = [
     description: 'Practice connecting the G shape to the E shape.',
     difficulty: 2,
     instructions: [
-      'The E shape root is on the same fret as the G shape but on the 6th string',
-      'This is one of the easier transitions since both shapes share the 6th string root',
+      'Both the G and E shapes share the 6th string root at the same fret, but the E shape pattern extends further up the neck',
+      'This is one of the easier transitions since both shapes share the same root position',
       'Use the 6th string root as your anchor point',
       'Practice chord voicings: G shape → E shape barre chord',
       'Notice how the scale patterns overlap between these positions',

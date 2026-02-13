@@ -60,7 +60,7 @@ export const STANDARD_TUNINGS: Record<string, Tuning> = {
 
 export const NOTE_NAMES: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-// Map of enharmonic equivalents (flats to sharps)
+// Map of enharmonic equivalents (flats/sharps to canonical sharp names)
 const ENHARMONIC_MAP: Record<string, NoteName> = {
   'Db': 'C#',
   'Eb': 'D#',
@@ -71,6 +71,22 @@ const ENHARMONIC_MAP: Record<string, NoteName> = {
   'Cb': 'B',
   'E#': 'F',
   'B#': 'C',
+  // Double flats
+  'Bbb': 'A',
+  'Ebb': 'D',
+  'Abb': 'G',
+  'Dbb': 'C',
+  'Gbb': 'F',
+  'Fbb': 'D#',
+  'Cbb': 'A#',
+  // Double sharps
+  'F##': 'G',
+  'G##': 'A',
+  'C##': 'D',
+  'D##': 'E',
+  'A##': 'B',
+  'E##': 'F#',
+  'B##': 'C#',
 };
 
 /**

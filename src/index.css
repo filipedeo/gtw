@@ -276,6 +276,12 @@ input[type="checkbox"] {
   animation: slideInRight 0.25s ease-out forwards;
 }
 
+/* Collapsible section grid animation */
+.collapsible-grid {
+  display: grid;
+  transition: grid-template-rows 0.25s ease;
+}
+
 /* Mobile card padding reduction */
 @media (max-width: 767px) {
   .card { padding: 1rem; }

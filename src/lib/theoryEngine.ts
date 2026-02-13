@@ -20,43 +20,78 @@ export function getScaleNotes(root: string, scaleName: string): string[] {
 
 // Mode utilities
 // Note: characteristicDegree uses 0-based array indexing into the scale notes.
-// e.g., degree 6 = the 7th scale degree (index 6 in a 0-based array of 7 notes)
+// e.g., degree 3 = the 4th scale degree (index 3 in a 0-based array of 7 notes)
 // This is the index of the note that gives each mode its distinctive sound.
-export const MODES = [
+export interface ModeInfo {
+  name: string;
+  displayName: string;
+  characteristicNote: string;
+  characteristicDegree: number;
+  category: string;
+  formula: string;
+  description: string;
+}
+
+export const MODES: ModeInfo[] = [
   // === Major Scale Modes (Diatonic) ===
-  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: 'M7', characteristicDegree: 6, category: 'major' },
-  { name: 'dorian', displayName: 'Dorian', characteristicNote: '6', characteristicDegree: 5, category: 'major' },
-  { name: 'phrygian', displayName: 'Phrygian', characteristicNote: 'b2', characteristicDegree: 1, category: 'major' },
-  { name: 'lydian', displayName: 'Lydian', characteristicNote: '#4', characteristicDegree: 3, category: 'major' },
-  { name: 'mixolydian', displayName: 'Mixolydian', characteristicNote: 'b7', characteristicDegree: 6, category: 'major' },
-  { name: 'aeolian', displayName: 'Aeolian (Natural Minor)', characteristicNote: 'b6', characteristicDegree: 5, category: 'major' },
-  { name: 'locrian', displayName: 'Locrian', characteristicNote: 'b5', characteristicDegree: 4, category: 'major' },
-  
+  { name: 'ionian', displayName: 'Ionian (Major)', characteristicNote: 'Perfect 4th (P4)', characteristicDegree: 3, category: 'major',
+    formula: '1–2–3–4–5–6–7', description: 'The modern Major scale. Bright, stable, and happy.' },
+  { name: 'dorian', displayName: 'Dorian', characteristicNote: 'Major 6th (M6)', characteristicDegree: 5, category: 'major',
+    formula: '1–2–b3–4–5–6–b7', description: 'A minor mode used in jazz and folk. Melancholic yet hopeful.' },
+  { name: 'phrygian', displayName: 'Phrygian', characteristicNote: 'Minor 2nd (b2)', characteristicDegree: 1, category: 'major',
+    formula: '1–b2–b3–4–5–b6–b7', description: 'A dark, exotic minor mode common in Spanish and Flamenco music.' },
+  { name: 'lydian', displayName: 'Lydian', characteristicNote: 'Augmented 4th (#4)', characteristicDegree: 3, category: 'major',
+    formula: '1–2–3–#4–5–6–7', description: 'A bright, floating, dreamy major mode often used in film scores.' },
+  { name: 'mixolydian', displayName: 'Mixolydian', characteristicNote: 'Minor 7th (b7)', characteristicDegree: 6, category: 'major',
+    formula: '1–2–3–4–5–6–b7', description: 'A major mode with a bluesy/rock feel. Used by the Grateful Dead and Lynyrd Skynyrd.' },
+  { name: 'aeolian', displayName: 'Aeolian (Natural Minor)', characteristicNote: 'Minor 6th (b6)', characteristicDegree: 5, category: 'major',
+    formula: '1–2–b3–4–5–b6–b7', description: 'The natural minor scale. Melancholic and sad.' },
+  { name: 'locrian', displayName: 'Locrian', characteristicNote: 'Diminished 5th (b5)', characteristicDegree: 4, category: 'major',
+    formula: '1–b2–b3–4–b5–b6–b7', description: 'A diminished, highly unstable, and dark mode.' },
+
   // === Harmonic Minor & Its Modes ===
-  { name: 'harmonic minor', displayName: 'Harmonic Minor', characteristicNote: 'M7 + b6', characteristicDegree: 6, category: 'harmonic-minor' },
-  { name: 'locrian 6', displayName: 'Locrian #6', characteristicNote: '#6', characteristicDegree: 5, category: 'harmonic-minor' },
-  { name: 'ionian #5', displayName: 'Ionian #5', characteristicNote: '#5', characteristicDegree: 4, category: 'harmonic-minor' },
-  { name: 'dorian #4', displayName: 'Dorian #4 (Romanian)', characteristicNote: '#4', characteristicDegree: 3, category: 'harmonic-minor' },
-  { name: 'phrygian dominant', displayName: 'Phrygian Dominant', characteristicNote: 'M3 + b2', characteristicDegree: 2, category: 'harmonic-minor' },
-  { name: 'lydian #9', displayName: 'Lydian #9 (Lydian #2)', characteristicNote: '#2', characteristicDegree: 1, category: 'harmonic-minor' },
-  { name: 'ultralocrian', displayName: 'Ultralocrian (dim7)', characteristicNote: 'bb7', characteristicDegree: 6, category: 'harmonic-minor' },
-  
+  { name: 'harmonic minor', displayName: 'Harmonic Minor', characteristicNote: 'Major 7th + Minor 6th', characteristicDegree: 6, category: 'harmonic-minor',
+    formula: '1–2–b3–4–5–b6–7', description: 'Minor scale with a raised 7th. Dramatic, Middle-Eastern flavor.' },
+  { name: 'locrian 6', displayName: 'Locrian #6', characteristicNote: 'Natural 6th (#6)', characteristicDegree: 5, category: 'harmonic-minor',
+    formula: '1–b2–b3–4–b5–6–b7', description: 'Locrian with a raised 6th. Less dark than standard Locrian.' },
+  { name: 'ionian #5', displayName: 'Ionian #5', characteristicNote: 'Augmented 5th (#5)', characteristicDegree: 4, category: 'harmonic-minor',
+    formula: '1–2–3–4–#5–6–7', description: 'Major scale with an augmented 5th. Mysterious and tense.' },
+  { name: 'dorian #4', displayName: 'Dorian #4 (Romanian)', characteristicNote: 'Augmented 4th (#4)', characteristicDegree: 3, category: 'harmonic-minor',
+    formula: '1–2–b3–#4–5–6–b7', description: 'Dorian with a raised 4th. Used in Romanian and Klezmer music.' },
+  { name: 'phrygian dominant', displayName: 'Phrygian Dominant', characteristicNote: 'Major 3rd + Minor 2nd', characteristicDegree: 2, category: 'harmonic-minor',
+    formula: '1–b2–3–4–5–b6–b7', description: 'Phrygian with a major 3rd. Quintessential Middle-Eastern/Spanish sound.' },
+  { name: 'lydian #9', displayName: 'Lydian #9 (Lydian #2)', characteristicNote: 'Augmented 2nd (#2)', characteristicDegree: 1, category: 'harmonic-minor',
+    formula: '1–#2–3–#4–5–6–7', description: 'Lydian with a raised 2nd. Exotic and bright.' },
+  { name: 'ultralocrian', displayName: 'Ultralocrian (dim7)', characteristicNote: 'Diminished 7th (bb7)', characteristicDegree: 6, category: 'harmonic-minor',
+    formula: '1–b2–b3–b4–b5–b6–bb7', description: 'The darkest mode. Fully diminished quality.' },
+
   // === Melodic Minor & Its Modes ===
-  { name: 'melodic minor', displayName: 'Melodic Minor', characteristicNote: 'M6 & M7', characteristicDegree: 5, category: 'melodic-minor' },
-  { name: 'dorian b2', displayName: 'Dorian b2 (Phrygian #6)', characteristicNote: 'b2 + M6', characteristicDegree: 1, category: 'melodic-minor' },
-  { name: 'lydian augmented', displayName: 'Lydian Augmented', characteristicNote: '#4 + #5', characteristicDegree: 4, category: 'melodic-minor' },
-  { name: 'lydian dominant', displayName: 'Lydian Dominant', characteristicNote: '#4 + b7', characteristicDegree: 3, category: 'melodic-minor' },
-  { name: 'mixolydian b6', displayName: 'Mixolydian b6 (Hindu)', characteristicNote: 'b6 + b7', characteristicDegree: 5, category: 'melodic-minor' },
-  { name: 'locrian #2', displayName: 'Locrian #2 (Half-Diminished)', characteristicNote: 'M2 + b5', characteristicDegree: 1, category: 'melodic-minor' },
-  { name: 'altered', displayName: 'Altered (Super Locrian)', characteristicNote: 'b2 b3 b4 b5 b6 b7', characteristicDegree: 3, category: 'melodic-minor' },
-  
+  { name: 'melodic minor', displayName: 'Melodic Minor', characteristicNote: 'Major 6th + Major 7th', characteristicDegree: 5, category: 'melodic-minor',
+    formula: '1–2–b3–4–5–6–7', description: 'Minor scale with raised 6th and 7th. Jazz minor. Smooth and sophisticated.' },
+  { name: 'dorian b2', displayName: 'Dorian b2 (Phrygian #6)', characteristicNote: 'Minor 2nd + Major 6th', characteristicDegree: 1, category: 'melodic-minor',
+    formula: '1–b2–b3–4–5–6–b7', description: 'Dorian with a lowered 2nd. Used over sus(b9) chords.' },
+  { name: 'lydian augmented', displayName: 'Lydian Augmented', characteristicNote: '#4 + #5', characteristicDegree: 4, category: 'melodic-minor',
+    formula: '1–2–3–#4–#5–6–7', description: 'Lydian with an augmented 5th. Ethereal and expansive.' },
+  { name: 'lydian dominant', displayName: 'Lydian Dominant', characteristicNote: '#4 + b7', characteristicDegree: 3, category: 'melodic-minor',
+    formula: '1–2–3–#4–5–6–b7', description: 'Lydian with a flat 7th. The "Simpsons theme" sound. Over dominant 7#11 chords.' },
+  { name: 'mixolydian b6', displayName: 'Mixolydian b6 (Hindu)', characteristicNote: 'Minor 6th + Minor 7th', characteristicDegree: 5, category: 'melodic-minor',
+    formula: '1–2–3–4–5–b6–b7', description: 'Mixolydian with a flat 6th. Bittersweet and dramatic.' },
+  { name: 'locrian #2', displayName: 'Locrian #2 (Half-Diminished)', characteristicNote: 'Major 2nd + Diminished 5th', characteristicDegree: 1, category: 'melodic-minor',
+    formula: '1–2–b3–4–b5–b6–b7', description: 'Locrian with a natural 2nd. Standard choice over half-diminished chords.' },
+  { name: 'altered', displayName: 'Altered (Super Locrian)', characteristicNote: 'All altered tensions', characteristicDegree: 3, category: 'melodic-minor',
+    formula: '1–b2–b3–b4–b5–b6–b7', description: 'Every note is altered. The go-to scale for altered dominant chords in jazz.' },
+
   // === Symmetric Scales ===
-  { name: 'whole tone', displayName: 'Whole Tone', characteristicNote: 'all whole steps', characteristicDegree: 2, category: 'symmetric' },
-  { name: 'diminished', displayName: 'Diminished (Half-Whole)', characteristicNote: 'H-W pattern', characteristicDegree: 1, category: 'symmetric' },
-  { name: 'whole-half diminished', displayName: 'Diminished (Whole-Half)', characteristicNote: 'W-H pattern', characteristicDegree: 1, category: 'symmetric' },
-  
+  { name: 'whole tone', displayName: 'Whole Tone', characteristicNote: 'All whole steps', characteristicDegree: 2, category: 'symmetric',
+    formula: '1–2–3–#4–#5–b7', description: 'All whole-step intervals. Dreamy, ambiguous, floating quality.' },
+  { name: 'half-whole diminished', displayName: 'Diminished (Half-Whole)', characteristicNote: 'H-W alternating pattern', characteristicDegree: 1, category: 'symmetric',
+    formula: '1–b2–b3–3–#4–5–6–b7', description: '8-note scale alternating half and whole steps. Used over diminished chords.' },
+  { name: 'diminished', displayName: 'Diminished (Whole-Half)', characteristicNote: 'W-H alternating pattern', characteristicDegree: 1, category: 'symmetric',
+    formula: '1–2–b3–4–b5–b6–6–7', description: '8-note scale alternating whole and half steps. Used over dominant 7(b9) chords.' },
+
   // === Other Scales ===
-  { name: 'blues', displayName: 'Blues', characteristicNote: 'b5 (blue note)', characteristicDegree: 3, category: 'other' },
+  { name: 'blues', displayName: 'Blues', characteristicNote: 'Blue note (b5)', characteristicDegree: 3, category: 'other',
+    formula: '1–b3–4–b5–5–b7', description: 'Minor pentatonic with an added b5 "blue note". The foundation of blues music.' },
 ];
 
 /** Get modes filtered by category */
@@ -168,6 +203,35 @@ export function buildProgressionChords(
     if (degree === '1m') {
       // Minor tonic
       return { root: NOTE_NAMES[rootIndex], intervals: [0, 3, 7] };
+    }
+    if (degree === '1M') {
+      // Major tonic (e.g., V/IV = I as dominant function)
+      return { root: NOTE_NAMES[rootIndex], intervals: [0, 4, 7] };
+    }
+    if (degree === '2dim') {
+      // Diminished triad on 2nd degree (e.g., iiø7 in minor ii-V-i)
+      const noteIndex = (rootIndex + 2) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 3, 6] };
+    }
+    if (degree === '2M') {
+      // Major chord on 2nd degree (e.g., V/V secondary dominant)
+      const noteIndex = (rootIndex + 2) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 4, 7] };
+    }
+    if (degree === '3M') {
+      // Major chord on 3rd degree (e.g., chromatic III in "Creep")
+      const noteIndex = (rootIndex + 4) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 4, 7] };
+    }
+    if (degree === 'b6') {
+      // Major chord on flat 6th degree (e.g., bVI in Andalusian cadence)
+      const noteIndex = (rootIndex + 8) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 4, 7] };
+    }
+    if (degree === '6M') {
+      // Major chord on 6th degree (e.g., V/ii secondary dominant)
+      const noteIndex = (rootIndex + 9) % 12;
+      return { root: NOTE_NAMES[noteIndex], intervals: [0, 4, 7] };
     }
     // Fallback: treat as degree 1
     return { root: NOTE_NAMES[rootIndex], intervals: [0, 4, 7] };

@@ -37,7 +37,7 @@ const ADVANCED_PROGRESSIONS: Progression[] = [
   { numerals: ['iii', 'vi', 'ii', 'V'], degrees: [3, 6, 2, 5], name: 'Circle of Fourths' },
   { numerals: ['I', 'IV', 'bVII', 'IV'], degrees: [1, 4, 'b7', 4] },
   { numerals: ['vi', 'bVII', 'I'], degrees: [6, 'b7', 1], name: 'Aeolian Cadence' },
-  { numerals: ['I', 'iii', 'IV', 'iv'], degrees: [1, 3, 4, '4m'], name: 'Creep Progression' },
+  { numerals: ['I', 'III', 'IV', 'iv'], degrees: [1, '3M', 4, '4m'], name: 'Creep Progression' },
   { numerals: ['I', 'vi', 'ii', 'V'], degrees: [1, 6, 2, 5], name: 'Rhythm Changes' },
 ];
 
@@ -182,6 +182,9 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
     if (isActive) {
       generateQuestionRef.current();
     }
+    return () => {
+      stopAllNotes();
+    };
   }, [isActive]);
 
   const handlePlayAgain = async () => {

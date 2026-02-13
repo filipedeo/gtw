@@ -170,6 +170,9 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     if (isActive) {
       generateQuestionRef.current();
     }
+    return () => {
+      stopAllNotes();
+    };
   }, [isActive]);
 
   const handlePlayAgain = async () => {
