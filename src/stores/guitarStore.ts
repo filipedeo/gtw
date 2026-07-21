@@ -59,6 +59,7 @@ export const useGuitarStore = create<GuitarState>()(
             tuning: STANDARD_TUNINGS['bass-standard-4'],
             highlightedPositions: [],
             secondaryHighlightedPositions: [],
+            maskedPositions: [],
             rootNote: null,
           };
         }
@@ -68,6 +69,7 @@ export const useGuitarStore = create<GuitarState>()(
           tuning: STANDARD_TUNINGS['standard-6'],
           highlightedPositions: [],
           secondaryHighlightedPositions: [],
+          maskedPositions: [],
           rootNote: null,
         };
       }),
@@ -86,6 +88,7 @@ export const useGuitarStore = create<GuitarState>()(
           tuning,
           highlightedPositions: [],
           secondaryHighlightedPositions: [],
+          maskedPositions: [],
           rootNote: null,
         };
       }),

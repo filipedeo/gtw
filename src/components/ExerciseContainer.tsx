@@ -32,7 +32,7 @@ const ExerciseContainer: React.FC = () => {
     setSelectedCategory,
   } = useExerciseStore();
 
-  const { instrument } = useGuitarStore();
+  const { instrument, stringCount, tuning } = useGuitarStore();
   const [showInstructions, setShowInstructions] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -373,7 +373,16 @@ const ExerciseContainer: React.FC = () => {
 
       {/* Exercise Content */}
       <div className="min-h-[200px]">
-        <ErrorBoundary key={currentExercise?.id}>
+        {/*
+          Remount the active exercise whenever the fretboard config changes
+          (instrument / string count / tuning). Exercises cache a generated
+          question (e.g. a highlighted fret position) in local state; if the
+          board shrinks under them — e.g. Guitar 6-string -> Bass 4-string — a
+          stale position becomes out of range, producing an unanswerable
+          "String -1" with no highlight. Keying on the config forces a fresh,
+          valid question for the new instrument/tuning across every exercise.
+        */}
+        <ErrorBoundary key={`${currentExercise?.id ?? 'none'}::${instrument}::${stringCount}::${tuning.name}`}>
           <Suspense fallback={<LoadingSpinner message="Loading exercise..." />}>
             {renderExercise()}
           </Suspense>

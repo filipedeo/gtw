@@ -90,6 +90,35 @@ describe('guitarStore', () => {
     expect(useGuitarStore.getState().maskedPositions).toEqual([]);
   });
 
+  it('setInstrument(bass) clears maskedPositions and switches to 4-string bass', () => {
+    useGuitarStore.setState({ maskedPositions: [{ string: 5, fret: 3 }] });
+    useGuitarStore.getState().setInstrument('bass');
+    const state = useGuitarStore.getState();
+    expect(state.instrument).toBe('bass');
+    expect(state.stringCount).toBe(4);
+    expect(state.maskedPositions).toEqual([]);
+  });
+
+  it('setInstrument(guitar) clears maskedPositions and switches to 6-string', () => {
+    useGuitarStore.setState({
+      instrument: 'bass',
+      stringCount: 4,
+      tuning: STANDARD_TUNINGS['bass-standard-4'],
+      maskedPositions: [{ string: 3, fret: 2 }],
+    });
+    useGuitarStore.getState().setInstrument('guitar');
+    const state = useGuitarStore.getState();
+    expect(state.instrument).toBe('guitar');
+    expect(state.stringCount).toBe(6);
+    expect(state.maskedPositions).toEqual([]);
+  });
+
+  it('setStringCount clears maskedPositions (stale Note ID target cannot survive)', () => {
+    useGuitarStore.setState({ maskedPositions: [{ string: 5, fret: 4 }] });
+    useGuitarStore.getState().setStringCount(7);
+    expect(useGuitarStore.getState().maskedPositions).toEqual([]);
+  });
+
   it('setHighlightedPositions stores array', () => {
     const positions = [{ string: 1, fret: 3 }, { string: 2, fret: 5 }];
     useGuitarStore.getState().setHighlightedPositions(positions);

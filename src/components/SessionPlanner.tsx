@@ -4,6 +4,7 @@ import { useExerciseStore } from '../stores/exerciseStore';
 import { useGuitarStore } from '../stores/guitarStore';
 import { getExercises, formatTypeLabel } from '../api/exercises';
 import { Exercise } from '../types/exercise';
+import { distributeMinutes, maxExercisesForDuration } from '../utils/sessionPlan';
 
 type TimePreset = '15' | '30' | '60';
 
@@ -138,24 +139,33 @@ const SessionPlanner: React.FC = () => {
       if (categories.length === 0) return;
 
       const totalMinutes = parseInt(preset);
-      const perCategory = Math.max(2, Math.floor(totalMinutes / categories.length));
 
-      const items: PlanItem[] = [];
-      let timeUsed = 0;
+      // Cap the number of exercises so each still gets a sensible minimum block
+      // of time, then pick one (priority-weighted) exercise per selected
+      // category up to that cap.
+      const maxItems = maxExercisesForDuration(totalMinutes);
+      const chosen: { exercise: Exercise; category: string; categoryLabel: string }[] = [];
       for (const cat of categories) {
-        if (timeUsed + perCategory > totalMinutes && items.length > 0) break;
+        if (chosen.length >= maxItems) break;
         const exercise = pickExerciseForCategory(cat.type);
         if (exercise) {
-          items.push({
-            exercise,
-            category: cat.type,
-            categoryLabel: cat.label,
-            timeMinutes: perCategory,
-            completed: false,
-          });
-          timeUsed += perCategory;
+          chosen.push({ exercise, category: cat.type, categoryLabel: cat.label });
         }
       }
+      if (chosen.length === 0) return;
+
+      // Distribute the requested minutes across the chosen exercises so their
+      // per-exercise durations sum to EXACTLY the requested session length.
+      // (Previously Math.floor + a fixed per-category block left minutes
+      // unallocated, e.g. a requested 30-min plan only summing to ~24 min.)
+      const minutes = distributeMinutes(totalMinutes, chosen.length);
+      const items: PlanItem[] = chosen.map((c, i) => ({
+        exercise: c.exercise,
+        category: c.category,
+        categoryLabel: c.categoryLabel,
+        timeMinutes: minutes[i],
+        completed: false,
+      }));
 
       setPlan(items);
       setSessionActive(false);
