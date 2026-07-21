@@ -1,5 +1,6 @@
 import * as Tone from 'tone';
 import { DroneConfig, MetronomeConfig, PlaybackOptions } from '../types/audio';
+import { useAudioStore } from '../stores/audioStore';
 
 let synth: Tone.PolySynth | null = null;
 let droneSynth: Tone.Synth | null = null;
@@ -29,6 +30,9 @@ export async function initAudio(): Promise<void> {
     }).toDestination();
     synth.volume.value = -6;
     isInitialized = true;
+    // Apply the stored/default master volume so the very first sounds respect it
+    // (previously the default was ignored until the user moved the volume slider).
+    setMasterVolume(useAudioStore.getState().masterVolume);
     console.log('Audio initialized');
   } catch (e) {
     console.error('Failed to initialize audio:', e);
@@ -105,13 +109,13 @@ export async function startDrone(config: DroneConfig): Promise<void> {
       type: config.waveform,
     }).connect(droneGain);
     
-    // Set volume
-    droneGain.gain.value = config.volume * 0.5;
-    
-    // Start oscillator
+    // Start oscillator (gain begins at 0 from the Gain(0) constructor above)
     droneOscillator.start();
-    
-    // Fade in
+
+    // Fade in from silence to the target volume. Setting the gain to its full
+    // value here (before the ramp) would defeat the fade and cause an audible
+    // click, so we explicitly start at 0 and ramp up.
+    droneGain.gain.value = 0;
     droneGain.gain.rampTo(config.volume * 0.5, 0.5);
     
     console.log('Drone started:', note, config.waveform);
@@ -202,7 +206,12 @@ export async function startMetronome(config: MetronomeConfig): Promise<void> {
     }, subdivision);
     
     metronomeLoop.start(0);
-    Tone.Transport.start();
+    // Only start the shared Transport if it isn't already running (Jam Mode may
+    // have started it). Restarting a running Transport resets its position and
+    // would disrupt the other feature's scheduling.
+    if (Tone.Transport.state !== 'started') {
+      Tone.Transport.start();
+    }
     
     console.log('Metronome started:', config.bpm, 'BPM');
   } catch (e) {
@@ -221,8 +230,10 @@ export function stopMetronome(): void {
       metronomeSynth.dispose();
       metronomeSynth = null;
     }
-    Tone.Transport.stop();
-    Tone.Transport.cancel();
+    // NOTE: Do NOT call Tone.Transport.stop()/cancel() here. The Transport is a
+    // global clock shared with Jam Mode; stopping or cancelling it would wipe the
+    // other feature's scheduled events (desyncing it from its UI state). Stopping
+    // and disposing our own Loop above already unschedules only the metronome.
     
     console.log('Metronome stopped');
   } catch (e) {

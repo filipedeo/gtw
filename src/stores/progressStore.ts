@@ -1,21 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { UserProgress, ExerciseProgress, ReviewItem, SpacedRepetitionData } from '../types/progress';
-
-function formatTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    'note-identification': 'Note Identification',
-    'caged-system': 'CAGED System',
-    'pentatonic': 'Pentatonic Scales',
-    'three-nps': '3-Notes-Per-String',
-    'modal-practice': 'Modal Practice',
-    'interval-recognition': 'Interval Recognition',
-    'chord-voicing': 'Chord Voicings',
-    'ear-training': 'Ear Training',
-    'chord-progression': 'Chord Progressions',
-  };
-  return labels[type] ?? type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-}
+import { formatTypeLabel } from '../api/exercises';
 
 interface ProgressState {
   // User progress
@@ -78,6 +64,45 @@ function calculateNextReview(item: ReviewItem, quality: number): ReviewItem {
   };
 }
 
+function startOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Compute updated streak fields from the previous practice date.
+ * Idempotent per day: practicing again the same day never increments.
+ * Always stamps lastPracticeDate to today so the value stays self-consistent —
+ * the previous implementation never wrote it, which inflated the streak on reload.
+ */
+function computeStreakUpdate(
+  lastPracticeDate: Date | string | null,
+  currentStreak: number,
+  longestStreak: number,
+  now: Date = new Date()
+): { currentStreak: number; longestStreak: number; lastPracticeDate: Date } {
+  const today = startOfDay(now);
+
+  if (!lastPracticeDate) {
+    return { currentStreak: 1, longestStreak: Math.max(1, longestStreak), lastPracticeDate: today };
+  }
+
+  const lastDate = startOfDay(new Date(lastPracticeDate));
+  const diffDays = Math.round((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) {
+    // Already practiced today — idempotent, no increment.
+    return { currentStreak, longestStreak, lastPracticeDate: today };
+  }
+  if (diffDays === 1) {
+    const newStreak = currentStreak + 1;
+    return { currentStreak: newStreak, longestStreak: Math.max(newStreak, longestStreak), lastPracticeDate: today };
+  }
+  // Gap of more than one day — reset to 1.
+  return { currentStreak: 1, longestStreak: Math.max(1, longestStreak), lastPracticeDate: today };
+}
+
 export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
@@ -128,12 +153,22 @@ export const useProgressStore = create<ProgressState>()(
           else if (avg >= 0.8) strongAreas.push(label);
         }
 
+        // Recording a completion is "actual practice" — advance the streak from
+        // the prior practice date (idempotent within the same day).
+        const streak = computeStreakUpdate(
+          state.progress.lastPracticeDate,
+          state.progress.currentStreak,
+          state.progress.longestStreak
+        );
+
         return {
           progress: {
             ...state.progress,
             totalExercisesCompleted: state.progress.totalExercisesCompleted + 1,
             totalTimeSpent: state.progress.totalTimeSpent + timeSpent,
-            lastPracticeDate: new Date(),
+            currentStreak: streak.currentStreak,
+            longestStreak: streak.longestStreak,
+            lastPracticeDate: streak.lastPracticeDate,
             exerciseProgress: updatedExerciseProgress,
             weakAreas,
             strongAreas,
@@ -142,43 +177,21 @@ export const useProgressStore = create<ProgressState>()(
       }),
       
       updateStreak: () => set((state) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const lastPractice = state.progress.lastPracticeDate;
-
-        if (!lastPractice) {
-          return {
-            progress: {
-              ...state.progress,
-              currentStreak: 1,
-              longestStreak: Math.max(1, state.progress.longestStreak),
-            },
-          };
-        }
-
-        const lastDate = new Date(lastPractice);
-        lastDate.setHours(0, 0, 0, 0);
-        const diffDays = Math.round((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) {
-          return state;
-        } else if (diffDays === 1) {
-          const newStreak = state.progress.currentStreak + 1;
-          return {
-            progress: {
-              ...state.progress,
-              currentStreak: newStreak,
-              longestStreak: Math.max(newStreak, state.progress.longestStreak),
-            },
-          };
-        } else {
-          return {
-            progress: {
-              ...state.progress,
-              currentStreak: 1,
-            },
-          };
-        }
+        // Idempotent: same-day calls do not increment; next-day increments once;
+        // a gap resets to 1. lastPracticeDate is always written.
+        const streak = computeStreakUpdate(
+          state.progress.lastPracticeDate,
+          state.progress.currentStreak,
+          state.progress.longestStreak
+        );
+        return {
+          progress: {
+            ...state.progress,
+            currentStreak: streak.currentStreak,
+            longestStreak: streak.longestStreak,
+            lastPracticeDate: streak.lastPracticeDate,
+          },
+        };
       }),
       
       getNextReviews: () => {

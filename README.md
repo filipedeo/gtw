@@ -30,13 +30,13 @@ Interactive guitar theory practice app with fretboard visualization, ear trainin
 ### Tools
 - **Session planner** — Auto-generated practice plans for 15/30/60 min sessions with category filtering, weighted exercise selection (spaced repetition, weak areas, least practiced), and drag-to-reorder
 - **Practice timer** — Elapsed time tracking with optional target alerts
-- **Metronome** — Adjustable BPM with tap tempo
+- **Metronome** — Adjustable BPM and volume, selectable time signatures, and accent on the first beat
 - **Guitar tuner** — Chromatic tuner using microphone input with pitch detection
 - **Progress dashboard** — Spaced repetition (SM-2), streaks, weak area detection, exercise history
 
 ### Fretboard
 - Canvas-based rendering, 6/7-string support
-- Standard, Drop D, Drop A, DADGAD, Open G, and custom tunings
+- Standard, Drop D, and Drop A tuning presets (6- and 7-string)
 - Display modes: note names, intervals, scale degrees
 - Click any position to hear the note
 - Dark and light themes
@@ -58,7 +58,7 @@ React 19, TypeScript, Vite, Zustand, Tailwind CSS 4, Tone.js, tonal.js
 git clone <repository-url>
 cd guitar-theory-webapp
 npm install
-npm run dev          # Dev server on localhost:5173
+npm run dev          # Dev server on localhost:3000
 ```
 
 ### Scripts

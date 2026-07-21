@@ -107,13 +107,13 @@ const SessionPlanner: React.FC = () => {
         return dueInCategory[Math.floor(Math.random() * dueInCategory.length)];
       }
 
-      const weakAreas = progress.weakAreas;
+      // Weak areas are stored as display labels (e.g. "Note Identification"),
+      // while ex.type is hyphenated (e.g. "note-identification"). Normalize both
+      // sides (lowercase + collapse hyphens/spaces) so the labels actually match.
+      const normalize = (s: string) => s.toLowerCase().replace(/[\s-]+/g, ' ').trim();
+      const weakAreas = progress.weakAreas.map(normalize);
       const weakExercises = categoryExercises.filter((ex) =>
-        weakAreas.some(
-          (area) =>
-            ex.type.includes(area.toLowerCase()) ||
-            ex.title.toLowerCase().includes(area.toLowerCase())
-        )
+        weakAreas.includes(normalize(formatTypeLabel(ex.type)))
       );
       if (weakExercises.length > 0) {
         return weakExercises[Math.floor(Math.random() * weakExercises.length)];

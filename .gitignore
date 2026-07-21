@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+node_modules
 
 # Build output
 dist/
@@ -24,3 +25,9 @@ Thumbs.db
 
 # Playwright
 .playwright-mcp/
+
+# Agent/review scratch (internal notes — never commit)
+agents/
+
+# Durable agent memory
+.mempact/

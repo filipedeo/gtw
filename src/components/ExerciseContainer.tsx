@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { useExerciseStore } from '../stores/exerciseStore';
-import { useProgressStore } from '../stores/progressStore';
 import { useGuitarStore } from '../stores/guitarStore';
 import { getExercises, formatTypeLabel } from '../api/exercises';
 import { useSwipe } from '../hooks/useSwipe';
@@ -34,7 +33,6 @@ const ExerciseContainer: React.FC = () => {
   } = useExerciseStore();
 
   const { instrument } = useGuitarStore();
-  const { updateStreak } = useProgressStore();
   const [showInstructions, setShowInstructions] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -92,8 +90,7 @@ const ExerciseContainer: React.FC = () => {
       }
     };
     loadExercises();
-    updateStreak();
-  }, [setExercises, setCurrentExercise, updateStreak]);
+  }, [setExercises, setCurrentExercise]);
 
   // Retry loading exercises
   const handleRetryLoad = () => {

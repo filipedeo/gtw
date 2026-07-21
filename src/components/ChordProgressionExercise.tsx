@@ -81,6 +81,11 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
 
   const handleAnswerRef = useRef<(answer: string) => void>(() => {});
 
+  // Track mount state and every pending setTimeout so the next-question timer
+  // can be cancelled on unmount (prevents re-scheduling audio after navigation).
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
   const pool = exercise.id === 'chord-prog-1'
     ? BASIC_PROGRESSIONS
     : exercise.id === 'chord-prog-2'
@@ -120,7 +125,13 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
+    // Bail if unmounted during async init so we don't schedule audio after navigation.
+    if (!isMountedRef.current) return;
     stopAllNotes();
+
+    // Cancel any timer still scheduled from a previous question.
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
 
     // Pick random key
     const key = EXERCISE_KEYS[Math.floor(Math.random() * EXERCISE_KEYS.length)];
@@ -179,10 +190,14 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
   generateQuestionRef.current = generateQuestion;
 
   useEffect(() => {
+    isMountedRef.current = true;
     if (isActive) {
       generateQuestionRef.current();
     }
     return () => {
+      isMountedRef.current = false;
+      timeoutsRef.current.forEach(t => clearTimeout(t));
+      timeoutsRef.current = [];
       stopAllNotes();
     };
   }, [isActive]);
@@ -206,11 +221,12 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
     handlePlayAgain();
 
     // Auto-advance
-    setTimeout(() => {
+    const nextTimer = setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
+    timeoutsRef.current.push(nextTimer);
   }, [selectedAnswer, isActive, correctAnswer, score.total, recordAnswer, generateQuestion]);
 
   // Keep ref in sync

@@ -135,8 +135,9 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
       loopRef.current.dispose();
       loopRef.current = null;
     }
-    Tone.getTransport().stop();
-    Tone.getTransport().cancel();
+    // Do NOT stop/cancel the global Transport here — the metronome may be
+    // scheduled on it too. Disposing our own Loop above removes only the jam's
+    // scheduled events, leaving any running metronome untouched.
     isPlayingRef.current = false;
     setIsPlaying(false);
     setCurrentChordIndex(0);
@@ -151,7 +152,13 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
 
     const transport = Tone.getTransport();
     transport.bpm.value = bpm;
-    transport.cancel(); // clear previous events
+    // Dispose any previous jam loop instead of calling transport.cancel(), which
+    // would also wipe the metronome's scheduled events on the shared Transport.
+    if (loopRef.current) {
+      loopRef.current.stop();
+      loopRef.current.dispose();
+      loopRef.current = null;
+    }
 
     let beatIndex = 0;
     const totalBeats = chords.length * progression.beatsPerChord;
@@ -176,7 +183,11 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
     }, '4n');
 
     loopRef.current.start(0);
-    transport.start();
+    // Only start the shared Transport if it isn't already running (the metronome
+    // may have started it). Restarting a running Transport resets its position.
+    if (transport.state !== 'started') {
+      transport.start();
+    }
     isPlayingRef.current = true;
     setIsPlaying(true);
   }, [selectedKey, progression, bpm]);
@@ -204,8 +215,8 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         loopRef.current.dispose();
         loopRef.current = null;
       }
-      Tone.getTransport().stop();
-      Tone.getTransport().cancel();
+      // Don't stop/cancel the global Transport on unmount — a metronome started
+      // from the toolbar persists across exercises and may still be using it.
       clearHighlights();
     };
   }, [clearHighlights]);

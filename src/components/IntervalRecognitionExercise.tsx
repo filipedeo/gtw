@@ -42,6 +42,23 @@ function getIntervalsForDifficulty(difficulty: number): typeof INTERVALS {
   }
 }
 
+// Get the intervals the exercise is meant to TEACH (its scope), separate from the
+// answer-option pool built by getIntervalsForDifficulty. Distractors may include
+// intervals outside this scope (e.g. the "3rds" exercise shows P4/P5 as options),
+// but the correct answer must always be drawn from the teaching scope.
+function getTargetIntervalsForDifficulty(difficulty: number): typeof INTERVALS {
+  if (difficulty <= 1) {
+    // Easy: teach P4, P5
+    return INTERVALS.filter(i => ['P4', 'P5'].includes(i.short));
+  } else if (difficulty <= 2) {
+    // Medium: teach Major & Minor 3rds only (P4/P5 remain as distractors)
+    return INTERVALS.filter(i => ['m3', 'M3'].includes(i.short));
+  } else {
+    // Hard: all intervals
+    return INTERVALS;
+  }
+}
+
 const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = ({ exercise }) => {
   const { stringCount, tuning, setHighlightedPositions, clearHighlights } = useGuitarStore();
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
@@ -61,6 +78,12 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
 
   // Keep a ref to handleAnswer so keyboard handler always uses latest version
   const handleAnswerRef = useRef<(answer: string) => void>(() => {});
+
+  // Track mount state and every pending setTimeout so we can cancel scheduled
+  // audio / next-question timers on unmount (prevents notes ringing after
+  // navigation and store mutations after the component is gone).
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
   useEffect(() => {
@@ -92,12 +115,25 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     [exercise.difficulty]
   );
 
+  const targetIntervals = useMemo(
+    () => getTargetIntervalsForDifficulty(exercise.difficulty),
+    [exercise.difficulty]
+  );
+
   const generateQuestion = useCallback(async () => {
     await initAudio();
+    // Bail if the component unmounted during async init — avoids mutating the
+    // guitar store (highlights) and scheduling audio after navigation.
+    if (!isMountedRef.current) return;
     stopAllNotes();
 
+    // Cancel any audio still scheduled from a previous question so rapid
+    // re-generation doesn't stack overlapping notes.
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
+
     // Pick a random interval from available ones
-    const interval = availableIntervals[Math.floor(Math.random() * availableIntervals.length)];
+    const interval = targetIntervals[Math.floor(Math.random() * targetIntervals.length)];
     
     // Generate root position (leave room for interval)
     const maxFret = exercise.difficulty <= 1 ? 7 : 12;
@@ -153,12 +189,14 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     const rootNote = getNoteAtPosition(effectiveRoot, tuning, stringCount);
     const targetNote = getNoteAtPosition(target, tuning, stringCount);
     
-    setTimeout(() => {
+    const rootTimer = setTimeout(() => {
       playNote(rootNote, { duration: 0.8, velocity: 0.7 });
-      setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
+      const targetTimer = setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
+      timeoutsRef.current.push(targetTimer);
     }, 300);
+    timeoutsRef.current.push(rootTimer);
     
-  }, [stringCount, tuning, exercise.difficulty, availableIntervals, setHighlightedPositions]);
+  }, [stringCount, tuning, exercise.difficulty, availableIntervals, targetIntervals, setHighlightedPositions]);
 
   // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
   const generateQuestionRef = useRef(generateQuestion);
@@ -176,6 +214,18 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     };
   }, [isActive, clearHighlights]);
 
+  // Cancel pending timers and silence audio on unmount so notes don't ring
+  // after navigation and next-question timers can't re-schedule audio.
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      timeoutsRef.current.forEach(t => clearTimeout(t));
+      timeoutsRef.current = [];
+      stopAllNotes();
+    };
+  }, []);
+
   const handlePlayAgain = () => {
     if (!rootPosition || !targetPosition) return;
     
@@ -183,7 +233,8 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     const targetNote = getNoteAtPosition(targetPosition, tuning, stringCount);
     
     playNote(rootNote, { duration: 0.8, velocity: 0.7 });
-    setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
+    const targetTimer = setTimeout(() => playNote(targetNote, { duration: 0.8, velocity: 0.7 }), 600);
+    timeoutsRef.current.push(targetTimer);
   };
 
   const handleAnswer = useCallback((answer: string) => {
@@ -201,11 +252,12 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     handlePlayAgain();
 
     // Move to next question after delay (hook handles completion check)
-    setTimeout(() => {
+    const nextTimer = setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
+    timeoutsRef.current.push(nextTimer);
   }, [selectedAnswer, isActive, correctInterval, score.total, recordAnswer, handlePlayAgain, generateQuestion]);
 
   // Keep ref in sync with latest handleAnswer

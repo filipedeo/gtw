@@ -69,8 +69,8 @@ const DIMINISHED_CHORD_SCALES: ChordScalePairing = {
   chordType: 'Diminished 7',
   chordSymbol: 'dim7',
   scales: [
-    { name: 'half-whole diminished', displayName: 'Diminished (H-W)', description: 'Half-whole pattern - standard choice over dim7 chords' },
-    { name: 'diminished', displayName: 'Diminished (W-H)', description: 'Whole-half pattern - also used over dominant 7(b9) chords' },
+    { name: 'diminished', displayName: 'Diminished (W-H)', description: 'Whole-half pattern - standard choice over dim7 chords' },
+    { name: 'half-whole diminished', displayName: 'Diminished (H-W)', description: 'Half-whole pattern - used over dominant 7(b9) chords' },
   ],
 };
 

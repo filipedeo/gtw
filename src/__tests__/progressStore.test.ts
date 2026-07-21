@@ -89,6 +89,31 @@ describe('progressStore', () => {
       // State should remain unchanged
       expect(useProgressStore.getState().progress.currentStreak).toBe(3);
     });
+
+    it('is idempotent within a day and increments once the next day', () => {
+      // First practice today → streak starts at 1 and lastPracticeDate is stamped
+      useProgressStore.getState().updateStreak();
+      expect(useProgressStore.getState().progress.currentStreak).toBe(1);
+
+      // Second call the SAME day → no increment (idempotent)
+      useProgressStore.getState().updateStreak();
+      expect(useProgressStore.getState().progress.currentStreak).toBe(1);
+
+      // Simulate the recorded practice having happened yesterday
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      useProgressStore.setState({
+        progress: { ...useProgressStore.getState().progress, lastPracticeDate: yesterday },
+      });
+
+      // Next-day call increments exactly once
+      useProgressStore.getState().updateStreak();
+      expect(useProgressStore.getState().progress.currentStreak).toBe(2);
+
+      // Repeated call the same (next) day → still no further increment
+      useProgressStore.getState().updateStreak();
+      expect(useProgressStore.getState().progress.currentStreak).toBe(2);
+    });
   });
 
   describe('SM-2 updateReviewItem', () => {

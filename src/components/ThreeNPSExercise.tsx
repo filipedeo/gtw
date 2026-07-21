@@ -118,7 +118,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
       'three-nps-aeolian': 5,    // Aeolian
       'three-nps-locrian': 6,    // Locrian
       'three-nps-harmonic-minor': 7,  // Harmonic Minor
-      'three-nps-melodic-minor': 8,   // Melodic Minor
+      'three-nps-melodic-minor': 14,  // Melodic Minor
     };
     const index = modeMap[exercise.id];
     if (index !== undefined) setSelectedModeIndex(index);

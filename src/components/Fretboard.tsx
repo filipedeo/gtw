@@ -7,12 +7,96 @@ import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import { FRETBOARD_THEME_COLORS } from '../constants/fretboardTheme';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { NOTE_NAMES_FLAT } from '../lib/theoryEngine';
 
 interface FretboardProps {
   onNoteClick?: (position: FretPosition, note: string) => void;
   interactive?: boolean;
   hideNoteNames?: boolean; // For exercises where we don't want to show the note
   revealedPositions?: FretPosition[]; // Positions where note names should be shown
+}
+
+/**
+ * Note-name spelling helpers.
+ *
+ * The Fretboard only receives the root note (via the store); it does NOT know
+ * the active scale/mode. Notes are therefore spelled according to the tonic's
+ * key convention: flat keys use flats, sharp keys use sharps. This keeps the
+ * fretboard spelling consistent with the app's scale text for the common cases.
+ *
+ * Limitation: without the active scale/mode we cannot always choose the exact
+ * modal spelling (e.g. a diminished 7th spelled bb7, or a flat-flavoured mode
+ * such as Dorian built on a sharp-preferring tonic like G). Such notes fall
+ * back to the tonic's key spelling.
+ */
+
+// Chromas of the keys the app spells with flats: Db(1), Eb(3), F(5), Ab(8), Bb(10).
+// The only accidental key the app spells with a sharp is F# (chroma 6).
+const FLAT_KEY_CHROMAS = new Set([1, 3, 5, 8, 10]);
+
+const LETTER_ORDER = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+// Semitone offset above the tonic for each major-scale degree number (1..7).
+const MAJOR_DEGREE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
+// Safe chromatic fallbacks (used when a note cannot be spelled cleanly, e.g. the
+// leading tone of F# major is E#, which NOTE_NAMES cannot represent).
+const CHROMATIC_DEGREE_NAMES = ['1', '\u266d2', '2', '\u266d3', '3', '4', '\u266d5', '5', '\u266d6', '6', '\u266d7', '7'];
+const CHROMATIC_INTERVAL_NAMES = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+
+/** Whether notes should be spelled with flats for the given (tonic) root note. */
+function preferFlatsForRoot(rootNote: string | null): boolean {
+  if (!rootNote) return false;
+  const chroma = NOTE_NAMES.indexOf(normalizeNoteName(rootNote));
+  return FLAT_KEY_CHROMAS.has(chroma);
+}
+
+/** Spell a chroma (0-11) using flats or sharps. */
+function spellChroma(chroma: number, useFlats: boolean): string {
+  return (useFlats ? NOTE_NAMES_FLAT : NOTE_NAMES)[chroma];
+}
+
+/**
+ * Derive a scale-degree / interval label from the key-aware spelling of the
+ * root and the target note. The interval NUMBER comes from the letter names
+ * and the accidental from the semitone distance, so the overlay label always
+ * agrees with the note name shown on the fretboard (rather than being computed
+ * purely chromatically, which mislabels e.g. #4 as b5 or #5 as b6).
+ */
+function getDegreeLabel(
+  rootSpelling: string,
+  noteSpelling: string,
+  chromaInterval: number,
+  mode: 'degrees' | 'intervals'
+): string {
+  const chromaticFallback = mode === 'intervals'
+    ? CHROMATIC_INTERVAL_NAMES[chromaInterval]
+    : CHROMATIC_DEGREE_NAMES[chromaInterval];
+
+  const rootLetterIdx = LETTER_ORDER.indexOf(rootSpelling[0]);
+  const noteLetterIdx = LETTER_ORDER.indexOf(noteSpelling[0]);
+  if (rootLetterIdx === -1 || noteLetterIdx === -1) return chromaticFallback;
+
+  const degreeNumber = ((noteLetterIdx - rootLetterIdx + 7) % 7) + 1; // 1..7
+  let alteration = chromaInterval - MAJOR_DEGREE_SEMITONES[degreeNumber - 1];
+  // Keep the accidental sane when the interval wraps across the octave.
+  if (alteration > 6) alteration -= 12;
+  if (alteration < -6) alteration += 12;
+
+  // Guard against enharmonic gaps: NOTE_NAMES/NOTE_NAMES_FLAT cannot express
+  // notes such as E#/Cb, so a mis-spelled note could yield a nonsensical label
+  // (e.g. 'b1'). If the letter-derived degree is degenerate (a non-unison mapped
+  // to degree 1, or a double accidental), use the plain chromatic name instead.
+  if ((degreeNumber === 1 && chromaInterval !== 0) || alteration < -1 || alteration > 1) {
+    return chromaticFallback;
+  }
+
+  if (mode === 'intervals') {
+    if (degreeNumber === 1 && alteration === 0) return 'R';
+    const acc = alteration > 0 ? '#'.repeat(alteration) : alteration < 0 ? 'b'.repeat(-alteration) : '';
+    return `${acc}${degreeNumber}`;
+  }
+  // Degrees mode uses unicode accidentals to match prior styling.
+  const acc = alteration > 0 ? '\u266f'.repeat(alteration) : alteration < 0 ? '\u266d'.repeat(-alteration) : '';
+  return `${acc}${degreeNumber}`;
 }
 
 const Fretboard: React.FC<FretboardProps> = ({ 
@@ -53,7 +137,6 @@ const Fretboard: React.FC<FretboardProps> = ({
   const PADDING_X = 50;
   const DOT_FRETS = [3, 5, 7, 9, 12, 15, 17, 19, 21];
   const DOUBLE_DOT_FRETS = [12, 24];
-  const DEGREE_NAMES = ['1', '\u266d2', '2', '\u266d3', '3', '4', '\u266d5', '5', '\u266d6', '6', '\u266d7', '7'];
 
   // Convert between visual row (Y position) and tuning array index
   // Visual: row 0 (top) = high E, row 5 (bottom) = low E
@@ -327,8 +410,12 @@ const Fretboard: React.FC<FretboardProps> = ({
     const y = PADDING_Y + visualRow * STRING_SPACING;
 
     const note = getNoteAtPosition(position, tuning, stringCount);
-    // Normalize note name to use sharps (e.g., Gb -> F#) for consistent display
+    // Normalized (sharp) pitch class — used for root comparison and interval math.
     const noteName = normalizeNoteName(note.replace(/\d/, ''));
+    const chroma = NOTE_NAMES.indexOf(noteName);
+    // Spell the note for display according to the active key (flats in flat keys).
+    const useFlats = preferFlatsForRoot(rootNote);
+    const displayNoteName = chroma !== -1 ? spellChroma(chroma, useFlats) : noteName;
     const isRoot = rootNote && noteName === normalizeNoteName(rootNote);
 
     // Reset shadow offsets to prevent leak from nut drawing or prior draw calls
@@ -392,19 +479,13 @@ const Fretboard: React.FC<FretboardProps> = ({
       // Show question mark for hidden notes
       ctx.fillText('?', x, y);
     } else if (showName) {
-      let displayText: string = noteName;
-      if ((displayMode === 'intervals' || displayMode === 'degrees') && rootNote) {
-        const normalizedRoot = normalizeNoteName(rootNote);
-        const rootIndex = NOTE_NAMES.indexOf(normalizedRoot);
-        const noteIndex = NOTE_NAMES.indexOf(noteName);
-        if (rootIndex !== -1 && noteIndex !== -1) {
-          const interval = (noteIndex - rootIndex + 12) % 12;
-          if (displayMode === 'degrees') {
-            displayText = DEGREE_NAMES[interval];
-          } else {
-            const intervalNames = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
-            displayText = intervalNames[interval];
-          }
+      let displayText: string = displayNoteName;
+      if ((displayMode === 'intervals' || displayMode === 'degrees') && rootNote && chroma !== -1) {
+        const rootChroma = NOTE_NAMES.indexOf(normalizeNoteName(rootNote));
+        if (rootChroma !== -1) {
+          const rootSpelling = spellChroma(rootChroma, useFlats);
+          const chromaInterval = (chroma - rootChroma + 12) % 12;
+          displayText = getDegreeLabel(rootSpelling, displayNoteName, chromaInterval, displayMode);
         }
       }
       ctx.fillText(displayText, x, y);

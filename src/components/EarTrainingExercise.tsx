@@ -49,6 +49,12 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
   // Keep a ref to handleAnswer so keyboard handler always uses latest version
   const handleAnswerRef = useRef<(answer: string) => void>(() => {});
 
+  // Track mount state and every pending setTimeout so scheduled audio and the
+  // next-question timer can be cancelled on unmount (prevents notes ringing
+  // after navigation and re-scheduling audio post-unmount).
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4, etc. keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -100,7 +106,13 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
 
   const generateQuestion = useCallback(async () => {
     await initAudio();
+    // Bail if unmounted during async init so we don't schedule audio after navigation.
+    if (!isMountedRef.current) return;
     stopAllNotes();
+
+    // Cancel any audio still scheduled from a previous question.
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
 
     // Pick a random key
     const key = KEYS[Math.floor(Math.random() * KEYS.length)];
@@ -116,7 +128,7 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
       setCurrentChordNotes(notes);
       
       // Play the chord
-      setTimeout(() => playChord(notes, { duration: 2, velocity: 0.6 }), 300);
+      timeoutsRef.current.push(setTimeout(() => playChord(notes, { duration: 2, velocity: 0.6 }), 300));
       
     } else if (mode === 'chord-seventh') {
       const qualities = CHORD_QUALITIES.seventh;
@@ -127,7 +139,7 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
       setOptions(qualities.map(q => q.name).sort(() => Math.random() - 0.5));
       setCurrentChordNotes(notes);
       
-      setTimeout(() => playChord(notes, { duration: 2, velocity: 0.6 }), 300);
+      timeoutsRef.current.push(setTimeout(() => playChord(notes, { duration: 2, velocity: 0.6 }), 300));
       
     } else if (mode === 'scale-degree') {
       // First establish the key with a I chord
@@ -151,10 +163,11 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
       setCurrentScaleNote(note);
       
       // Play tonic chord, then the note
-      setTimeout(() => {
+      const tonicTimer = setTimeout(() => {
         playChord(tonicChord, { duration: 1.5, velocity: 0.5 });
-        setTimeout(() => playNote(note, { duration: 1.5, velocity: 0.7 }), 1800);
+        timeoutsRef.current.push(setTimeout(() => playNote(note, { duration: 1.5, velocity: 0.7 }), 1800));
       }, 300);
+      timeoutsRef.current.push(tonicTimer);
     }
     
     setSelectedAnswer(null);
@@ -167,10 +180,14 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
   generateQuestionRef.current = generateQuestion;
 
   useEffect(() => {
+    isMountedRef.current = true;
     if (isActive) {
       generateQuestionRef.current();
     }
     return () => {
+      isMountedRef.current = false;
+      timeoutsRef.current.forEach(t => clearTimeout(t));
+      timeoutsRef.current = [];
       stopAllNotes();
     };
   }, [isActive]);
@@ -180,7 +197,7 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     
     if (mode === 'scale-degree') {
       playChord(currentChordNotes, { duration: 1.5, velocity: 0.5 });
-      setTimeout(() => playNote(currentScaleNote, { duration: 1.5, velocity: 0.7 }), 1800);
+      timeoutsRef.current.push(setTimeout(() => playNote(currentScaleNote, { duration: 1.5, velocity: 0.7 }), 1800));
     } else {
       playChord(currentChordNotes, { duration: 2, velocity: 0.6 });
     }
@@ -201,11 +218,12 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
     handlePlayAgain();
 
     // Move to next question after delay (hook handles completion check)
-    setTimeout(() => {
+    const nextTimer = setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2500);
+    timeoutsRef.current.push(nextTimer);
   }, [selectedAnswer, isActive, correctAnswer, score.total, recordAnswer, handlePlayAgain, generateQuestion]);
 
   // Keep ref in sync with latest handleAnswer

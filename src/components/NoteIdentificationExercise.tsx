@@ -4,7 +4,7 @@ import { FretPosition, NOTE_NAMES, normalizeNoteName, areNotesEqual } from '../t
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
-import { playNote, initAudio } from '../lib/audioEngine';
+import { playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 
@@ -31,6 +31,12 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
 
   // Keep a ref to handleAnswer so keyboard handler always uses latest version
   const handleAnswerRef = useRef<(answer: string) => void>(() => {});
+
+  // Track mount state and every pending setTimeout so we can cancel scheduled
+  // audio / next-question timers on unmount (prevents notes ringing after
+  // navigation and store mutations after the component is gone).
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // Keyboard shortcut handler for answer selection (1, 2, 3, 4 keys)
   useEffect(() => {
@@ -63,6 +69,15 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   const generateQuestion = useCallback(async () => {
     // Ensure audio is ready
     await initAudio();
+    // Bail if the component unmounted during async init — avoids mutating the
+    // guitar store (highlights/root note) and scheduling audio after navigation.
+    if (!isMountedRef.current) return;
+    stopAllNotes();
+
+    // Cancel any audio still scheduled from a previous question so rapid
+    // re-generation doesn't stack overlapping notes.
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
     
     // Generate random position
     const position = getRandomPosition(stringCount, maxFret, 0);
@@ -95,9 +110,10 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     setRootNote(null);
     
     // Play the note so user can hear it
-    setTimeout(() => {
+    const playTimer = setTimeout(() => {
       playNote(note, { duration: 1.5, velocity: 0.7 });
     }, 300);
+    timeoutsRef.current.push(playTimer);
     
   }, [stringCount, tuning, maxFret, setHighlightedPositions, setRootNote]);
 
@@ -119,6 +135,18 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
       setRevealedPositions([]);
     };
   }, [isActive, clearHighlights]);
+
+  // Cancel pending timers and silence audio on unmount so notes don't ring
+  // after navigation and next-question timers can't re-schedule audio.
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      timeoutsRef.current.forEach(t => clearTimeout(t));
+      timeoutsRef.current = [];
+      stopAllNotes();
+    };
+  }, []);
 
   const handlePlayAgain = () => {
     if (fullNote) {
@@ -145,11 +173,12 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     playNote(fullNote, { duration: 1, velocity: 0.6 });
     
     // Move to next question after delay (hook handles completion check)
-    setTimeout(() => {
+    const nextTimer = setTimeout(() => {
       if (score.total + 1 < 10) {
         generateQuestion();
       }
     }, 2000);
+    timeoutsRef.current.push(nextTimer);
   }, [selectedAnswer, isActive, currentPosition, correctNote, fullNote, score.total, recordAnswer, generateQuestion]);
 
   // Keep ref in sync with latest handleAnswer
