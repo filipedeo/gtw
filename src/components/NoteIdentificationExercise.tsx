@@ -13,7 +13,7 @@ interface NoteIdentificationExerciseProps {
 }
 
 const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({ exercise }) => {
-  const { stringCount, tuning, setHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, tuning, setHighlightedPositions, setSecondaryHighlightedPositions, setMaskedPositions, setRootNote, clearHighlights } = useGuitarStore();
   const { score, questionNumber, isActive, recordAnswer, scorePercentage } = useExercise({
     exerciseId: exercise.id,
     exerciseType: exercise.type,
@@ -107,6 +107,12 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     
     // Highlight the position on fretboard
     setHighlightedPositions([position]);
+    // A single target only — clear any stale secondary dots left by a previous
+    // scale/arpeggio exercise so exactly one dot is highlighted on every viewport.
+    setSecondaryHighlightedPositions([]);
+    // Mask this target's note name on EVERY fretboard (incl. the persistent top
+    // board that doesn't pass hideNoteNames) so the answer isn't leaked.
+    setMaskedPositions([position]);
     setRootNote(null);
     
     // Play the note so user can hear it
@@ -115,7 +121,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     }, 300);
     timeoutsRef.current.push(playTimer);
     
-  }, [stringCount, tuning, maxFret, setHighlightedPositions, setRootNote]);
+  }, [stringCount, tuning, maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setMaskedPositions, setRootNote]);
 
   // Keep a stable ref so tuning/stringCount changes don't auto-trigger audio
   const generateQuestionRef = useRef(generateQuestion);
@@ -165,6 +171,8 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     
     // Reveal the note on the fretboard
     setRevealedPositions([currentPosition]);
+    // Unmask on the shared boards so the persistent top board reveals it too.
+    setMaskedPositions([]);
     
     // Record answer using the hook (handles scoring, completion, and progress tracking)
     recordAnswer(correct);
@@ -179,7 +187,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
       }
     }, 2000);
     timeoutsRef.current.push(nextTimer);
-  }, [selectedAnswer, isActive, currentPosition, correctNote, fullNote, score.total, recordAnswer, generateQuestion]);
+  }, [selectedAnswer, isActive, currentPosition, correctNote, fullNote, score.total, recordAnswer, generateQuestion, setMaskedPositions]);
 
   // Keep ref in sync with latest handleAnswer
   handleAnswerRef.current = handleAnswer;

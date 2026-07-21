@@ -52,7 +52,7 @@ const lightColors: FretboardColors = {
   dotGlow: 'rgba(240, 232, 216, 0.5)',
   text: '#374151',
   textMuted: '#6b7280',
-  fretNumber: '#9ca3af',
+  fretNumber: '#241a0f',
   noteHighlight: '#3b82f6',
   noteRoot: '#ef4444',
   noteDefault: 'rgba(107, 114, 128, 0.3)',

@@ -13,6 +13,10 @@ interface GuitarState {
   // Fretboard state
   highlightedPositions: FretPosition[];
   secondaryHighlightedPositions: FretPosition[];
+  // Positions whose note name must be masked as "?" on EVERY fretboard instance
+  // (e.g. the unanswered Note Identification target). Independent of the
+  // per-instance hideNoteNames prop so the persistent top board also hides it.
+  maskedPositions: FretPosition[];
   rootNote: string | null;
   showAllNotes: boolean;
 
@@ -23,6 +27,7 @@ interface GuitarState {
   setDisplayMode: (mode: DisplayMode) => void;
   setHighlightedPositions: (positions: FretPosition[]) => void;
   setSecondaryHighlightedPositions: (positions: FretPosition[]) => void;
+  setMaskedPositions: (positions: FretPosition[]) => void;
   setRootNote: (note: string | null) => void;
   toggleShowAllNotes: () => void;
   clearHighlights: () => void;
@@ -41,6 +46,7 @@ export const useGuitarStore = create<GuitarState>()(
       // Default fretboard state
       highlightedPositions: [],
       secondaryHighlightedPositions: [],
+      maskedPositions: [],
       rootNote: null,
       showAllNotes: false,
 
@@ -92,11 +98,13 @@ export const useGuitarStore = create<GuitarState>()(
 
       setSecondaryHighlightedPositions: (positions) => set({ secondaryHighlightedPositions: positions }),
 
+      setMaskedPositions: (positions) => set({ maskedPositions: positions }),
+
       setRootNote: (note) => set({ rootNote: note }),
 
       toggleShowAllNotes: () => set((state) => ({ showAllNotes: !state.showAllNotes })),
 
-      clearHighlights: () => set({ highlightedPositions: [], secondaryHighlightedPositions: [], rootNote: null }),
+      clearHighlights: () => set({ highlightedPositions: [], secondaryHighlightedPositions: [], maskedPositions: [], rootNote: null }),
     }),
     {
       name: 'guitar-config',

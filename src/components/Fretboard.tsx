@@ -119,6 +119,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     displayMode,
     highlightedPositions,
     secondaryHighlightedPositions,
+    maskedPositions,
     rootNote,
     showAllNotes
   } = useGuitarStore();
@@ -173,6 +174,13 @@ const Fretboard: React.FC<FretboardProps> = ({
 
   const isPositionRevealed = (pos: FretPosition): boolean => {
     return revealedPositions.some(p => p.string === pos.string && p.fret === pos.fret);
+  };
+
+  // Positions masked globally via the store (e.g. the unanswered Note ID
+  // target). These render as "?" on every board — including the persistent
+  // top board that does NOT pass hideNoteNames — unless locally revealed.
+  const isPositionMasked = (pos: FretPosition): boolean => {
+    return maskedPositions.some(p => p.string === pos.string && p.fret === pos.fret);
   };
 
   const drawFretboard = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -357,7 +365,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     // Draw highlighted notes (filter to visible fret range)
     highlightedPositions.forEach(pos => {
       if (pos.fret > effectiveFretCount) return;
-      const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
+      const shouldShowName = (!hideNoteNames && !isPositionMasked(pos)) || isPositionRevealed(pos);
       drawNote(ctx, pos, true, shouldShowName, false, false, isHovered(pos));
     });
 
@@ -366,7 +374,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       if (pos.fret > effectiveFretCount) return;
       // Skip if already drawn as primary highlight
       if (!highlightedPositions.some(p => p.string === pos.string && p.fret === pos.fret)) {
-        const shouldShowName = !hideNoteNames || isPositionRevealed(pos);
+        const shouldShowName = (!hideNoteNames && !isPositionMasked(pos)) || isPositionRevealed(pos);
         drawNote(ctx, pos, false, shouldShowName, false, true, isHovered(pos)); // isSecondary = true
       }
     });
@@ -388,7 +396,7 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
       }
     }
-  }, [stringCount, tuning, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
+  }, [stringCount, tuning, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, maskedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D,

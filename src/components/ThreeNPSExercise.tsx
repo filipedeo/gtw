@@ -371,7 +371,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
           style={{ color: 'var(--text-secondary)' }}
         >
           <li>Every string gets exactly 3 notes — great for even {isBass ? 'finger alternation' : 'alternate picking'}</li>
-          <li>All 7 patterns use just 3 finger shapes: whole-whole (1-3-5), whole-half (1-3-4), and half-whole (1-2-4)</li>
+          <li>The 7 diatonic (major-scale) modes all use just 3 finger shapes: whole-whole (1-3-5), whole-half (1-3-4), and half-whole (1-2-4)</li>
           <li>Practice ascending and descending with strict {isBass ? 'alternating fingers (index-middle)' : 'alternate picking'}</li>
           <li>Try legato (hammer-ons ascending, pull-offs descending) for smooth lines</li>
           <li>Start slow with a metronome — increase speed only when clean</li>

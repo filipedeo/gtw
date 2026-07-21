@@ -9,6 +9,7 @@ const initialState = {
   displayMode: 'notes' as const,
   highlightedPositions: [],
   secondaryHighlightedPositions: [],
+  maskedPositions: [],
   rootNote: null,
   showAllNotes: false,
 };
@@ -72,6 +73,21 @@ describe('guitarStore', () => {
     expect(state.highlightedPositions).toEqual([]);
     expect(state.secondaryHighlightedPositions).toEqual([]);
     expect(state.rootNote).toBeNull();
+  });
+
+  it('setMaskedPositions stores array', () => {
+    const positions = [{ string: 3, fret: 7 }];
+    useGuitarStore.getState().setMaskedPositions(positions);
+    expect(useGuitarStore.getState().maskedPositions).toEqual(positions);
+  });
+
+  it('clearHighlights also resets maskedPositions', () => {
+    useGuitarStore.setState({
+      highlightedPositions: [{ string: 1, fret: 5 }],
+      maskedPositions: [{ string: 1, fret: 5 }],
+    });
+    useGuitarStore.getState().clearHighlights();
+    expect(useGuitarStore.getState().maskedPositions).toEqual([]);
   });
 
   it('setHighlightedPositions stores array', () => {
