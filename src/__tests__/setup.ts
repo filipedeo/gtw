@@ -75,6 +75,9 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
   createLinearGradient: vi.fn(() => ({
     addColorStop: vi.fn(),
   })),
+  createRadialGradient: vi.fn(() => ({
+    addColorStop: vi.fn(),
+  })),
 })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
 // Mock localStorage

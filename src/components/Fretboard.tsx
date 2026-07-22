@@ -631,9 +631,17 @@ const Fretboard: React.FC<FretboardProps> = ({
     }
     const describePositions = (positions: FretPosition[]) =>
       positions.map(pos => {
+        const stringLabel = stringCount - pos.string;
+        // Mask the note name for positions the visible renderer draws as "?"
+        // (globally masked via the store and not locally revealed — e.g. the
+        // unanswered Note ID target). Reuses the same predicate the canvas uses
+        // so screen readers don't leak the answer that is hidden on-screen.
+        if (isPositionMasked(pos) && !isPositionRevealed(pos)) {
+          return `? on string ${stringLabel}, fret ${pos.fret}`;
+        }
         const note = getNoteAtPosition(pos, tuning, stringCount);
         const noteName = normalizeNoteName(note.replace(/\d/, ''));
-        return `${noteName} on string ${stringCount - pos.string}, fret ${pos.fret}`;
+        return `${noteName} on string ${stringLabel}, fret ${pos.fret}`;
       });
     const parts: string[] = [];
     if (highlightedPositions.length > 0) {
