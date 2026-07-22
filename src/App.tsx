@@ -18,6 +18,26 @@ import { useThemeStore } from './stores/themeStore'
 
 type SidePanel = 'settings' | 'audio' | null
 
+// Exercise types that render their own embedded <Fretboard/>. For these we
+// suppress the top-level board on desktop so there is a single board instead of
+// a redundant duplicate mirroring the same store state (which, for note
+// identification, would also echo the exercise's own board). Types NOT listed
+// here (audio-only ear-training / chord-progression, or any future/unknown
+// type) keep the shared top board as a general click-to-hear reference.
+const EMBEDDED_FRETBOARD_TYPES = new Set<string>([
+  'note-identification',
+  'modal-practice',
+  'interval-recognition',
+  'chord-voicing',
+  'caged-system',
+  'three-nps',
+  'pentatonic',
+  'jam-mode',
+  'bass-technique',
+  'arpeggio',
+  'chord-scale',
+])
+
 function App() {
   const [sidePanel, setSidePanel] = useState<SidePanel>(null)
   const [showDrawer, setShowDrawer] = useState(false)
@@ -26,6 +46,11 @@ function App() {
   const { currentExercise } = useExerciseStore()
   const { setTheme, theme } = useThemeStore()
   const { isDesktop } = useBreakpoint()
+
+  // Show the top-level board only when the active exercise does not embed its
+  // own (de-dup). No current exercise or an unknown type falls back to showing
+  // it so no exercise is ever left without a board.
+  const showTopFretboard = !currentExercise || !EMBEDDED_FRETBOARD_TYPES.has(currentExercise.type)
 
   const hamburgerButtonRef = useRef<HTMLButtonElement>(null)
   const sidePanelRef = useRef<HTMLDivElement>(null)
@@ -167,8 +192,8 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-[1800px] mx-auto px-4 py-6">
-        {/* Fretboard - Full Width — desktop only */}
-        {isDesktop && (
+        {/* Fretboard - Full Width — desktop only, and only when the active exercise doesn't embed its own */}
+        {isDesktop && showTopFretboard && (
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
