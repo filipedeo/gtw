@@ -35,6 +35,14 @@ export const STANDARD_TUNINGS: Record<string, Tuning> = {
     name: 'Drop D 6-String',
     notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4']
   },
+  'dadgad-6': {
+    name: 'DADGAD 6-String',
+    notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4']
+  },
+  'open-g-6': {
+    name: 'Open G 6-String',
+    notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4']
+  },
   'drop-a-7': {
     name: 'Drop A 7-String',
     notes: ['A1', 'E2', 'A2', 'D3', 'G3', 'B3', 'E4']
@@ -57,6 +65,20 @@ export const STANDARD_TUNINGS: Record<string, Tuning> = {
     notes: ['D1', 'A1', 'D2', 'G2']
   },
 };
+
+// Name used for a user-defined (per-string) tuning. Kept distinct from every
+// STANDARD_TUNINGS entry so the settings selector can detect "custom" mode.
+export const CUSTOM_TUNING_NAME = 'Custom';
+
+/** Build a user-defined tuning from an ordered (low-to-high) list of notes. */
+export function makeCustomTuning(notes: string[]): Tuning {
+  return { name: CUSTOM_TUNING_NAME, notes: [...notes] };
+}
+
+/** Find the STANDARD_TUNINGS key whose tuning matches (by name), if any. */
+export function findStandardTuningKey(tuning: Tuning): string | undefined {
+  return Object.entries(STANDARD_TUNINGS).find(([, t]) => t.name === tuning.name)?.[0];
+}
 
 export const NOTE_NAMES: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
