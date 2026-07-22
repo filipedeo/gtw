@@ -275,7 +275,7 @@ const ExerciseContainer: React.FC = () => {
       </div>
 
       {/* Exercise Navigation */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
           <button
             onClick={goToPreviousFiltered}
@@ -300,7 +300,7 @@ const ExerciseContainer: React.FC = () => {
         <select
           value={filteredIndex >= 0 ? filteredIndex : ''}
           onChange={(e) => goToFilteredExercise(parseInt(e.target.value))}
-          className="px-3 py-2 rounded-lg text-sm max-w-[200px] sm:max-w-[300px]"
+          className="w-full sm:w-auto min-w-0 px-3 py-2 rounded-lg text-sm sm:max-w-[300px]"
           style={{ 
             backgroundColor: 'var(--bg-primary)',
             color: 'var(--text-primary)',
