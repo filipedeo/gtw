@@ -128,7 +128,56 @@ describe('useBreakpoint', () => {
     const { unmount } = renderHook(() => useBreakpoint());
     unmount();
 
-    // Should have removed listeners for both tablet and desktop queries
-    expect(removeListenerCalls).toHaveLength(2);
+    // Should have removed listeners for all four min-width queries (640/768/1024/1280)
+    expect(removeListenerCalls).toHaveLength(4);
+  });
+
+  describe('named tiers', () => {
+    // Width-based mock: each (min-width: Npx) query matches when width >= N.
+    function createTierMatchMedia(width: number) {
+      return vi.fn().mockImplementation((query: string) => {
+        const match = query.match(/min-width:\s*(\d+)px/);
+        const min = match ? parseInt(match[1], 10) : 0;
+        return {
+          matches: width >= min,
+          media: query,
+          onchange: null,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        };
+      });
+    }
+
+    const cases: Array<{
+      width: number;
+      tier: string;
+      isMobile: boolean;
+      isTablet: boolean;
+      isDesktop: boolean;
+    }> = [
+      { width: 320, tier: 'xs', isMobile: true, isTablet: false, isDesktop: false },
+      { width: 640, tier: 'sm', isMobile: true, isTablet: false, isDesktop: false },
+      { width: 768, tier: 'md', isMobile: false, isTablet: true, isDesktop: false },
+      { width: 1024, tier: 'lg', isMobile: false, isTablet: false, isDesktop: true },
+      { width: 1280, tier: 'xl', isMobile: false, isTablet: false, isDesktop: true },
+    ];
+
+    for (const c of cases) {
+      it(`returns tier '${c.tier}' at ${c.width}px with matching legacy booleans`, () => {
+        Object.defineProperty(window, 'matchMedia', {
+          writable: true,
+          value: createTierMatchMedia(c.width),
+        });
+
+        const { result } = renderHook(() => useBreakpoint());
+        expect(result.current.tier).toBe(c.tier);
+        expect(result.current.isMobile).toBe(c.isMobile);
+        expect(result.current.isTablet).toBe(c.isTablet);
+        expect(result.current.isDesktop).toBe(c.isDesktop);
+      });
+    }
   });
 });
