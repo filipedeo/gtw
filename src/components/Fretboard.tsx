@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useAudioStore } from '../stores/audioStore';
 import { useThemeStore } from '../stores/themeStore';
 import { FretPosition, NOTE_NAMES, normalizeNoteName } from '../types/guitar';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
-import { FRETBOARD_THEME_COLORS } from '../constants/fretboardTheme';
+import { readFretboardColors } from '../constants/fretboardTheme';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { NOTE_NAMES_FLAT } from '../lib/theoryEngine';
 
@@ -153,7 +153,8 @@ const Fretboard: React.FC<FretboardProps> = ({
   const canvasHeight = PADDING_Y * 2 + STRING_SPACING * (stringCount - 1);
 
   // Theme colors
-  const colors = FRETBOARD_THEME_COLORS[resolvedTheme];
+  // Palette folded into the design-system token layer (--fb-*, 92 plan §1.2).
+  const colors = useMemo(() => readFretboardColors(resolvedTheme), [resolvedTheme]);
 
   // Observe container width
   useEffect(() => {
@@ -187,110 +188,52 @@ const Fretboard: React.FC<FretboardProps> = ({
     const width = canvasWidth;
     const height = canvasHeight;
     
-    // Clear and draw wood background with gradient (rosewood/ebony look)
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, colors.wood);
-    gradient.addColorStop(0.5, colors.woodGradient);
-    gradient.addColorStop(1, colors.wood);
-    ctx.fillStyle = gradient;
+    // Flat board surface — skeuomorphic wood retired (92 plan §1.2)
+    ctx.fillStyle = colors.wood;
     ctx.fillRect(0, 0, width, height);
-
-    // Draw wood grain lines (horizontal, with subtle curves)
-    ctx.strokeStyle = colors.woodGrain;
+    // 1px inner edge for subtle depth (replaces bevels / drop shadows)
+    ctx.strokeStyle = colors.edge;
     ctx.lineWidth = 1;
-    for (let i = 0; i < height; i += 6) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      for (let xp = 0; xp < width; xp += 20) {
-        ctx.lineTo(xp, i + Math.sin(xp * 0.008 + i * 0.05) * 3);
-      }
-      ctx.stroke();
-    }
-    // Vertical grain accent for depth
-    ctx.strokeStyle = colors.woodGrain;
-    for (let j = 0; j < width; j += 40) {
-      ctx.beginPath();
-      ctx.moveTo(j, 0);
-      ctx.lineTo(j + Math.sin(j * 0.1) * 2, height);
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(0.5, 0.5);
+    ctx.lineTo(width - 0.5, 0.5);
+    ctx.lineTo(width - 0.5, height - 0.5);
+    ctx.lineTo(0.5, height - 0.5);
+    ctx.lineTo(0.5, 0.5);
+    ctx.stroke();
 
-    // Draw nut with 3D bevel effect
+    // Nut — single flat bar
     const nutX = PADDING_X;
     const nutTop = PADDING_Y - 8;
     const nutH = STRING_SPACING * (stringCount - 1) + 16;
-    // Shadow
-    ctx.shadowColor = colors.nutShadow;
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 1;
     ctx.fillStyle = colors.nut;
     ctx.fillRect(nutX, nutTop, NUT_WIDTH, nutH);
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    // Nut highlight (left edge catch light)
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(nutX, nutTop, 2, nutH);
 
-    // Draw frets with metallic shine
+    // Frets — single 2px wire (no shine / shadow passes)
     const fretTop = PADDING_Y - 6;
     const fretBottom = PADDING_Y + STRING_SPACING * (stringCount - 1) + 6;
+    ctx.strokeStyle = colors.fret;
+    ctx.lineWidth = 2;
     for (let fret = 1; fret <= effectiveFretCount; fret++) {
       const x = PADDING_X + NUT_WIDTH + fret * FRET_WIDTH;
-
-      // Fret shadow (right side)
-      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x + 1, fretTop);
-      ctx.lineTo(x + 1, fretBottom);
-      ctx.stroke();
-
-      // Main fret wire
-      ctx.strokeStyle = colors.fret;
-      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(x, fretTop);
       ctx.lineTo(x, fretBottom);
       ctx.stroke();
-
-      // Shine highlight (left edge)
-      ctx.strokeStyle = colors.fretShine;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x - 1, fretTop);
-      ctx.lineTo(x - 1, fretBottom);
-      ctx.stroke();
     }
 
-    // Draw fret marker inlays (pearl-style dots)
+    // Fret marker inlays — flat, muted dots (no pearl gradient / glow)
     for (let fret = 1; fret <= effectiveFretCount; fret++) {
       if (!DOT_FRETS.includes(fret)) continue;
       const x = PADDING_X + NUT_WIDTH + (fret - 0.5) * FRET_WIDTH;
       const centerY = PADDING_Y + STRING_SPACING * (stringCount - 1) / 2;
-      const dotRadius = 7;
+      const dotRadius = 6;
 
       const drawInlay = (cx: number, cy: number) => {
-        // Outer glow
-        ctx.beginPath();
-        ctx.arc(cx, cy, dotRadius + 3, 0, Math.PI * 2);
-        ctx.fillStyle = colors.dotGlow;
-        ctx.fill();
-        // Pearl body with radial gradient
-        const pearlGrad = ctx.createRadialGradient(cx - 1, cy - 1, 1, cx, cy, dotRadius);
-        pearlGrad.addColorStop(0, resolvedTheme === 'dark' ? '#e8dcc0' : '#fffaf0');
-        pearlGrad.addColorStop(0.7, colors.dot);
-        pearlGrad.addColorStop(1, resolvedTheme === 'dark' ? '#8a7d60' : '#c8c0b0');
         ctx.beginPath();
         ctx.arc(cx, cy, dotRadius, 0, Math.PI * 2);
-        ctx.fillStyle = pearlGrad;
+        ctx.fillStyle = colors.dot;
         ctx.fill();
-        // Subtle border
-        ctx.strokeStyle = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
       };
 
       if (DOUBLE_DOT_FRETS.includes(fret)) {
@@ -301,34 +244,15 @@ const Fretboard: React.FC<FretboardProps> = ({
       }
     }
 
-    // Draw strings with metallic sheen
-    // Visual row 0 (top) = high E (thinnest), row N (bottom) = low string (thickest)
+    // Strings — single flat stroke (no shadow / metallic sheen)
     for (let visualRow = 0; visualRow < stringCount; visualRow++) {
       const y = PADDING_Y + visualRow * STRING_SPACING;
       const thickness = 1 + visualRow * 0.4;
-
-      // String shadow
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.lineWidth = thickness + 1.5;
-      ctx.beginPath();
-      ctx.moveTo(PADDING_X, y + 1);
-      ctx.lineTo(width - PADDING_X + 10, y + 1);
-      ctx.stroke();
-
-      // Main string body
       ctx.strokeStyle = colors.string;
       ctx.lineWidth = thickness;
       ctx.beginPath();
       ctx.moveTo(PADDING_X, y);
       ctx.lineTo(width - PADDING_X + 10, y);
-      ctx.stroke();
-
-      // Metallic highlight on top edge
-      ctx.strokeStyle = colors.stringShine;
-      ctx.lineWidth = Math.max(0.5, thickness * 0.3);
-      ctx.beginPath();
-      ctx.moveTo(PADDING_X, y - thickness * 0.3);
-      ctx.lineTo(width - PADDING_X + 10, y - thickness * 0.3);
       ctx.stroke();
     }
 
@@ -452,24 +376,35 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
+    // The masked "identify this" note (a highlighted note whose name is hidden).
+    const isMaskedTarget = highlighted && !showName;
     // Draw circle with slightly larger size for clicked or hovered notes
     const radius = isClicked ? 15 : isHover ? 15 : 13;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
 
-    if (isClicked) {
-      // Bright green/teal for clicked notes - stands out clearly
-      ctx.fillStyle = '#10b981';
-    } else if (isSecondary) {
-      ctx.fillStyle = resolvedTheme === 'dark' ? 'rgba(96, 165, 250, 0.25)' : 'rgba(59, 130, 246, 0.2)';
-    } else if (isRoot) {
-      ctx.fillStyle = colors.noteRoot;
-    } else if (highlighted) {
-      ctx.fillStyle = colors.noteHighlight;
+    if (isMaskedTarget) {
+      // Distinct question target: a hollow ring, visually unlike a solid note.
+      ctx.fillStyle = colors.noteTargetFill;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colors.noteTarget;
+      ctx.stroke();
     } else {
-      ctx.fillStyle = colors.noteDefault;
+      if (isClicked) {
+        // Bright green/teal for clicked notes - stands out clearly
+        ctx.fillStyle = '#10b981';
+      } else if (isSecondary) {
+        ctx.fillStyle = resolvedTheme === 'dark' ? 'rgba(96, 165, 250, 0.25)' : 'rgba(59, 130, 246, 0.2)';
+      } else if (isRoot) {
+        ctx.fillStyle = colors.noteRoot;
+      } else if (highlighted) {
+        ctx.fillStyle = colors.noteHighlight;
+      } else {
+        ctx.fillStyle = colors.noteDefault;
+      }
+      ctx.fill();
     }
-    ctx.fill();
 
     // Reset all shadow state after drawing the circle
     ctx.shadowColor = 'transparent';
@@ -478,7 +413,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowOffsetY = 0;
 
     // Draw note name or question mark
-    ctx.fillStyle = highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
+    ctx.fillStyle = isMaskedTarget ? colors.noteTarget : highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -674,6 +609,32 @@ const Fretboard: React.FC<FretboardProps> = ({
       <span className="sr-only">
         {getHighlightedNotesDescription()}
       </span>
+      {/* Colour key (decorative — screen readers get the note list above) */}
+      {highlightedPositions.length > 0 && (
+        <div
+          className="fretboard-legend flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 px-1"
+          aria-hidden="true"
+          style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--fb-note-root)' }} />
+            Root
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--fb-note-scale)' }} />
+            Note
+          </span>
+          {hideNoteNames && (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block w-3 h-3 rounded-full"
+                style={{ border: '2px solid var(--fb-note-target)', backgroundColor: 'var(--surface)' }}
+              />
+              ? Find this note
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 };
