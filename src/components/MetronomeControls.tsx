@@ -111,7 +111,7 @@ const MetronomeControls: React.FC = React.memo(() => {
               <button
                 key={key}
                 onClick={() => setMetronomeConfig({ timeSignature: ts })}
-                className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="px-3 py-2 phone-touch rounded-lg text-sm font-medium transition-colors"
                 style={{
                   backgroundColor: isActive ? 'var(--accent-primary)' : 'var(--bg-primary)',
                   color: isActive ? 'white' : 'var(--text-primary)',
@@ -126,7 +126,7 @@ const MetronomeControls: React.FC = React.memo(() => {
       </div>
 
       {/* Accent first beat */}
-      <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+      <label className="flex items-center gap-2 text-sm phone-touch" style={{ color: 'var(--text-secondary)' }}>
         <input
           type="checkbox"
           checked={metronomeConfig.accentFirst}

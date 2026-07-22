@@ -68,7 +68,7 @@ const SettingsPanel: React.FC = () => {
             <button
               key={t}
               onClick={() => setTheme(t)}
-              className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all capitalize ${
+              className={`flex-1 phone-touch py-2 px-3 rounded-lg font-medium transition-all capitalize ${
                 theme === t ? 'btn-primary' : ''
               }`}
               style={theme !== t ? {
@@ -95,7 +95,7 @@ const SettingsPanel: React.FC = () => {
               <button
                 key={inst}
                 onClick={() => handleInstrumentChange(inst)}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                className={`flex-1 phone-touch py-2 px-4 rounded-lg font-medium transition-all ${
                   instrument === inst ? 'btn-primary' : ''
                 }`}
                 style={instrument !== inst ? {
@@ -119,7 +119,7 @@ const SettingsPanel: React.FC = () => {
               <button
                 key={count}
                 onClick={() => handleStringCountChange(count)}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                className={`flex-1 phone-touch py-2 px-4 rounded-lg font-medium transition-all ${
                   stringCount === count ? 'btn-primary' : ''
                 }`}
                 style={stringCount !== count ? {
@@ -178,7 +178,7 @@ const SettingsPanel: React.FC = () => {
               <button
                 key={mode.value}
                 onClick={() => setDisplayMode(mode.value)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                className={`px-4 py-2 phone-touch rounded-lg font-medium transition-all text-sm ${
                   displayMode === mode.value ? 'btn-primary' : ''
                 }`}
                 style={displayMode !== mode.value ? {
@@ -195,7 +195,7 @@ const SettingsPanel: React.FC = () => {
 
         {/* Show All Notes */}
         <div>
-          <label className="flex items-center gap-3 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer phone-touch">
             <input
               type="checkbox"
               checked={showAllNotes}

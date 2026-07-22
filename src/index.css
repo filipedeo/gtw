@@ -285,6 +285,21 @@ input[type="checkbox"] {
 /* Mobile card padding reduction */
 @media (max-width: 767px) {
   .card { padding: 1rem; }
+
+  /* A-6: comfortable >=44px touch targets on phones (WCAG 2.5.5) */
+  input[type="checkbox"] {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  /* Row-style controls: guarantee a 44px-tall tap area (width is >=44 already) */
+  .phone-touch {
+    min-height: 44px;
+  }
+  /* Compact square controls: guarantee a full 44x44 tap area */
+  .phone-touch-sq {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 /* Utility classes */

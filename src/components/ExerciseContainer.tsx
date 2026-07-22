@@ -247,7 +247,7 @@ const ExerciseContainer: React.FC = () => {
       <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
         <button
           onClick={() => setSelectedCategory('all')}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+          className={`px-3 py-1.5 phone-touch rounded-full text-sm font-medium transition-all ${
             selectedCategory === 'all' ? 'btn-primary' : ''
           }`}
           style={selectedCategory !== 'all' ? { 
@@ -261,7 +261,7 @@ const ExerciseContainer: React.FC = () => {
           <button
             key={cat.type}
             onClick={() => setSelectedCategory(cat.type)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 phone-touch rounded-full text-sm font-medium transition-all ${
               selectedCategory === cat.type ? 'btn-primary' : ''
             }`}
             style={selectedCategory !== cat.type ? { 

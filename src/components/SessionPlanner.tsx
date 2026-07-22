@@ -270,7 +270,7 @@ const SessionPlanner: React.FC = () => {
           return (
             <button
               key={cat.type}
-              className="px-2 py-1 rounded-full text-xs font-medium transition-all"
+              className="px-2 py-1 phone-touch rounded-full text-xs font-medium transition-all"
               style={{
                 backgroundColor: enabled ? `${cat.color}20` : 'var(--bg-tertiary)',
                 color: enabled ? cat.color : 'var(--text-muted)',
@@ -293,7 +293,7 @@ const SessionPlanner: React.FC = () => {
         {(['15', '30', '60'] as TimePreset[]).map((preset) => (
           <button
             key={preset}
-            className="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all"
+            className="flex-1 phone-touch py-2 px-3 rounded-lg text-sm font-medium transition-all"
             style={{
               backgroundColor:
                 selectedTime === preset ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
@@ -389,7 +389,7 @@ const SessionPlanner: React.FC = () => {
               >
                 {/* Checkbox */}
                 <button
-                  className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                  className="flex-shrink-0 w-5 h-5 phone-touch-sq rounded border-2 flex items-center justify-center transition-all"
                   style={{
                     borderColor: item.completed
                       ? 'var(--success)'
@@ -449,7 +449,7 @@ const SessionPlanner: React.FC = () => {
 
                 {/* Remove button */}
                 <button
-                  className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                  className="flex-shrink-0 w-6 h-6 phone-touch-sq rounded flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                   style={{
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     color: 'var(--error)',
