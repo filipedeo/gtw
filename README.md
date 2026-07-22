@@ -28,16 +28,16 @@ Interactive guitar theory practice app with fretboard visualization, ear trainin
 - **Parallel mode comparison** — Compare all 7 modes from the same root
 
 ### Tools
-- **Session planner** — Auto-generated practice plans for 15/30/60 min sessions with category filtering, weighted exercise selection (spaced repetition, weak areas, least practiced), and drag-to-reorder
+- **Session planner** — Auto-generated practice plans for 15/30/60 min sessions with category filtering, weighted exercise selection (spaced repetition, weak areas, least practiced), and drag-to-reorder; runs as a guided tracker that steps through the plan (exercise N of M) with next/previous controls
 - **Practice timer** — Elapsed time tracking with optional target alerts
-- **Metronome** — Adjustable BPM and volume, selectable time signatures, and accent on the first beat
+- **Metronome** — BPM control with +/- steppers and tap tempo, adjustable volume, selectable time signatures, accent on the first beat, and an in-panel visual beat indicator
 - **Guitar tuner** — Chromatic tuner using microphone input with pitch detection
 - **Progress dashboard** — Spaced repetition (SM-2), streaks, weak area detection, exercise history
 
 ### Fretboard
 - Canvas-based rendering, 6/7-string support
-- Standard, Drop D, and Drop A tuning presets (6- and 7-string)
-- Display modes: note names, intervals, scale degrees
+- Standard, Drop D, and Drop A tuning presets (6- and 7-string); DADGAD and Open G presets (6-string); plus a custom per-string tuning editor
+- Display modes: note names (key/scale-aware enharmonic spelling), intervals, scale degrees
 - Click any position to hear the note
 - Dark and light themes
 
