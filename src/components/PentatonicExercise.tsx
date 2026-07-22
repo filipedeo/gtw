@@ -443,7 +443,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
             </label>
             <select
               value={selectedTargetMode || ''}
-              onChange={e => setSelectedTargetMode(e.target.value)}
+              onChange={e => setSelectedTargetMode(e.target.value)} aria-label="Target mode"
               className="w-full px-3 py-2 rounded-lg"
               style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
             >

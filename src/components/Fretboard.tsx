@@ -648,7 +648,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       parts.push(`Highlighted notes: ${describePositions(highlightedPositions).join('; ')}`);
     }
     if (secondaryHighlightedPositions.length > 0) {
-      parts.push(`Root notes: ${describePositions(secondaryHighlightedPositions).join('; ')}`);
+      parts.push(`Additional highlighted notes: ${describePositions(secondaryHighlightedPositions).join('; ')}`);
     }
     return parts.join('. ');
   };

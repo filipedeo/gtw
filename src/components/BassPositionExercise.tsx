@@ -257,7 +257,7 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
           min={0}
           max={12}
           value={startFret}
-          onChange={(e) => setStartFret(parseInt(e.target.value))}
+          onChange={(e) => setStartFret(parseInt(e.target.value))} aria-label="Starting fret position"
           className="w-full"
         />
         <div className="flex justify-between text-xs" style={{ color: 'var(--text-muted)' }}>

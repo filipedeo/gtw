@@ -310,7 +310,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
         </label>
         <select
           value={selectedProgressionIndex}
-          onChange={(e) => setSelectedProgressionIndex(parseInt(e.target.value))}
+          onChange={(e) => setSelectedProgressionIndex(parseInt(e.target.value))} aria-label="Progression"
           className="w-full px-3 py-2 rounded-lg"
           style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
         >
@@ -342,7 +342,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
             min={40}
             max={160}
             value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value))}
+            onChange={(e) => setBpm(parseInt(e.target.value))} aria-label="Tempo, beats per minute"
             className="w-full"
           />
         </div>

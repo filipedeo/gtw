@@ -299,7 +299,7 @@ const ExerciseContainer: React.FC = () => {
         {/* Exercise Selector Dropdown */}
         <select
           value={filteredIndex >= 0 ? filteredIndex : ''}
-          onChange={(e) => goToFilteredExercise(parseInt(e.target.value))}
+          onChange={(e) => goToFilteredExercise(parseInt(e.target.value))} aria-label="Select exercise"
           className="w-full sm:w-auto min-w-0 px-3 py-2 rounded-lg text-sm sm:max-w-[300px]"
           style={{ 
             backgroundColor: 'var(--bg-primary)',

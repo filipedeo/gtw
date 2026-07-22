@@ -258,7 +258,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
           Progression
         </label>
         <select
-          value={selectedProgressionIndex}
+          value={selectedProgressionIndex} aria-label="Progression"
           onChange={(e) => {
             setSelectedProgressionIndex(parseInt(e.target.value));
             if (isPlayingRef.current) {
@@ -298,7 +298,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
             min={60}
             max={200}
             value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value))}
+            onChange={(e) => setBpm(parseInt(e.target.value))} aria-label="Tempo, beats per minute"
             className="w-full"
           />
         </div>

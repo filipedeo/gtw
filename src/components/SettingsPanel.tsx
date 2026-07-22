@@ -140,7 +140,7 @@ const SettingsPanel: React.FC = () => {
           </label>
           <select
             value={Object.entries(STANDARD_TUNINGS).find(([_, t]) => t.name === tuning.name)?.[0] || ''}
-            onChange={(e) => handleTuningChange(e.target.value)}
+            onChange={(e) => handleTuningChange(e.target.value)} aria-label="Tuning"
             className="w-full px-3 py-2 rounded-lg"
             style={{
               backgroundColor: 'var(--bg-primary)',
