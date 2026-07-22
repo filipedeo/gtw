@@ -24,7 +24,7 @@ interface CAGEDExerciseProps {
 // This will be handled in a future session.
 
 const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
-  const { stringCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
   
@@ -170,7 +170,8 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     }
 
     setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
-  }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, showAllShapes, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, stringOffset, stringCount]);
+    setScaleContext({ root: normalizeNoteName(selectedKey), name: scaleType });
+  }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, showAllShapes, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, stringOffset, stringCount]);
 
   // Cleanup
   useEffect(() => {

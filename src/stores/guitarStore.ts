@@ -18,6 +18,11 @@ interface GuitarState {
   // per-instance hideNoteNames prop so the persistent top board also hides it.
   maskedPositions: FretPosition[];
   rootNote: string | null;
+  // Active key/scale context for enharmonic note spelling on the fretboard
+  // (e.g. { root: 'F#', name: 'major' }). Null when the current view has no
+  // scale context (e.g. note-identification), in which case the fretboard falls
+  // back to spelling by the root's key signature. Not persisted.
+  scaleContext: { root: string; name: string } | null;
   showAllNotes: boolean;
 
   // Actions
@@ -29,6 +34,7 @@ interface GuitarState {
   setSecondaryHighlightedPositions: (positions: FretPosition[]) => void;
   setMaskedPositions: (positions: FretPosition[]) => void;
   setRootNote: (note: string | null) => void;
+  setScaleContext: (ctx: { root: string; name: string } | null) => void;
   toggleShowAllNotes: () => void;
   clearHighlights: () => void;
 }
@@ -48,6 +54,7 @@ export const useGuitarStore = create<GuitarState>()(
       secondaryHighlightedPositions: [],
       maskedPositions: [],
       rootNote: null,
+      scaleContext: null,
       showAllNotes: false,
 
       // Actions
@@ -61,6 +68,7 @@ export const useGuitarStore = create<GuitarState>()(
             secondaryHighlightedPositions: [],
             maskedPositions: [],
             rootNote: null,
+            scaleContext: null,
           };
         }
         return {
@@ -71,6 +79,7 @@ export const useGuitarStore = create<GuitarState>()(
           secondaryHighlightedPositions: [],
           maskedPositions: [],
           rootNote: null,
+          scaleContext: null,
         };
       }),
 
@@ -90,6 +99,7 @@ export const useGuitarStore = create<GuitarState>()(
           secondaryHighlightedPositions: [],
           maskedPositions: [],
           rootNote: null,
+          scaleContext: null,
         };
       }),
 
@@ -103,11 +113,15 @@ export const useGuitarStore = create<GuitarState>()(
 
       setMaskedPositions: (positions) => set({ maskedPositions: positions }),
 
-      setRootNote: (note) => set({ rootNote: note }),
+      // Setting a bare root note (e.g. a single note with no scale) clears any
+      // stale scale context so the fretboard falls back to key-signature spelling.
+      setRootNote: (note) => set({ rootNote: note, scaleContext: null }),
+
+      setScaleContext: (ctx) => set({ scaleContext: ctx }),
 
       toggleShowAllNotes: () => set((state) => ({ showAllNotes: !state.showAllNotes })),
 
-      clearHighlights: () => set({ highlightedPositions: [], secondaryHighlightedPositions: [], maskedPositions: [], rootNote: null }),
+      clearHighlights: () => set({ highlightedPositions: [], secondaryHighlightedPositions: [], maskedPositions: [], rootNote: null, scaleContext: null }),
     }),
     {
       name: 'guitar-config',

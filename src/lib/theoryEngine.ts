@@ -145,6 +145,62 @@ export function enharmonicNote(note: string): string {
   return Note.enharmonic(note);
 }
 
+/**
+ * Decide whether a key/scale context should spell its non-scale (chromatic)
+ * passing tones with flats or sharps. This is a key-signature-direction model:
+ * the tonal-spelled scale already reflects the key signature, so we read the
+ * direction off the accidentals actually present in the scale, breaking ties
+ * with the tonic's own accidental (and defaulting to sharps for natural keys,
+ * matching the app's historical behavior).
+ */
+function keyPrefersFlats(root: string, scaleNotes: string[]): boolean {
+  let flats = 0;
+  let sharps = 0;
+  for (const n of scaleNotes) {
+    if (n.includes('b')) flats++;
+    else if (n.includes('#')) sharps++;
+  }
+  if (flats > sharps) return true;
+  if (sharps > flats) return false;
+  // Tie (all-natural scales, or mixed scales like D harmonic minor): fall back
+  // to the tonic's spelling.
+  const acc = Note.get(root).acc || '';
+  if (acc.includes('b')) return true;
+  if (acc.includes('#')) return false;
+  return false;
+}
+
+/**
+ * Build a pitch-class -> note-name spelling table for a given key/scale context.
+ *
+ * Scale tones are spelled exactly as the key requires (via tonal), so edge keys
+ * yield the correct E#/B#/Fb/Cb (e.g. F# major -> E#, C# major -> B#/E#,
+ * Gb/Cb major -> Cb/Fb). Non-scale (chromatic) tones are filled in with sharps
+ * or flats consistent with the key-signature direction.
+ *
+ * Returns a 12-element array indexed by chroma (0 = C .. 11 = B), or null if the
+ * scale cannot be resolved (callers should fall back to their default spelling).
+ */
+export function getKeySpelledNotes(root: string, scaleName: string): string[] | null {
+  const scale = Scale.get(`${root} ${scaleName}`);
+  if (scale.empty || scale.notes.length === 0) return null;
+
+  const table: (string | undefined)[] = new Array(12).fill(undefined);
+  for (const n of scale.notes) {
+    const chroma = Note.chroma(n);
+    // First spelling for a chroma wins (scale notes are unique per pitch class).
+    if (chroma !== undefined && chroma !== null && table[chroma] === undefined) {
+      table[chroma] = n;
+    }
+  }
+
+  const fallback = keyPrefersFlats(root, scale.notes) ? NOTE_NAMES_FLAT : NOTE_NAMES;
+  for (let c = 0; c < 12; c++) {
+    if (table[c] === undefined) table[c] = fallback[c];
+  }
+  return table as string[];
+}
+
 // Chord progression utilities
 
 export interface Progression {

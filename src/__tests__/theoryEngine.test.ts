@@ -14,6 +14,7 @@ import {
   enharmonicNote,
   MODES,
   getKeyChords,
+  getKeySpelledNotes,
 } from '../lib/theoryEngine';
 
 // ---------------------------------------------------------------------------
@@ -396,5 +397,102 @@ describe('getKeyChords', () => {
   it('G major has 7 diatonic chords', () => {
     const chords = getKeyChords('G');
     expect(chords).toHaveLength(7);
+  });
+});
+
+describe('getKeySpelledNotes (key/scale-aware enharmonic spelling)', () => {
+  it('returns a full 12-note chroma table indexed 0=C..11=B', () => {
+    const table = getKeySpelledNotes('C', 'major');
+    expect(table).not.toBeNull();
+    expect(table).toHaveLength(12);
+  });
+
+  it('spells C major naturally, with sharps for chromatic (non-scale) tones', () => {
+    const t = getKeySpelledNotes('C', 'major')!;
+    expect(t[0]).toBe('C');
+    expect(t[2]).toBe('D');
+    expect(t[4]).toBe('E');
+    expect(t[11]).toBe('B');
+    // natural key defaults to sharps for passing tones
+    expect(t[1]).toBe('C#');
+    expect(t[6]).toBe('F#');
+  });
+
+  it('spells G major (a sharp key) with F#', () => {
+    const t = getKeySpelledNotes('G', 'major')!;
+    expect(t[6]).toBe('F#');
+  });
+
+  it('spells F major (a flat key) with Bb, not A#', () => {
+    const t = getKeySpelledNotes('F', 'major')!;
+    expect(t[10]).toBe('Bb');
+    // chromatic tones follow the key-signature direction (flats)
+    expect(t[3]).toBe('Eb');
+    expect(t[8]).toBe('Ab');
+    expect(t).not.toContain('A#');
+    expect(t).toContain('Bb');
+  });
+
+  it('spells F# major with E# (the raised 7th degree)', () => {
+    const t = getKeySpelledNotes('F#', 'major')!;
+    expect(t[6]).toBe('F#');
+    expect(t[1]).toBe('C#');
+    expect(t[3]).toBe('D#');
+    expect(t[5]).toBe('E#');
+  });
+
+  it('spells C# major with B# and E#', () => {
+    const t = getKeySpelledNotes('C#', 'major')!;
+    expect(t[0]).toBe('B#');
+    expect(t[5]).toBe('E#');
+  });
+
+  it('spells Gb major with Cb', () => {
+    const t = getKeySpelledNotes('Gb', 'major')!;
+    expect(t[6]).toBe('Gb');
+    expect(t[10]).toBe('Bb');
+    expect(t[11]).toBe('Cb');
+  });
+
+  it('spells Cb major with Fb and Cb', () => {
+    const t = getKeySpelledNotes('Cb', 'major')!;
+    expect(t[4]).toBe('Fb');
+    expect(t[11]).toBe('Cb');
+  });
+
+  it('spells A natural minor with all-natural scale tones', () => {
+    const t = getKeySpelledNotes('A', 'minor')!;
+    expect(t[9]).toBe('A');
+    expect(t[0]).toBe('C');
+    expect(t[7]).toBe('G');
+  });
+
+  it('spells a mode (D dorian) with its natural scale tones', () => {
+    const t = getKeySpelledNotes('D', 'dorian')!;
+    // D E F G A B C
+    expect(t[2]).toBe('D');
+    expect(t[5]).toBe('F');
+    expect(t[11]).toBe('B');
+    expect(t[0]).toBe('C');
+  });
+
+  it('spells a flat mode (Eb mixolydian) with flats', () => {
+    const t = getKeySpelledNotes('Eb', 'mixolydian')!;
+    // Eb F G Ab Bb C Db
+    expect(t[3]).toBe('Eb');
+    expect(t[8]).toBe('Ab');
+    expect(t[10]).toBe('Bb');
+    expect(t[1]).toBe('Db');
+  });
+
+  it('spells D harmonic minor with both Bb (b6) and C# (raised 7th)', () => {
+    const t = getKeySpelledNotes('D', 'harmonic minor')!;
+    // D E F G A Bb C#
+    expect(t[10]).toBe('Bb');
+    expect(t[1]).toBe('C#');
+  });
+
+  it('returns null for an unresolvable scale so callers can fall back', () => {
+    expect(getKeySpelledNotes('C', 'not-a-real-scale')).toBeNull();
   });
 });

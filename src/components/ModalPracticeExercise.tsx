@@ -42,7 +42,7 @@ const MODE_CATEGORIES = [
 ];
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise }) => {
-  const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
 
@@ -86,12 +86,13 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
           setSecondaryHighlightedPositions([]);
         }
         setRootNote(normalizedKey);
+        setScaleContext({ root: normalizedKey, name: selectedMode });
       }
     } catch (e) {
       console.error('Error getting mode notes:', e);
     }
   }, [selectedMode, selectedKey, showCharacteristicNote, showFullFretboard, isActive, stringCount, tuning,
-      currentModeInfo, maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
+      currentModeInfo, maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext]);
 
   // Update drone when key changes
   useEffect(() => {

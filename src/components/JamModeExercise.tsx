@@ -67,6 +67,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
     clearHighlights,
   } = useGuitarStore();
   const { isActive } = useExerciseStore();
@@ -107,6 +108,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         const scalePositions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
         setHighlightedPositions(scalePositions);
         setRootNote(normalizedKey);
+        setScaleContext({ root: normalizedKey, name: progression.suggestedScale });
 
         // Secondary: chord tones of current chord
         const chords = buildProgressionChords(selectedKey, progression.degrees);
@@ -126,7 +128,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
   }, [
     selectedKey, selectedProgressionIndex, currentChordIndex, showFullFretboard,
     isActive, stringCount, tuning, maxFret, progression,
-    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote,
+    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext,
   ]);
 
   const stopJam = useCallback(() => {

@@ -95,6 +95,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
     clearHighlights,
   } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
@@ -141,6 +142,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
     setHighlightedPositions(positions);
     setRootNote(normalizeNoteName(selectedKey));
+    setScaleContext({ root: normalizeNoteName(selectedKey), name: selectedMode.name });
 
     // For the "All 7 Modes" exercise, show the next adjacent pattern as secondary
     if (exercise.id === 'three-nps-3') {
@@ -175,6 +177,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
   ]);
 
   useEffect(() => {
