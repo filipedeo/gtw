@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import GuitarTuner from './GuitarTuner';
 import MetronomeControls from './MetronomeControls';
+import { Card } from './ui';
+import { cn } from '../lib/cn';
+import { TargetIcon, MusicIcon } from './icons';
 
 export type ActiveToolTab = 'tuner' | 'metronome' | null;
 
@@ -9,6 +12,10 @@ interface ToolsToolbarProps {
   onTabChange?: (tab: ActiveToolTab) => void;
   hideTabButtons?: boolean;
 }
+
+const TAB_BASE =
+  'inline-flex items-center gap-1.5 px-3 phone-touch min-h-[var(--target-compact)] ' +
+  'rounded-t-[var(--rad-md)] text-[length:var(--fs-sm)] font-medium transition-colors border-b-2 cursor-pointer';
 
 const ToolsToolbar: React.FC<ToolsToolbarProps> = ({
   activeTab: controlledTab,
@@ -27,37 +34,40 @@ const ToolsToolbar: React.FC<ToolsToolbarProps> = ({
     }
   };
 
+  const tabClass = (tab: ActiveToolTab) =>
+    cn(
+      TAB_BASE,
+      activeTab === tab
+        ? 'bg-surface-raised text-accent border-accent'
+        : 'bg-surface-sunken text-fg-muted border-transparent hover:bg-surface-hover hover:text-fg',
+    );
+
   return (
     <div className="max-w-[1800px] mx-auto px-4 mt-2">
       {/* Tab toggles */}
       <div className="flex gap-2" style={{ display: hideTabButtons ? 'none' : undefined }}>
         <button
+          type="button"
           onClick={() => toggleTab('tuner')}
-          className="px-3 py-1.5 rounded-t-lg text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: activeTab === 'tuner' ? 'var(--card-bg)' : 'var(--bg-tertiary)',
-            color: activeTab === 'tuner' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'tuner' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-          }}
+          className={tabClass('tuner')}
+          aria-pressed={activeTab === 'tuner'}
         >
-          🎵 Tuner
+          <TargetIcon size={16} /> Tuner
         </button>
         <button
+          type="button"
           onClick={() => toggleTab('metronome')}
-          className="px-3 py-1.5 rounded-t-lg text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: activeTab === 'metronome' ? 'var(--card-bg)' : 'var(--bg-tertiary)',
-            color: activeTab === 'metronome' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            borderBottom: activeTab === 'metronome' ? '2px solid var(--accent-primary)' : '2px solid transparent',
-          }}
+          className={tabClass('metronome')}
+          aria-pressed={activeTab === 'metronome'}
         >
-          🥁 Metronome
+          <MusicIcon size={16} /> Metronome
         </button>
       </div>
 
       {/* Panel content — both always mounted for audio persistence, visibility toggled */}
-      <div
-        className="card rounded-t-none"
+      <Card
+        elevation={2}
+        className="rounded-t-none"
         style={{ display: activeTab ? 'block' : 'none' }}
       >
         <div style={{ display: activeTab === 'tuner' ? 'block' : 'none' }}>
@@ -66,7 +76,7 @@ const ToolsToolbar: React.FC<ToolsToolbarProps> = ({
         <div style={{ display: activeTab === 'metronome' ? 'block' : 'none' }}>
           <MetronomeControls />
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

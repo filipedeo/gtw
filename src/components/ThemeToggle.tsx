@@ -1,5 +1,7 @@
 import React from 'react';
 import { useThemeStore } from '../stores/themeStore';
+import { Button } from './ui';
+import { SunIcon, MoonIcon } from './icons';
 
 const ThemeToggle: React.FC = React.memo(() => {
   const { resolvedTheme, setTheme } = useThemeStore();
@@ -9,30 +11,24 @@ const ThemeToggle: React.FC = React.memo(() => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  const getIcon = () => {
-    return resolvedTheme === 'dark' ? '🌙' : '☀️';
-  };
-
-  const getLabel = () => {
-    return resolvedTheme === 'dark' ? 'Dark' : 'Light';
-  };
-
-  const getNextTheme = () => {
-    return resolvedTheme === 'dark' ? 'light' : 'dark';
-  };
+  const isDark = resolvedTheme === 'dark';
+  const label = isDark ? 'Dark' : 'Light';
+  const nextTheme = isDark ? 'light' : 'dark';
 
   return (
-    <button
+    <Button
+      variant="secondary"
       onClick={toggleTheme}
-      className="btn-secondary flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-      title={`Theme: ${getLabel()}`}
-      aria-label={`Current theme: ${getLabel()}. Click to switch to ${getNextTheme()} theme`}
+      title={`Theme: ${label}`}
+      aria-label={`Current theme: ${label}. Click to switch to ${nextTheme} theme`}
       aria-live="polite"
     >
-      <span aria-hidden="true">{getIcon()}</span>
-      <span className="hidden sm:inline text-sm">{getLabel()}</span>
-    </button>
+      {isDark ? <MoonIcon size={18} /> : <SunIcon size={18} />}
+      <span className="hidden sm:inline">{label}</span>
+    </Button>
   );
 });
+
+ThemeToggle.displayName = 'ThemeToggle';
 
 export default ThemeToggle;

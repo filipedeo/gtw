@@ -15,6 +15,8 @@ import { useBreakpoint } from './hooks/useBreakpoint'
 import { useGuitarStore } from './stores/guitarStore'
 import { useExerciseStore } from './stores/exerciseStore'
 import { useThemeStore } from './stores/themeStore'
+import { Button, Card } from './components/ui'
+import { MusicIcon, VolumeIcon, SettingsIcon, MenuIcon, XIcon } from './components/icons'
 
 type SidePanel = 'settings' | 'audio' | null
 
@@ -66,13 +68,15 @@ function App() {
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+    <div className="min-h-screen bg-surface-app">
       {/* Header */}
-      <header style={{ backgroundColor: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }} className="sticky top-0 z-40">
+      <header className="sticky top-0 z-40 bg-surface border-b border-line">
         <div className="max-w-[1800px] mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🎸</span>
+              <span className="inline-flex items-center justify-center w-9 h-9 rounded-[var(--rad-md)] bg-accent-subtle text-accent">
+                <MusicIcon size={20} />
+              </span>
               <h1 className="hidden md:block text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                 Guitar Theory
               </h1>
@@ -91,8 +95,7 @@ function App() {
                     setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
                   }
                 }}
-                className="text-xs px-2 py-1 rounded-l-full font-mono cursor-pointer transition-all hover:brightness-110"
-                style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.85 }}
+                className="text-xs px-2 py-1 rounded-l-full font-mono cursor-pointer transition-colors bg-accent text-on-accent hover:bg-accent-hover"
                 title="Click to change string count"
                 aria-label={`Currently ${stringCount}-string ${instrument}. Click to change.`}
               >
@@ -100,8 +103,7 @@ function App() {
               </button>
               <button
                 onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
-                className="text-xs px-2 py-1 rounded-r-full font-mono cursor-pointer transition-all hover:brightness-110"
-                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                className="text-xs px-2 py-1 rounded-r-full font-mono cursor-pointer transition-colors bg-surface-hover text-fg-muted hover:bg-surface-sunken hover:text-fg"
                 title={`Switch to ${instrument === 'guitar' ? 'bass' : 'guitar'}`}
               >
                 {instrument === 'guitar' ? '→ Bass' : '→ Guitar'}
@@ -112,48 +114,37 @@ function App() {
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
             {/* Drone toggle — desktop only */}
-            <button
+            <Button
+              variant={sidePanel === 'audio' ? 'primary' : 'secondary'}
               onClick={() => togglePanel('audio')}
-              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                sidePanel === 'audio' ? 'ring-2 ring-offset-1' : ''
-              }`}
-              style={{
-                backgroundColor: sidePanel === 'audio' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                color: sidePanel === 'audio' ? 'white' : 'var(--text-secondary)',
-              }}
+              className="hidden lg:inline-flex"
               aria-label="Toggle drone and volume controls"
               aria-expanded={sidePanel === 'audio'}
             >
-              🔊 <span className="hidden xl:inline">Drone</span>
-            </button>
+              <VolumeIcon size={18} /> <span className="hidden xl:inline">Drone</span>
+            </Button>
             {/* Settings toggle — desktop only */}
-            <button
+            <Button
+              variant={sidePanel === 'settings' ? 'primary' : 'secondary'}
               onClick={() => togglePanel('settings')}
-              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                sidePanel === 'settings' ? 'ring-2 ring-offset-1' : ''
-              }`}
-              style={{
-                backgroundColor: sidePanel === 'settings' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
-                color: sidePanel === 'settings' ? 'white' : 'var(--text-secondary)',
-              }}
+              className="hidden lg:inline-flex"
               aria-label="Toggle settings"
               aria-expanded={sidePanel === 'settings'}
             >
-              ⚙️ <span className="hidden xl:inline">Settings</span>
-            </button>
+              <SettingsIcon size={18} /> <span className="hidden xl:inline">Settings</span>
+            </Button>
             {/* Hamburger — mobile/tablet only */}
-            <button
+            <Button
               ref={hamburgerButtonRef}
+              variant="secondary"
+              iconOnly
               onClick={() => setShowDrawer(true)}
-              className="lg:hidden btn-secondary flex items-center justify-center"
+              className="lg:hidden"
               aria-label="Open menu"
               aria-haspopup="dialog"
-              style={{ width: '44px', height: '44px', padding: 0 }}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
+              <MenuIcon size={20} />
+            </Button>
           </div>
         </div>
       </header>
@@ -195,51 +186,53 @@ function App() {
             <div className="space-y-6">
               {/* Side Panel: Settings or Audio (replaces right column content when open) */}
               {sidePanel === 'settings' && (
-                <div
+                <Card
                   ref={sidePanelRef}
-                  className="card animate-fade-in"
+                  className="animate-fade-in"
                   role="region"
                   aria-label="Settings"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                    <h2 className="text-lg font-bold text-fg-strong">
                       Settings
                     </h2>
-                    <button
+                    <Button
+                      variant="ghost"
+                      iconOnly
+                      size="sm"
                       onClick={() => setSidePanel(null)}
-                      className="p-1.5 rounded-lg transition-colors hover:opacity-70"
-                      style={{ color: 'var(--text-muted)' }}
                       aria-label="Close settings"
                     >
-                      ✕
-                    </button>
+                      <XIcon size={18} />
+                    </Button>
                   </div>
                   <SettingsPanel />
-                </div>
+                </Card>
               )}
 
               {sidePanel === 'audio' && (
-                <div
+                <Card
                   ref={sidePanelRef}
-                  className="card animate-fade-in"
+                  className="animate-fade-in"
                   role="region"
                   aria-label="Drone and Volume Controls"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                    <h2 className="text-lg font-bold text-fg-strong">
                       Drone & Volume
                     </h2>
-                    <button
+                    <Button
+                      variant="ghost"
+                      iconOnly
+                      size="sm"
                       onClick={() => setSidePanel(null)}
-                      className="p-1.5 rounded-lg transition-colors hover:opacity-70"
-                      style={{ color: 'var(--text-muted)' }}
                       aria-label="Close audio controls"
                     >
-                      ✕
-                    </button>
+                      <XIcon size={18} />
+                    </Button>
                   </div>
                   <AudioControls />
-                </div>
+                </Card>
               )}
 
               {/* Default right column content (when no panel open) */}
@@ -248,36 +241,27 @@ function App() {
                   <ProgressDashboard />
 
                   {currentExercise && (
-                    <div className="card">
-                      <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    <Card>
+                      <h3 className="font-semibold mb-2 text-fg-strong">
                         Exercise Info
                       </h3>
-                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      <p className="text-sm text-fg">
                         {currentExercise.description}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <span
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.9 }}
-                        >
+                        <span className="inline-flex items-center text-xs px-2 py-1 rounded-[var(--rad-sm)] bg-accent text-on-accent">
                           Difficulty: {currentExercise.difficulty}/5
                         </span>
-                        <span
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ backgroundColor: 'var(--success)', color: 'white' }}
-                        >
+                        <span className="inline-flex items-center text-xs px-2 py-1 rounded-[var(--rad-sm)] bg-success text-white">
                           {currentExercise.type}
                         </span>
                         {currentExercise.audioRequired && (
-                          <span
-                            className="text-xs px-2 py-1 rounded"
-                            style={{ backgroundColor: 'var(--warning)', color: 'white' }}
-                          >
-                            🔊 Audio
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-[var(--rad-sm)] bg-warning text-white">
+                            <VolumeIcon size={12} /> Audio
                           </span>
                         )}
                       </div>
-                    </div>
+                    </Card>
                   )}
                 </>
               )}

@@ -17,21 +17,13 @@ const MetronomeIndicator: React.FC = React.memo(() => {
   return (
     <button
       onClick={handleStop}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-mono cursor-pointer transition-all hover:opacity-80 min-h-[44px]"
-      style={{
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        color: 'var(--accent-primary)',
-        border: '1px solid var(--accent-primary)',
-      }}
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--rad-md)] text-sm font-mono cursor-pointer transition-colors hover:opacity-80 min-h-[44px] bg-accent-subtle text-accent border border-accent"
       title="Click to stop metronome"
       aria-label={`Metronome active: ${metronomeConfig.bpm} BPM, ${tsLabel}. Click to stop.`}
     >
       <span
-        className="inline-block w-2 h-2 rounded-full"
-        style={{
-          backgroundColor: 'var(--accent-primary)',
-          animation: `metronome-pulse ${60 / metronomeConfig.bpm}s ease-in-out infinite`,
-        }}
+        className="inline-block w-2 h-2 rounded-full bg-accent"
+        style={{ animation: `metronome-pulse ${60 / metronomeConfig.bpm}s ease-in-out infinite` }}
       />
       <span className="font-bold tabular-nums">{metronomeConfig.bpm}</span>
       <span className="text-xs opacity-70">{tsLabel}</span>

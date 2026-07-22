@@ -5,6 +5,7 @@ import { getExercises, formatTypeLabel } from '../api/exercises';
 import { useSwipe } from '../hooks/useSwipe';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorBoundary from './ErrorBoundary';
+import { Chip } from './ui';
 
 // Lazy load exercise components for code splitting
 const NoteIdentificationExercise = lazy(() => import('./NoteIdentificationExercise'));
@@ -244,33 +245,23 @@ const ExerciseContainer: React.FC = () => {
   return (
     <div ref={containerRef} className="card" data-exercise-container>
       {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
-        <button
+      <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-line">
+        <Chip
+          selected={selectedCategory === 'all'}
           onClick={() => setSelectedCategory('all')}
-          className={`px-3 py-1.5 phone-touch rounded-full text-sm font-medium transition-all ${
-            selectedCategory === 'all' ? 'btn-primary' : ''
-          }`}
-          style={selectedCategory !== 'all' ? { 
-            backgroundColor: 'var(--bg-tertiary)', 
-            color: 'var(--text-secondary)' 
-          } : {}}
+          className="phone-touch"
         >
           All ({instrumentExercises.length})
-        </button>
+        </Chip>
         {categories.map(cat => (
-          <button
+          <Chip
             key={cat.type}
+            selected={selectedCategory === cat.type}
             onClick={() => setSelectedCategory(cat.type)}
-            className={`px-3 py-1.5 phone-touch rounded-full text-sm font-medium transition-all ${
-              selectedCategory === cat.type ? 'btn-primary' : ''
-            }`}
-            style={selectedCategory !== cat.type ? { 
-              backgroundColor: 'var(--bg-tertiary)', 
-              color: 'var(--text-secondary)' 
-            } : {}}
+            className="phone-touch"
           >
             {cat.label} ({cat.count})
-          </button>
+          </Chip>
         ))}
       </div>
 

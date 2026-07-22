@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { PlayIcon, PauseIcon } from './icons';
 
 interface PracticeTimerProps {
   targetMinutes?: number;
@@ -90,9 +91,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes:
         aria-label={`Practice timer: ${formatTime(elapsedSeconds)}${targetMinutes ? ` of ${targetMinutes} minutes` : ''}. ${isRunning ? 'Click to pause' : 'Click to start'}`}
       >
         {/* Play/Pause icon */}
-        <span className="text-xs" aria-hidden="true">
-          {isRunning ? '⏸' : '▶'}
-        </span>
+        {isRunning ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
 
         {/* Time display */}
         <span className="font-bold tabular-nums" style={{ minWidth: '3.5rem', textAlign: 'center' }}>

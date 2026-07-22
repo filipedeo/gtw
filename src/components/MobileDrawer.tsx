@@ -5,6 +5,8 @@ import ProgressDashboard from './ProgressDashboard';
 import AudioControls from './AudioControls';
 import SettingsPanel from './SettingsPanel';
 import ErrorBoundary from './ErrorBoundary';
+import { Button } from './ui';
+import { XIcon, TargetIcon, MusicIcon, VolumeIcon, ChevronRightIcon } from './icons';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -92,8 +94,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
       {/* Drawer panel */}
       <div
         ref={drawerRef}
-        className="relative w-full max-w-md h-full overflow-y-auto drawer-slide-in"
-        style={{ backgroundColor: 'var(--bg-primary)' }}
+        className="relative w-full max-w-md h-full overflow-y-auto drawer-slide-in bg-surface"
       >
         <div className="p-4">
           {/* Header */}
@@ -101,14 +102,14 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
             <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
               Menu
             </h2>
-            <button
+            <Button
+              variant="ghost"
+              iconOnly
               onClick={onClose}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: 'var(--text-muted)' }}
               aria-label="Close menu"
             >
-              ✕
-            </button>
+              <XIcon size={20} />
+            </Button>
           </div>
 
           {/* Tools section */}
@@ -117,18 +118,20 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
               Tools
             </h3>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => handleToolSelect('tuner')}
-                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+                className="flex-1"
               >
-                <span>🎵</span> Tuner
-              </button>
-              <button
+                <TargetIcon size={18} /> Tuner
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => handleToolSelect('metronome')}
-                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+                className="flex-1"
               >
-                <span>🥁</span> Metronome
-              </button>
+                <MusicIcon size={18} /> Metronome
+              </Button>
             </div>
           </section>
 
@@ -183,24 +186,15 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
                   {currentExercise.description}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <span
-                    className="text-xs px-2 py-1 rounded"
-                    style={{ backgroundColor: 'var(--accent-primary)', color: 'white', opacity: 0.9 }}
-                  >
+                  <span className="inline-flex items-center text-[length:var(--fs-2xs)] px-2 py-1 rounded-[var(--rad-sm)] bg-accent text-on-accent">
                     Difficulty: {currentExercise.difficulty}/5
                   </span>
-                  <span
-                    className="text-xs px-2 py-1 rounded"
-                    style={{ backgroundColor: 'var(--success)', color: 'white' }}
-                  >
+                  <span className="inline-flex items-center text-[length:var(--fs-2xs)] px-2 py-1 rounded-[var(--rad-sm)] bg-success text-white">
                     {currentExercise.type}
                   </span>
                   {currentExercise.audioRequired && (
-                    <span
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ backgroundColor: 'var(--warning)', color: 'white' }}
-                    >
-                      🔊 Audio
+                    <span className="inline-flex items-center gap-1 text-[length:var(--fs-2xs)] px-2 py-1 rounded-[var(--rad-sm)] bg-warning text-white">
+                      <VolumeIcon size={12} /> Audio
                     </span>
                   )}
                 </div>
@@ -234,7 +228,8 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
               Instrument
             </h3>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => {
                   if (instrument === 'guitar') {
                     setStringCount(stringCount === 6 ? 7 : 6);
@@ -244,18 +239,19 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
                     setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
                   }
                 }}
-                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+                className="flex-1 font-mono"
                 aria-label={`Currently ${stringCount}-string ${instrument}. Click to change string count.`}
               >
-                <span className="font-mono">{stringCount}s {instrument}</span>
-              </button>
-              <button
+                {stringCount}s {instrument}
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
-                className="flex-1 btn-secondary flex items-center justify-center gap-2 text-sm"
+                className="flex-1"
               >
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span>{instrument === 'guitar' ? 'Bass' : 'Guitar'}</span>
-              </button>
+                <ChevronRightIcon size={16} className="text-fg-muted" />
+                {instrument === 'guitar' ? 'Bass' : 'Guitar'}
+              </Button>
             </div>
           </section>
         </div>
