@@ -1,5 +1,50 @@
 @import "tailwindcss";
 
+/* Surface the design-system tokens (defined in :root/.dark below) to Tailwind
+   v4 utilities. `inline` emits var(--token) so the utilities stay
+   theme-switchable via the .dark class overrides. Additive only: no Tailwind
+   default token names are overridden — radius uses semantic names, and
+   type/spacing keep Tailwind's built-in scales (already on the 4pt grid). */
+@theme inline {
+  /* Backgrounds / surfaces */
+  --color-surface-app: var(--surface-app);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+
+  /* Borders → border-line / border-line-strong */
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+
+  /* Foreground → text-fg-strong / text-fg / text-fg-muted / text-fg-subtle */
+  --color-fg-strong: var(--text-strong);
+  --color-fg: var(--text);
+  --color-fg-muted: var(--text-muted);
+  --color-fg-subtle: var(--text-subtle);
+
+  /* Accent */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-subtle: var(--accent-subtle-bg);
+  --color-on-accent: var(--on-accent);
+
+  /* Semantic (foreground + tint) */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+
+  /* Semantic radius (new names — never touch Tailwind's --radius-* scale) */
+  --radius-control: var(--rad-md);
+  --radius-card: var(--rad-lg);
+  --radius-sheet: var(--rad-xl);
+  --radius-pill: var(--rad-full);
+}
+
 /* CSS Variables for theming */
 :root {
   --bg-primary: #ffffff;
@@ -22,6 +67,120 @@
   --error: #dc2626; /* Slightly darker for better contrast */
   --warning: #d97706; /* Slightly darker for better contrast */
   --focus-ring: rgba(37, 99, 235, 0.35);
+
+  /* ======================================================================
+     Design-system tokens — 92 plan §1 (additive; the legacy vars above are
+     preserved so existing components render unchanged). New primitives,
+     icons and the app shell consume the tokens below. Values copied from
+     plan §1, except where a plan value would shift an out-of-scope consumer
+     (those keep the legacy value and are noted inline).
+     ====================================================================== */
+
+  /* §1.1 Semantic color (light) */
+  --surface-app: #f8fafc;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f1f5f9;
+  --surface-hover: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-strong: #0f172a;
+  --text: #1e293b;
+  --text-subtle: #94a3b8;
+  --accent: #2563eb;
+  --accent-active: #1e40af;
+  --accent-subtle-bg: #eff6ff;
+  --on-accent: #ffffff;
+  --success-bg: #ecfdf5;
+  --warning-bg: #fffbeb;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  /* --text-muted, --accent-hover, --success, --warning and --focus-ring reuse
+     the legacy vars above. Legacy --success/--warning already equal the plan's
+     LIGHT values; their dark foreground variants (#34d399 / #fbbf24) are
+     deferred to Phase 2 because ~120 out-of-scope components use them as solid
+     fills with white text (a light-green/amber fill would fail contrast). */
+
+  /* §1.2 Fretboard palette (folded from fretboardTheme.ts; light) */
+  --fb-surface: #efe7db;
+  --fb-edge: #d8cbb6;
+  --fb-fret: #b8bcc4;
+  --fb-string: #6b7280;
+  --fb-inlay: #cbb78f;
+  --fb-fret-number: #3b2f1c;
+  --fb-note-root: #dc2626;
+  --fb-note-scale: #2563eb;
+  --fb-note-chord: #0ea5e9;
+  --fb-note-characteristic: #d97706;
+  --fb-note-target: #2563eb;              /* hollow question-target ring stroke */
+  --fb-note-target-fill: var(--surface);  /* ring interior fill (distinct from inlays) */
+  --fb-note-ghost: rgba(100, 116, 139, 0.28);
+
+  /* §1.3 Typography scale (size / line-height) */
+  --fs-2xs: 11px;  --lh-2xs: 16px;
+  --fs-xs: 12px;   --lh-xs: 18px;
+  --fs-sm: 14px;   --lh-sm: 20px;
+  --fs-base: 16px; --lh-base: 24px;
+  --fs-lg: 20px;   --lh-lg: 28px;
+  --fs-xl: 24px;   --lh-xl: 32px;
+  --fs-2xl: 30px;  --lh-2xl: 36px;
+  --fs-3xl: 36px;  --lh-3xl: 40px;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* §1.4 Spacing grid (4pt base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* §1.5 Radius scale — named --rad-* to avoid colliding with Tailwind's
+     reserved --radius-* theme vars (which drive the rounded-* utilities). */
+  --rad-sm: 6px;
+  --rad-md: 8px;
+  --rad-lg: 12px;
+  --rad-xl: 16px;
+  --rad-full: 9999px;
+
+  /* §1.5 Elevation ramp (light) */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.10);
+  --elev-2: 0 4px 8px -2px rgba(15, 23, 42, 0.10), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --elev-3: 0 12px 24px -6px rgba(15, 23, 42, 0.16), 0 4px 8px -4px rgba(15, 23, 42, 0.08);
+
+  /* §1.6 Motion */
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+  --dur-sheet: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* §1.7 Z-index scale */
+  --z-base: 0;
+  --z-tools: 30;
+  --z-header: 40;
+  --z-dropdown: 50;
+  --z-sheet: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+
+  /* §1.8 Icon sizes */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* §2.3 Touch targets */
+  --target-min: 44px;
+  --target-compact: 40px;
 }
 
 .dark {
@@ -42,6 +201,46 @@
   --string-color: #94a3b8;
   --dot-color: #475569;
   --focus-ring: rgba(96, 165, 250, 0.4);
+
+  /* Design-system tokens — 92 plan §1 (dark) */
+  --surface-app: #0f172a;
+  --surface: #1e293b;
+  --surface-raised: #26344a;
+  --surface-sunken: #172033;
+  --surface-hover: #334155;
+  --border-subtle: #334155;
+  --border-strong: #475569;
+  --text-strong: #f8fafc;
+  --text: #e2e8f0;
+  --text-subtle: #64748b;
+  --accent: #60a5fa;
+  --accent-active: #bfdbfe;
+  --accent-subtle-bg: rgba(96, 165, 250, 0.16);
+  --on-accent: #0b1220;
+  --success-bg: rgba(52, 211, 153, 0.14);
+  --warning-bg: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+
+  /* Fretboard palette (dark) */
+  --fb-surface: #1a2232;
+  --fb-edge: #0f1626;
+  --fb-fret: #5b6675;
+  --fb-string: #aab4c2;
+  --fb-inlay: #3c4759;
+  --fb-fret-number: #9aa6b6;
+  --fb-note-root: #f87171;
+  --fb-note-scale: #60a5fa;
+  --fb-note-chord: #38bdf8;
+  --fb-note-characteristic: #fbbf24;
+  --fb-note-target: #93c5fd;
+  /* --fb-note-target-fill inherits var(--surface) (dark #1e293b) */
+  --fb-note-ghost: rgba(148, 163, 184, 0.30);
+
+  /* Elevation (dark: ~1.6x alpha on black; pair with --surface-raised + hairline) */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.16);
+  --elev-2: 0 4px 8px -2px rgba(0, 0, 0, 0.16), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  --elev-3: 0 12px 24px -6px rgba(0, 0, 0, 0.26), 0 4px 8px -4px rgba(0, 0, 0, 0.13);
 }
 
 /* Base styles */
@@ -281,6 +480,20 @@ input[type="checkbox"] {
 .collapsible-grid {
   display: grid;
   transition: grid-template-rows 0.25s ease;
+}
+
+/* Reduced motion — 92 plan §1.6. Opt-out for every animation/transition and
+   the named keyframes (fadeIn, pulse, tuner-glow, metronome-pulse,
+   slideInRight). This is a global a11y safeguard, not per-component. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Mobile card padding reduction */
