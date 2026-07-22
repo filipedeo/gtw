@@ -36,3 +36,13 @@ export function distributeMinutes(totalMinutes: number, count: number): number[]
   const remainder = totalMinutes - base * count;
   return Array.from({ length: count }, (_, i) => base + (i < remainder ? 1 : 0));
 }
+
+/**
+ * Clamp a session position index into the valid range [0, length-1] for a plan
+ * of `length` items. Returns 0 for an empty plan. Keeps the "current exercise"
+ * pointer valid after items are added/removed mid-session.
+ */
+export function clampSessionIndex(index: number, length: number): number {
+  if (length <= 0) return 0;
+  return Math.max(0, Math.min(index, length - 1));
+}
