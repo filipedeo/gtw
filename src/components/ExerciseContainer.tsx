@@ -81,7 +81,7 @@ const ExerciseContainer: React.FC = () => {
         const data = await getExercises();
         setExercises(data);
         if (data.length > 0) {
-          setCurrentExercise(data[0]);
+          if (!useExerciseStore.getState().currentExercise) setCurrentExercise(data[0]);
         }
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : 'Failed to load exercises');
@@ -100,7 +100,7 @@ const ExerciseContainer: React.FC = () => {
       .then((data) => {
         setExercises(data);
         if (data.length > 0) {
-          setCurrentExercise(data[0]);
+          if (!useExerciseStore.getState().currentExercise) setCurrentExercise(data[0]);
         }
       })
       .catch((error) => {
