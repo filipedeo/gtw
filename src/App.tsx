@@ -138,11 +138,11 @@ function App() {
 
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
+            <div className="hidden lg:flex items-center gap-1.5">
             {/* Drone toggle — desktop only */}
             <Button
               variant={sidePanel === 'audio' ? 'primary' : 'secondary'}
               onClick={() => togglePanel('audio')}
-              className="hidden lg:inline-flex"
               aria-label="Toggle drone and volume controls"
               aria-expanded={sidePanel === 'audio'}
             >
@@ -152,12 +152,12 @@ function App() {
             <Button
               variant={sidePanel === 'settings' ? 'primary' : 'secondary'}
               onClick={() => togglePanel('settings')}
-              className="hidden lg:inline-flex"
               aria-label="Toggle settings"
               aria-expanded={sidePanel === 'settings'}
             >
               <SettingsIcon size={18} /> <span className="hidden xl:inline">Settings</span>
             </Button>
+            </div>
             {/* Hamburger — mobile/tablet only */}
             <Button
               ref={hamburgerButtonRef}
