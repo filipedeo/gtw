@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
 import { playChord, playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
+import { HeadphonesIcon, VolumeIcon, CheckIcon, XIcon } from './icons';
 
 interface EarTrainingExerciseProps {
   exercise: Exercise;
@@ -269,12 +270,11 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
       </div>
 
       {/* Visual Indicator */}
-      <div 
-        className="p-8 rounded-lg text-center"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+      <div
+        className="p-8 rounded-lg text-center bg-surface-sunken"
       >
-        <div className="text-6xl mb-4">🎧</div>
-        <p className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+        <div className="flex justify-center mb-4 text-fg-muted"><HeadphonesIcon size={48} /></div>
+        <p className="text-lg font-medium text-fg-strong">
           {getQuestionText()}
         </p>
         <button
@@ -282,7 +282,7 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
           className="btn-secondary mt-4 flex items-center gap-2 mx-auto"
           disabled={selectedAnswer !== null}
         >
-          🔊 Play Again
+          <VolumeIcon size={18} /> Play Again
         </button>
       </div>
 
@@ -349,11 +349,11 @@ const EarTrainingExercise: React.FC<EarTrainingExerciseProps> = ({ exercise }) =
           role="alert"
           aria-live="assertive"
         >
-          <p 
-            className="font-medium text-lg"
+          <p
+            className="font-medium text-lg flex items-center gap-2"
             style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
           >
-            <span aria-hidden="true">{isCorrect ? '✓' : '✗'}</span>
+            <span aria-hidden="true">{isCorrect ? <CheckIcon size={20} /> : <XIcon size={20} />}</span>
             {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctAnswer}`}
           </p>
           {getHint() && (

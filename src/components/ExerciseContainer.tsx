@@ -6,6 +6,7 @@ import { useSwipe } from '../hooks/useSwipe';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorBoundary from './ErrorBoundary';
 import { Chip } from './ui';
+import { WrenchIcon, ChevronDownIcon, ChevronRightIcon } from './icons';
 
 // Lazy load exercise components for code splitting
 const NoteIdentificationExercise = lazy(() => import('./NoteIdentificationExercise'));
@@ -196,7 +197,7 @@ const ExerciseContainer: React.FC = () => {
       default:
         return (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4">🚧</div>
+            <div className="flex justify-center mb-4"><WrenchIcon size={36} className="text-fg-muted" /></div>
             <p className="text-fg">
               Exercise type "{currentExercise.type}" coming soon!
             </p>
@@ -326,7 +327,7 @@ const ExerciseContainer: React.FC = () => {
                 onClick={() => setShowInstructions(!showInstructions)}
                 className="flex items-center gap-2 text-sm font-medium min-h-[var(--target-min)] text-accent"
               >
-                <span>{showInstructions ? '▼' : '▶'}</span>
+                <span>{showInstructions ? <ChevronDownIcon size={16} /> : <ChevronRightIcon size={16} />}</span>
                 <span>Instructions</span>
               </button>
               

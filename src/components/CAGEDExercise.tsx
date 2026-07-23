@@ -9,6 +9,7 @@ import { CAGED_SHAPES, KEYS } from '../lib/cagedPatterns';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import { PlayIcon, StopIcon, MusicIcon } from './icons';
 import CollapsibleSection from './CollapsibleSection';
 
 interface CAGEDExerciseProps {
@@ -343,15 +344,15 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       <div className="flex gap-3">
         <button
           onClick={handleToggleDrone}
-          className={isDroneActive ? 'btn-danger' : 'btn-success'}
+          className={`${isDroneActive ? 'btn-danger' : 'btn-success'} inline-flex items-center gap-2`}
         >
-          {isDroneActive ? '⏹ Stop Drone' : '▶ Play Drone'}
+          {isDroneActive ? <><StopIcon size={18} /> Stop Drone</> : <><PlayIcon size={18} /> Play Drone</>}
         </button>
         <button
           onClick={handlePlayChord}
-          className="btn-secondary"
+          className="btn-secondary inline-flex items-center gap-2"
         >
-          🎵 Play Chord
+          <MusicIcon size={18} /> Play Chord
         </button>
       </div>
 

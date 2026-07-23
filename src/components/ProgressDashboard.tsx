@@ -2,6 +2,7 @@ import React from 'react';
 import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import SessionPlanner from './SessionPlanner';
+import { FlameIcon } from './icons';
 
 const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo(({ showSessionPlanner = true }) => {
   const { progress, getNextReviews } = useProgressStore();
@@ -31,75 +32,69 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
     {showSessionPlanner && <SessionPlanner />}
 
     <div className="card">
-      <h3 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+      <h3 className="font-semibold mb-4 text-fg-strong">
         Progress
       </h3>
-      
+
       <div className="space-y-4">
-        {/* Streak */}
-        <div 
-          className="flex items-center justify-between p-3 rounded-lg"
-          style={{ backgroundColor: 'rgba(251, 146, 60, 0.1)' }}
+        {/* Streak — single semantic highlight (warm) */}
+        <div
+          className="flex items-center justify-between p-3 rounded-lg bg-warning-bg"
           role="region"
           aria-label="Practice streak"
         >
           <div>
-            <p className="text-sm" style={{ color: 'var(--warning)' }} id="streak-label">Current Streak</p>
-            <p 
-              className="text-2xl font-bold" 
-              style={{ color: 'var(--warning)' }}
+            <p className="text-sm text-warning" id="streak-label">Current Streak</p>
+            <p
+              className="text-2xl font-bold tabular-nums text-warning"
               aria-labelledby="streak-label"
               aria-describedby="streak-value"
             >
               <span id="streak-value">{progress.currentStreak} {progress.currentStreak === 1 ? 'day' : 'days'}</span>
             </p>
           </div>
-          <div className="text-3xl" aria-hidden="true">🔥</div>
+          <FlameIcon size={28} className="text-warning" aria-hidden="true" />
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid — accent + neutral family */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label="Practice statistics">
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+          <div
+            className="p-3 rounded-lg bg-accent-subtle"
             role="region"
             aria-label={`Exercises completed: ${progress.totalExercisesCompleted}`}
           >
-            <p className="text-xs" style={{ color: 'var(--accent-primary)' }}>Exercises Done</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--accent-primary)' }} aria-hidden="true">
+            <p className="text-xs text-accent">Exercises Done</p>
+            <p className="text-xl font-bold tabular-nums text-accent" aria-hidden="true">
               {progress.totalExercisesCompleted}
             </p>
           </div>
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
+          <div
+            className="p-3 rounded-lg bg-surface-sunken"
             role="region"
             aria-label={`Time practiced: ${formatTime(progress.totalTimeSpent)}`}
           >
-            <p className="text-xs" style={{ color: 'var(--success)' }}>Time Practiced</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--success)' }} aria-hidden="true">
+            <p className="text-xs text-fg-muted">Time Practiced</p>
+            <p className="text-xl font-bold tabular-nums text-fg" aria-hidden="true">
               {formatTime(progress.totalTimeSpent)}
             </p>
           </div>
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+          <div
+            className="p-3 rounded-lg bg-surface-sunken"
             role="region"
             aria-label={`Best streak: ${progress.longestStreak} ${progress.longestStreak === 1 ? 'day' : 'days'}`}
           >
-            <p className="text-xs" style={{ color: '#8b5cf6' }}>Best Streak</p>
-            <p className="text-xl font-bold" style={{ color: '#8b5cf6' }} aria-hidden="true">
+            <p className="text-xs text-fg-muted">Best Streak</p>
+            <p className="text-xl font-bold tabular-nums text-fg" aria-hidden="true">
               {progress.longestStreak} {progress.longestStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+          <div
+            className="p-3 rounded-lg bg-surface-sunken"
             role="region"
             aria-label={`Last practice: ${formatDate(progress.lastPracticeDate)}`}
           >
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Last Practice</p>
-            <p className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }} aria-hidden="true">
+            <p className="text-xs text-fg-muted">Last Practice</p>
+            <p className="text-sm font-bold text-fg" aria-hidden="true">
               {formatDate(progress.lastPracticeDate)}
             </p>
           </div>
@@ -107,16 +102,15 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
 
         {/* Session Stats */}
         {sessionResults.length > 0 && (
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+          <div
+            className="p-3 rounded-lg bg-surface-sunken"
             role="region"
             aria-label={`This session: ${sessionResults.length} exercises completed with ${sessionAccuracy}% accuracy`}
           >
-            <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            <p className="text-sm font-medium mb-2 text-fg-strong">
               This Session
             </p>
-            <div className="flex justify-between text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex justify-between text-sm text-fg tabular-nums">
               <span>Exercises: {sessionResults.length}</span>
               <span>Accuracy: {sessionAccuracy}%</span>
             </div>
@@ -125,16 +119,15 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
 
         {/* Due for Review */}
         {nextReviews.length > 0 && (
-          <div 
-            className="p-3 rounded-lg"
-            style={{ backgroundColor: 'rgba(251, 191, 36, 0.1)' }}
+          <div
+            className="p-3 rounded-lg bg-warning-bg"
             role="alert"
             aria-label={`${nextReviews.length} exercises due for review`}
           >
-            <p className="text-sm font-medium mb-2" style={{ color: 'var(--warning)' }}>
+            <p className="text-sm font-medium mb-2 text-warning">
               Due for Review
             </p>
-            <p className="text-2xl font-bold" style={{ color: 'var(--warning)' }} aria-hidden="true">
+            <p className="text-2xl font-bold tabular-nums text-warning" aria-hidden="true">
               {nextReviews.length} exercises
             </p>
           </div>
@@ -142,7 +135,7 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
 
         {/* Weak Areas */}
         <div role="region" aria-label="Areas to improve">
-          <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          <p className="text-sm font-medium mb-2 text-fg-strong">
             Areas to Improve
           </p>
           {progress.weakAreas.length > 0 ? (
@@ -150,15 +143,14 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
               {progress.weakAreas.map((area, idx) => (
                 <li
                   key={idx}
-                  className="text-xs px-2 py-1 rounded"
-                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)' }}
+                  className="text-xs px-2 py-1 rounded bg-danger-bg text-danger"
                 >
                   {area}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs text-fg-muted">
               Practice more exercises to discover areas for improvement
             </p>
           )}
@@ -166,7 +158,7 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
 
         {/* Strong Areas */}
         <div role="region" aria-label="Strengths">
-          <p className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          <p className="text-sm font-medium mb-2 text-fg-strong">
             Strengths
           </p>
           {progress.strongAreas.length > 0 ? (
@@ -174,15 +166,14 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
               {progress.strongAreas.map((area, idx) => (
                 <li
                   key={idx}
-                  className="text-xs px-2 py-1 rounded"
-                  style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}
+                  className="text-xs px-2 py-1 rounded bg-success-bg text-success"
                 >
                   {area}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs text-fg-muted">
               Keep practicing to build your strengths
             </p>
           )}

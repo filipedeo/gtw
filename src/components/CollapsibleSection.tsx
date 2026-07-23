@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronDownIcon } from './icons';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -28,14 +29,13 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           {title}
         </span>
         <span
-          className="text-xs transition-transform duration-200"
+          className="text-xs transition-transform duration-200 text-fg-muted"
           style={{
-            color: 'var(--text-muted)',
             transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
             borderLeft: borderColor ? `2px solid ${borderColor}` : undefined,
           }}
         >
-          ▼
+          <ChevronDownIcon size={14} />
         </span>
       </button>
       <div

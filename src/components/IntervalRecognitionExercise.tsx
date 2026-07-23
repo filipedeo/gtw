@@ -6,6 +6,7 @@ import { useExercise } from '../hooks/useExercise';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
+import { VolumeIcon, CheckIcon, XIcon } from './icons';
 import DisplayModeToggle from './DisplayModeToggle';
 
 interface IntervalRecognitionExerciseProps {
@@ -303,7 +304,7 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
             className="btn-secondary text-sm flex items-center gap-1"
             disabled={selectedAnswer !== null}
           >
-            🔊 Play Again
+            <VolumeIcon size={16} /> Play Again
           </button>
         </div>
       </div>
@@ -372,11 +373,11 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
           role="alert"
           aria-live="assertive"
         >
-          <p 
-            className="font-medium text-lg"
+          <p
+            className="font-medium text-lg flex items-center gap-2"
             style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
           >
-            <span aria-hidden="true">{isCorrect ? '✓' : '✗'}</span>
+            <span aria-hidden="true">{isCorrect ? <CheckIcon size={20} /> : <XIcon size={20} />}</span>
             {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctInterval.name}`}
           </p>
           <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>

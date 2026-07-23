@@ -3,6 +3,7 @@ import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
 import { playChord, playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import { Progression, buildProgressionChords } from '../lib/theoryEngine';
+import { MusicIcon, VolumeIcon, CheckIcon, XIcon } from './icons';
 
 interface ChordProgressionExerciseProps {
   exercise: Exercise;
@@ -251,11 +252,10 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
 
       {/* Prompt Area */}
       <div
-        className="p-8 rounded-lg text-center"
-        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+        className="p-8 rounded-lg text-center bg-surface-sunken"
       >
-        <div className="text-6xl mb-4">🎵</div>
-        <p className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+        <div className="flex justify-center mb-4 text-fg-muted"><MusicIcon size={48} /></div>
+        <p className="text-lg font-medium text-fg-strong">
           What chord progression is this?
         </p>
         <button
@@ -263,7 +263,7 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
           className="btn-secondary mt-4 flex items-center gap-2 mx-auto"
           disabled={selectedAnswer !== null}
         >
-          🔊 Play Again
+          <VolumeIcon size={18} /> Play Again
         </button>
       </div>
 
@@ -331,10 +331,10 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
           aria-live="assertive"
         >
           <p
-            className="font-medium text-lg"
+            className="font-medium text-lg flex items-center gap-2"
             style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
           >
-            <span aria-hidden="true">{isCorrect ? '✓' : '✗'}</span>
+            <span aria-hidden="true">{isCorrect ? <CheckIcon size={20} /> : <XIcon size={20} />}</span>
             {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctAnswer}`}
           </p>
           <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>

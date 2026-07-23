@@ -4,6 +4,7 @@ import { useProgressStore } from '../stores/progressStore';
 import { useThemeStore } from '../stores/themeStore';
 import { Instrument } from '../types/guitar';
 import TuningPicker from './TuningPicker';
+import { SunIcon, MoonIcon, MonitorIcon } from './icons';
 
 const SettingsPanel: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -77,7 +78,7 @@ const SettingsPanel: React.FC = () => {
             <button
               key={t}
               onClick={() => setTheme(t)}
-              className={`flex-1 phone-touch py-2 px-3 rounded-lg font-medium transition-all capitalize ${
+              className={`flex-1 phone-touch py-2 px-3 rounded-lg font-medium transition-all capitalize inline-flex items-center justify-center gap-2 ${
                 theme === t ? 'btn-primary' : ''
               }`}
               style={theme !== t ? {
@@ -85,7 +86,8 @@ const SettingsPanel: React.FC = () => {
                 color: 'var(--text-secondary)'
               } : {}}
             >
-              {t === 'light' ? '☀️ ' : t === 'dark' ? '🌙 ' : '💻 '}{t}
+              {t === 'light' ? <SunIcon size={16} /> : t === 'dark' ? <MoonIcon size={16} /> : <MonitorIcon size={16} />}
+              {t}
             </button>
           ))}
         </div>
