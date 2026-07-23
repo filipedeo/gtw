@@ -755,7 +755,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
 
       {/* Display Options */}
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <label className="flex items-center gap-2 text-sm min-h-[var(--target-min)]" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showAllPositions}

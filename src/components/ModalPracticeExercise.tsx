@@ -231,7 +231,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
 
       {/* Display Options */}
       <div className="flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <label className="flex items-center gap-2 text-sm min-h-[var(--target-min)]" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showCharacteristicNote}
@@ -240,7 +240,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
           />
           Highlight characteristic note
         </label>
-        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <label className="flex items-center gap-2 text-sm min-h-[var(--target-min)]" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showFullFretboard}
