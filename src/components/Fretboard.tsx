@@ -166,6 +166,14 @@ const Fretboard: React.FC<FretboardProps> = ({
     [scaleContext]
   );
 
+  // Spell a chroma (0-11) using the active key/scale context when available,
+  // otherwise the root's key-signature fallback. Shared by the visible canvas
+  // labels and the screen-reader description so both announce the same names.
+  const spellChromaForContext = (chroma: number, fallbackName: string): string =>
+    chroma === -1
+      ? fallbackName
+      : (spellingTable && spellingTable[chroma]) || spellChroma(chroma, preferFlatsForRoot(rootNote));
+
   // Observe container width
   useEffect(() => {
     const container = containerRef.current;
@@ -435,10 +443,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     // Spell the note for display. With an active key/scale context, use its exact
     // key-signature spelling (e.g. Bb, E#, Cb); otherwise fall back to spelling by
     // the root's key signature (flats in flat keys).
-    const useFlats = preferFlatsForRoot(rootNote);
-    const displayNoteName = chroma !== -1
-      ? ((spellingTable && spellingTable[chroma]) || spellChroma(chroma, useFlats))
-      : noteName;
+    const displayNoteName = spellChromaForContext(chroma, noteName);
     const isRoot = rootNote && noteName === normalizeNoteName(rootNote);
 
     // Reset shadow offsets to prevent leak from nut drawing or prior draw calls
@@ -506,7 +511,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       if ((displayMode === 'intervals' || displayMode === 'degrees') && rootNote && chroma !== -1) {
         const rootChroma = NOTE_NAMES.indexOf(normalizeNoteName(rootNote));
         if (rootChroma !== -1) {
-          const rootSpelling = (spellingTable && spellingTable[rootChroma]) || spellChroma(rootChroma, useFlats);
+          const rootSpelling = spellChromaForContext(rootChroma, noteName);
           const chromaInterval = (chroma - rootChroma + 12) % 12;
           displayText = getDegreeLabel(rootSpelling, displayNoteName, chromaInterval, displayMode);
         }
@@ -656,7 +661,13 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
         const note = getNoteAtPosition(pos, tuning, stringCount);
         const noteName = normalizeNoteName(note.replace(/\d/, ''));
-        return `${noteName} on string ${stringLabel}, fret ${pos.fret}`;
+        // Use the same scale-aware spelling as the visible labels so screen
+        // readers announce the correct note names (e.g. Bb, E#, Cb) instead of
+        // a fixed sharp table, falling back to the key-signature spelling when
+        // there is no active scale context.
+        const chroma = NOTE_NAMES.indexOf(noteName);
+        const spelled = spellChromaForContext(chroma, noteName);
+        return `${spelled} on string ${stringLabel}, fret ${pos.fret}`;
       });
     const parts: string[] = [];
     if (highlightedPositions.length > 0) {
