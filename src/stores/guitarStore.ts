@@ -5,7 +5,7 @@ import { Instrument, Tuning, DisplayMode, FretPosition, STANDARD_TUNINGS } from 
 interface GuitarState {
   // Config
   instrument: Instrument;
-  stringCount: 4 | 5 | 6 | 7;
+  stringCount: 4 | 5 | 6 | 7 | 8;
   tuning: Tuning;
   fretCount: number;
   displayMode: DisplayMode;
@@ -27,7 +27,7 @@ interface GuitarState {
 
   // Actions
   setInstrument: (instrument: Instrument) => void;
-  setStringCount: (count: 4 | 5 | 6 | 7) => void;
+  setStringCount: (count: 4 | 5 | 6 | 7 | 8) => void;
   setTuning: (tuning: Tuning) => void;
   setDisplayMode: (mode: DisplayMode) => void;
   setHighlightedPositions: (positions: FretPosition[]) => void;
@@ -90,7 +90,9 @@ export const useGuitarStore = create<GuitarState>()(
           else if (count === 6) tuning = STANDARD_TUNINGS['bass-standard-6'];
           else tuning = STANDARD_TUNINGS['bass-standard-4'];
         } else {
-          tuning = count === 7 ? STANDARD_TUNINGS['standard-7'] : STANDARD_TUNINGS['standard-6'];
+          if (count === 8) tuning = STANDARD_TUNINGS['standard-8'];
+          else if (count === 7) tuning = STANDARD_TUNINGS['standard-7'];
+          else tuning = STANDARD_TUNINGS['standard-6'];
         }
         return {
           stringCount: count,
