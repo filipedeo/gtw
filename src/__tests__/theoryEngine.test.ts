@@ -199,6 +199,45 @@ describe('getModeNotes', () => {
 });
 
 // ---------------------------------------------------------------------------
+// flat-root spelling (regression: no double accidentals in the note list)
+// ---------------------------------------------------------------------------
+describe('scale spelling for flat-named and enharmonic roots', () => {
+  const hasDoubleAccidental = (n: string) => n.includes('##') || n.includes('bb');
+
+  it('Bb major/ionian is F-free of double accidentals (F G A Bb C D Eb order from Bb)', () => {
+    const notes = getModeNotes('Bb', 'ionian');
+    expect(notes).toEqual(['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A']);
+    expect(notes.some(hasDoubleAccidental)).toBe(false);
+  });
+
+  it('flat-named roots never produce double accidentals', () => {
+    for (const root of ['Bb', 'Eb', 'Ab', 'Db', 'Gb']) {
+      const notes = getModeNotes(root, 'ionian');
+      expect(notes.some(hasDoubleAccidental)).toBe(false);
+    }
+  });
+
+  it('a sharp-enharmonic root (A#) re-derives to the flat spelling instead of double sharps', () => {
+    // A# ionian would naively be "A# B# C## D# E# F## G##"; guard re-derives via Bb.
+    const notes = getModeNotes('A#', 'ionian');
+    expect(notes.some(hasDoubleAccidental)).toBe(false);
+  });
+
+  it('getScaleNotes applies the same guard for flat roots', () => {
+    for (const root of ['Bb', 'Eb', 'Ab', 'Db']) {
+      expect(getScaleNotes(root, 'major').some(hasDoubleAccidental)).toBe(false);
+      expect(getScaleNotes(root, 'minor pentatonic').some(hasDoubleAccidental)).toBe(false);
+    }
+  });
+
+  it('natural and standard sharp roots keep their expected spelling', () => {
+    expect(getModeNotes('C', 'ionian')).toEqual(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+    expect(getModeNotes('F#', 'ionian').some(hasDoubleAccidental)).toBe(false);
+    expect(getModeNotes('G', 'ionian')).toContain('F#');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // getChordNotes / getChordInfo
 // ---------------------------------------------------------------------------
 describe('getChordNotes / getChordInfo', () => {

@@ -256,6 +256,8 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
         </label>
         <input
           type="range"
+          id="bass-position-start-fret"
+          name="bass-position-start-fret"
           min={0}
           max={12}
           value={startFret}

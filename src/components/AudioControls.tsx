@@ -63,6 +63,8 @@ const AudioControls: React.FC = React.memo(() => {
           type="range"
           min="0"
           max="100"
+          id="audio-master-volume"
+          name="audio-master-volume"
           value={masterVolume * 100} aria-label="Master volume"
           onChange={(e) => {
             const vol = parseInt(e.target.value) / 100;
@@ -166,7 +168,10 @@ const AudioControls: React.FC = React.memo(() => {
               min="0"
               max="100"
               value={droneConfig.volume * 100}
-              onChange={(e) => setDroneConfig({ volume: parseInt(e.target.value) / 100 })} aria-label="Drone volume"
+              onChange={(e) => setDroneConfig({ volume: parseInt(e.target.value) / 100 })}
+              id="audio-drone-volume"
+              name="audio-drone-volume"
+              aria-label="Drone volume"
               className="w-full"
             />
           </div>

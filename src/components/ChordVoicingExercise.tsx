@@ -598,7 +598,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
           <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
             Inversion
           </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+          <label className="flex items-center gap-2 text-sm cursor-pointer min-h-[var(--target-min)]" style={{ color: 'var(--text-secondary)' }}>
             <input
               type="checkbox"
               checked={showAllInversions}
@@ -640,7 +640,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
         >
           Play Chord
         </button>
-        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+        <label className="flex items-center gap-2 text-sm cursor-pointer min-h-[var(--target-min)]" style={{ color: 'var(--text-secondary)' }}>
           <input
             type="checkbox"
             checked={autoPlay}

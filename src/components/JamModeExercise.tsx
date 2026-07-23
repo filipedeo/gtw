@@ -297,10 +297,13 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
           </div>
           <input
             type="range"
+            id="jam-mode-tempo"
+            name="jam-mode-tempo"
             min={60}
             max={200}
             value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value))} aria-label="Tempo, beats per minute"
+            onChange={(e) => setBpm(parseInt(e.target.value))}
+            aria-label="Playback tempo (BPM)"
             className="w-full"
           />
         </div>
@@ -355,7 +358,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
 
       {/* Display options */}
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <label className="flex items-center gap-2 text-sm min-h-[var(--target-min)]" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showFullFretboard}

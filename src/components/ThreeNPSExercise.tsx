@@ -310,6 +310,8 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
         </label>
         <input
           type="range"
+          id="three-nps-start-fret"
+          name="three-nps-start-fret"
           min={0}
           max={12}
           value={startFret}

@@ -338,7 +338,7 @@ const ExerciseContainer: React.FC = () => {
             <div className="mt-4">
               <button
                 onClick={() => setShowInstructions(!showInstructions)}
-                className="flex items-center gap-2 text-sm font-medium"
+                className="flex items-center gap-2 text-sm font-medium min-h-[var(--target-min)]"
                 style={{ color: 'var(--accent-primary)' }}
               >
                 <span>{showInstructions ? '▼' : '▶'}</span>

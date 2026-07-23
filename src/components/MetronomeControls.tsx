@@ -155,12 +155,14 @@ const MetronomeControls: React.FC = React.memo(() => {
           </button>
           <input
             type="range"
+            id="metronome-tempo"
+            name="metronome-tempo"
             min="40"
             max="300"
             value={metronomeConfig.bpm}
             onChange={(e) => setMetronomeConfig({ bpm: clampBpm(parseInt(e.target.value)) })}
             className="flex-1"
-            aria-label="Tempo in BPM"
+            aria-label="Metronome tempo (BPM)"
           />
           <button
             onClick={() => adjustBpm(5)}
@@ -191,6 +193,9 @@ const MetronomeControls: React.FC = React.memo(() => {
         </label>
         <input
           type="range"
+          id="metronome-volume"
+          name="metronome-volume"
+          aria-label="Metronome volume"
           min="0"
           max="100"
           value={metronomeConfig.volume * 100}

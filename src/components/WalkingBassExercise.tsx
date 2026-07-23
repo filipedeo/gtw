@@ -341,10 +341,13 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
           </div>
           <input
             type="range"
+            id="walking-bass-tempo"
+            name="walking-bass-tempo"
             min={40}
             max={160}
             value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value))} aria-label="Tempo, beats per minute"
+            onChange={(e) => setBpm(parseInt(e.target.value))}
+            aria-label="Playback tempo (BPM)"
             className="w-full"
           />
         </div>
@@ -450,7 +453,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
 
       {/* Display Options */}
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <label className="flex items-center gap-2 text-sm min-h-[var(--target-min)]" style={{ color: 'var(--text-primary)' }}>
           <input
             type="checkbox"
             checked={showFullFretboard}

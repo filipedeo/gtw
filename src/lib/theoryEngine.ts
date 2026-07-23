@@ -14,8 +14,30 @@ export function getMidiFromNote(note: string): number | null {
 }
 
 // Scale utilities
+/**
+ * Resolve a scale to its notes, spelled without double accidentals.
+ * A flat-named root can reach us already normalized to its sharp enharmonic
+ * (e.g. Bb -> A#), which makes tonal derive a double-sharp scale
+ * ("A# B# C## D# E# F## G##"). Detect that and re-derive from the enharmonic
+ * root so standard keys never produce double accidentals in the note list.
+ */
+function resolveScaleNotes(root: string, scaleName: string): string[] {
+  const scale = Scale.get(`${root} ${scaleName}`);
+  if (scale.empty || scale.notes.length === 0) return scale.notes;
+  if (scale.notes.some(hasDoubleAccidental)) {
+    const enharmonicRoot = Note.enharmonic(root);
+    if (enharmonicRoot && enharmonicRoot !== root) {
+      const alt = Scale.get(`${enharmonicRoot} ${scaleName}`);
+      if (!alt.empty && alt.notes.length > 0 && !alt.notes.some(hasDoubleAccidental)) {
+        return alt.notes;
+      }
+    }
+  }
+  return scale.notes;
+}
+
 export function getScaleNotes(root: string, scaleName: string): string[] {
-  return Scale.get(`${root} ${scaleName}`).notes;
+  return resolveScaleNotes(root, scaleName);
 }
 
 // Mode utilities
@@ -100,7 +122,7 @@ export function getModesByCategory(category: string) {
 }
 
 export function getModeNotes(root: string, modeName: string): string[] {
-  return Scale.get(`${root} ${modeName}`).notes;
+  return resolveScaleNotes(root, modeName);
 }
 
 // Chord utilities

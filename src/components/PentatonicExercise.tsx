@@ -678,7 +678,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">
         {!isModeCentric && (
-          <label className={`flex items-center gap-2 ${showAllShapes ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+          <label className={`flex items-center gap-2 min-h-[var(--target-min)] ${showAllShapes ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
             title={showAllShapes ? 'Disable "Show All Shapes" to use this option' : undefined}
           >
             <input
@@ -694,7 +694,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
           </label>
         )}
         {!isModeCentric && (
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer min-h-[var(--target-min)]">
             <input
               type="checkbox"
               checked={showAllShapes}

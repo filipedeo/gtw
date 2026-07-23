@@ -296,7 +296,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
 
       {/* Display Options */}
       <div className="flex flex-wrap gap-4 items-center">
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer min-h-[var(--target-min)]">
           <input
             type="checkbox"
             checked={showChord}
@@ -305,7 +305,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Show Chord</span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer min-h-[var(--target-min)]">
           <input
             type="checkbox"
             checked={showScale}
@@ -314,7 +314,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Show Scale</span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer min-h-[var(--target-min)]">
           <input
             type="checkbox"
             checked={showRoots}
@@ -323,7 +323,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
           />
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>Highlight Roots</span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer min-h-[var(--target-min)]">
           <input
             type="checkbox"
             checked={showAllShapes}
