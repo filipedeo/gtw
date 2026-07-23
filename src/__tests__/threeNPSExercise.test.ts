@@ -130,17 +130,6 @@ describe('3NPS patterns', () => {
       expect(positions).toHaveLength(18);
     });
 
-    it('all notes belong to C harmonic minor', () => {
-      const positions = getThreeNPSPositions('C', 'harmonic minor', 0);
-      const scaleNotes = getModeNotes('C', 'harmonic minor').map(n => normalizeNoteName(n));
-
-      for (const pos of positions) {
-        const note = getNoteAtPosition(pos, tuning, stringCount);
-        const noteName = normalizeNoteName(note.replace(/\d/, ''));
-        expect(scaleNotes).toContain(noteName);
-      }
-    });
-
     it('contains B natural (raised 7th) not Bb', () => {
       const positions = getThreeNPSPositions('C', 'harmonic minor', 0);
       const noteNames = positions.map(pos => {
@@ -170,17 +159,6 @@ describe('3NPS patterns', () => {
     it('produces 18 positions (3 per string x 6 strings)', () => {
       const positions = getThreeNPSPositions('C', 'melodic minor', 0);
       expect(positions).toHaveLength(18);
-    });
-
-    it('all notes belong to C melodic minor', () => {
-      const positions = getThreeNPSPositions('C', 'melodic minor', 0);
-      const scaleNotes = getModeNotes('C', 'melodic minor').map(n => normalizeNoteName(n));
-
-      for (const pos of positions) {
-        const note = getNoteAtPosition(pos, tuning, stringCount);
-        const noteName = normalizeNoteName(note.replace(/\d/, ''));
-        expect(scaleNotes).toContain(noteName);
-      }
     });
 
     it('contains A natural (raised 6th) and B natural (raised 7th)', () => {

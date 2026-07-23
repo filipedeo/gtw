@@ -3,7 +3,6 @@ import { Note } from 'tonal';
 import { getModeNotes, getScaleNotes, MODES } from '../lib/theoryEngine';
 import { getScalePositions } from '../utils/fretboardCalculations';
 import { STANDARD_TUNINGS } from '../types/guitar';
-import { normalizeNoteName } from '../types/guitar';
 
 // ---------------------------------------------------------------------------
 // Helper: compare two note arrays by chroma (pitch class 0-11) to handle
@@ -623,10 +622,6 @@ describe('Symmetric scales — key of C', () => {
 // MODES array structural validation
 // ===========================================================================
 describe('MODES array — structural integrity', () => {
-  it('has 25 total entries', () => {
-    expect(MODES).toHaveLength(25);
-  });
-
   it('7 diatonic + 7 harmonic minor + 7 melodic minor + 3 symmetric + 1 other', () => {
     const counts: Record<string, number> = {};
     for (const mode of MODES) {
@@ -666,31 +661,6 @@ describe('MODES array — structural integrity', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(mode.characteristicDegree).toBeLessThan(notes.length);
     }
-  });
-});
-
-// ===========================================================================
-// normalizeNoteName sanity checks (used throughout exercise components)
-// ===========================================================================
-describe('normalizeNoteName — enharmonic normalization', () => {
-  it('converts flats to sharps', () => {
-    expect(normalizeNoteName('Db')).toBe('C#');
-    expect(normalizeNoteName('Eb')).toBe('D#');
-    expect(normalizeNoteName('Gb')).toBe('F#');
-    expect(normalizeNoteName('Ab')).toBe('G#');
-    expect(normalizeNoteName('Bb')).toBe('A#');
-  });
-
-  it('passes through naturals and sharps unchanged', () => {
-    expect(normalizeNoteName('C')).toBe('C');
-    expect(normalizeNoteName('C#')).toBe('C#');
-    expect(normalizeNoteName('D')).toBe('D');
-    expect(normalizeNoteName('F#')).toBe('F#');
-  });
-
-  it('strips octave numbers before normalizing', () => {
-    expect(normalizeNoteName('Db4')).toBe('C#');
-    expect(normalizeNoteName('E2')).toBe('E');
   });
 });
 

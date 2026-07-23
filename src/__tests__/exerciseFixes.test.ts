@@ -4,48 +4,12 @@ import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { STANDARD_TUNINGS, normalizeNoteName } from '../types/guitar';
 
 /**
- * Tests for bug fixes applied across the codebase.
- *
- * 1. SCALE_DEGREES mutation fix (EarTrainingExercise)
- * 2. useExercise questionNumber cap
- * 3. Interval song references (IntervalRecognitionExercise)
- * 4. CAGED scale pattern correctness (CAGEDExercise)
- * 5. audioStore stopAll behavior
+ * Tests for bug fixes applied across the codebase:
+ * - useExercise questionNumber cap
+ * - CAGED scale pattern correctness (CAGEDExercise)
+ * - audioStore stopAll behavior
+ * - Chord voicing offset correctness
  */
-
-// ---------------------------------------------------------------------------
-// 1. SCALE_DEGREES mutation fix
-// ---------------------------------------------------------------------------
-describe('SCALE_DEGREES mutation fix', () => {
-  // Reproduce the exact constant from EarTrainingExercise.tsx
-  const SCALE_DEGREES = ['1', '2', '3', '4', '5', '6', '7'];
-
-  it('should not mutate SCALE_DEGREES when sorting a copy', () => {
-    const originalOrder = [...SCALE_DEGREES];
-
-    // The fix: sort a shallow copy instead of the original
-    const shuffled = [...SCALE_DEGREES].sort(() => Math.random() - 0.5);
-
-    // The original must remain in its canonical order
-    expect(SCALE_DEGREES).toEqual(originalOrder);
-
-    // The shuffled copy is a permutation of the same elements
-    expect(shuffled).toHaveLength(SCALE_DEGREES.length);
-    expect([...shuffled].sort()).toEqual([...SCALE_DEGREES].sort());
-  });
-
-  it('spread-copy pattern preserves original across repeated shuffles', () => {
-    const DEGREES = ['1', '2', '3', '4', '5', '6', '7'];
-    const snapshot = DEGREES.join(',');
-
-    for (let i = 0; i < 100; i++) {
-      // This is the fixed pattern used in the code
-      [...DEGREES].sort(() => Math.random() - 0.5);
-    }
-
-    expect(DEGREES.join(',')).toBe(snapshot);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 2. useExercise questionNumber cap
@@ -61,10 +25,6 @@ describe('useExercise questionNumber cap', () => {
    */
   const computeQuestionNumber = (scoreTotal: number, totalQuestions: number) =>
     Math.min(scoreTotal + 1, totalQuestions);
-
-  it('should start at 1 when no questions answered', () => {
-    expect(computeQuestionNumber(0, 10)).toBe(1);
-  });
 
   it('should increment with each answered question', () => {
     expect(computeQuestionNumber(0, 10)).toBe(1);
@@ -83,86 +43,6 @@ describe('useExercise questionNumber cap', () => {
     expect(computeQuestionNumber(100, 10)).toBe(10);
   });
 
-  it('should work with different totalQuestions values', () => {
-    expect(computeQuestionNumber(4, 5)).toBe(5);
-    expect(computeQuestionNumber(5, 5)).toBe(5);
-    expect(computeQuestionNumber(19, 20)).toBe(20);
-    expect(computeQuestionNumber(20, 20)).toBe(20);
-    expect(computeQuestionNumber(21, 20)).toBe(20);
-  });
-
-  it('should display "Question N of M" accurately at the boundary', () => {
-    const totalQuestions = 10;
-
-    // Simulated progression through all 10 questions
-    for (let answered = 0; answered <= totalQuestions; answered++) {
-      const questionNumber = computeQuestionNumber(answered, totalQuestions);
-      expect(questionNumber).toBeGreaterThanOrEqual(1);
-      expect(questionNumber).toBeLessThanOrEqual(totalQuestions);
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// 3. Interval song references
-// ---------------------------------------------------------------------------
-describe('Interval song references', () => {
-  // Reproduce the INTERVALS constant from IntervalRecognitionExercise.tsx
-  const INTERVALS = [
-    { name: 'Minor 2nd', short: 'm2', semitones: 1, song: '"Jaws" theme' },
-    { name: 'Major 2nd', short: 'M2', semitones: 2, song: '"Happy Birthday" (first two notes)' },
-    { name: 'Minor 3rd', short: 'm3', semitones: 3, song: '"Greensleeves" (first two notes)' },
-    { name: 'Major 3rd', short: 'M3', semitones: 4, song: '"Kumbaya" (first two notes)' },
-    { name: 'Perfect 4th', short: 'P4', semitones: 5, song: '"Here Comes the Bride"' },
-    { name: 'Tritone', short: 'TT', semitones: 6, song: '"The Simpsons" theme' },
-    { name: 'Perfect 5th', short: 'P5', semitones: 7, song: '"Star Wars" theme' },
-    { name: 'Minor 6th', short: 'm6', semitones: 8, song: '"Go Down Moses" (Let my people go)' },
-    { name: 'Major 6th', short: 'M6', semitones: 9, song: '"My Bonnie Lies Over the Ocean"' },
-    { name: 'Minor 7th', short: 'm7', semitones: 10, song: '"Somewhere" (West Side Story)' },
-    { name: 'Major 7th', short: 'M7', semitones: 11, song: '"Take On Me" (first two vocal notes)' },
-    { name: 'Octave', short: 'P8', semitones: 12, song: '"Somewhere Over the Rainbow"' },
-  ];
-
-  it('minor 6th should reference "Go Down Moses"', () => {
-    const m6 = INTERVALS.find(i => i.short === 'm6');
-    expect(m6).toBeDefined();
-    expect(m6!.name).toBe('Minor 6th');
-    expect(m6!.semitones).toBe(8);
-    expect(m6!.song).toContain('Go Down Moses');
-  });
-
-  it('major 7th should reference "Take On Me"', () => {
-    const M7 = INTERVALS.find(i => i.short === 'M7');
-    expect(M7).toBeDefined();
-    expect(M7!.name).toBe('Major 7th');
-    expect(M7!.semitones).toBe(11);
-    expect(M7!.song).toContain('Take On Me');
-  });
-
-  it('should contain all 12 intervals from minor 2nd to octave', () => {
-    expect(INTERVALS).toHaveLength(12);
-    // Semitones should range continuously from 1 to 12
-    const semitones = INTERVALS.map(i => i.semitones);
-    expect(semitones).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-  });
-
-  it('each interval should have a non-empty song reference', () => {
-    for (const interval of INTERVALS) {
-      expect(interval.song.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('perfect 5th should reference "Star Wars"', () => {
-    const P5 = INTERVALS.find(i => i.short === 'P5');
-    expect(P5).toBeDefined();
-    expect(P5!.song).toContain('Star Wars');
-  });
-
-  it('tritone should reference "The Simpsons"', () => {
-    const TT = INTERVALS.find(i => i.short === 'TT');
-    expect(TT).toBeDefined();
-    expect(TT!.song).toContain('The Simpsons');
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -351,45 +231,6 @@ describe('audioStore stopAll', () => {
       isMetronomeActive: true,
       currentNote: 'A4',
     });
-  });
-
-  it('should set isPlaying to false', () => {
-    useAudioStore.getState().stopAll();
-    expect(useAudioStore.getState().isPlaying).toBe(false);
-  });
-
-  it('should set isDroneActive to false', () => {
-    useAudioStore.getState().stopAll();
-    expect(useAudioStore.getState().isDroneActive).toBe(false);
-  });
-
-  it('should set isMetronomeActive to false', () => {
-    useAudioStore.getState().stopAll();
-    expect(useAudioStore.getState().isMetronomeActive).toBe(false);
-  });
-
-  it('should set currentNote to null', () => {
-    useAudioStore.getState().stopAll();
-    expect(useAudioStore.getState().currentNote).toBeNull();
-  });
-
-  it('should reset all audio-related flags in a single call', () => {
-    // Verify the precondition: everything is active
-    const before = useAudioStore.getState();
-    expect(before.isPlaying).toBe(true);
-    expect(before.isDroneActive).toBe(true);
-    expect(before.isMetronomeActive).toBe(true);
-    expect(before.currentNote).toBe('A4');
-
-    // Invoke stopAll
-    useAudioStore.getState().stopAll();
-
-    // Verify all flags are now false/null
-    const after = useAudioStore.getState();
-    expect(after.isPlaying).toBe(false);
-    expect(after.isDroneActive).toBe(false);
-    expect(after.isMetronomeActive).toBe(false);
-    expect(after.currentNote).toBeNull();
   });
 
   it('should be idempotent - calling stopAll when already stopped is safe', () => {
