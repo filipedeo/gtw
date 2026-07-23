@@ -39,6 +39,8 @@ export interface FretWindowGeometry {
   /** Number of fret-width columns drawn = endFret - leftPos. */
   visibleCols: number;
   fretWidth: number;
+  /** Vertical distance between strings; grows when zoomed so larger circles fit without colliding. */
+  stringSpacing: number;
   canvasWidth: number;
   canvasHeight: number;
   /** Base note-circle radius for this window (clicked/hover add a +2 bump). */
@@ -78,18 +80,24 @@ export function computeWindow({
   const fretWidth = Math.max(FB_CONST.FW_MIN, Math.min(fwMax, available / visibleCols));
 
   const canvasWidth = FB_CONST.PADDING_X * 2 + nutWidth + visibleCols * fretWidth;
-  const canvasHeight = FB_CONST.PADDING_Y * 2 + FB_CONST.STRING_SPACING * (stringCount - 1);
 
-  // Note radius: identical to the legacy 13px on the full board (startFret === 0)
-  // so the explore board is pixel-identical; scales with fretWidth when zoomed,
-  // bumped on phone for easier reading.
+  // String spacing + note radius. Full board keeps the legacy 32px spacing and
+  // 13px radius so the explore board stays pixel-identical. When zoomed, the
+  // vertical cell grows with the horizontal one so circles read clearly AND can
+  // never collide: the radius is derived from the smaller cell dimension and is
+  // always well under stringSpacing / 2.
+  let stringSpacing: number;
   let noteRadius: number;
   if (startFret === 0) {
+    stringSpacing = FB_CONST.STRING_SPACING;
     noteRadius = 13;
   } else {
-    const lo = isMobile ? 15 : 13;
-    noteRadius = Math.max(lo, Math.min(22, fretWidth * 0.34));
+    stringSpacing = Math.round(Math.max(38, Math.min(58, fretWidth * 0.6)));
+    const cell = Math.min(fretWidth, stringSpacing);
+    noteRadius = Math.round(Math.max(isMobile ? 16 : 15, Math.min(24, cell * 0.38)));
   }
+
+  const canvasHeight = FB_CONST.PADDING_Y * 2 + stringSpacing * (stringCount - 1);
 
   return {
     startFret,
@@ -99,6 +107,7 @@ export function computeWindow({
     originX,
     visibleCols,
     fretWidth,
+    stringSpacing,
     canvasWidth,
     canvasHeight,
     noteRadius,

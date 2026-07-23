@@ -8,7 +8,8 @@ import { computeWindow, computeFretWindow, xAtPos, fretAtX, FB_CONST } from '../
 import { playNote, initAudio } from '../lib/audioEngine';
 import { readFretboardColors } from '../constants/fretboardTheme';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import { NOTE_NAMES_FLAT, getKeySpelledNotes } from '../lib/theoryEngine';
+import { getKeySpelledNotes } from '../lib/theoryEngine';
+import { getDegreeLabel, spellChromaForContext as spellChromaCtx } from '../utils/degreeLabels';
 
 interface FretboardProps {
   onNoteClick?: (position: FretPosition, note: string) => void;
@@ -17,89 +18,6 @@ interface FretboardProps {
   revealedPositions?: FretPosition[]; // Positions where note names should be shown
 }
 
-/**
- * Note-name spelling helpers.
- *
- * When an active key/scale context is available (threaded via the store as
- * `scaleContext`), notes are spelled with the exact key-signature spelling for
- * that key/mode (computed in the theory engine via tonal). This yields the
- * correct accidentals for every key, including the edge cases that a fixed
- * sharp/flat table cannot represent (E#/B# in sharp keys, Fb/Cb in flat keys).
- *
- * When there is NO scale context (e.g. note-identification, or the shared board
- * with no active exercise), the helpers below provide a conservative fallback:
- * notes are spelled according to the tonic's key convention — flat keys use
- * flats, sharp keys use sharps — matching the app's historical behavior.
- */
-
-// Chromas of the keys the app spells with flats: Db(1), Eb(3), F(5), Ab(8), Bb(10).
-// The only accidental key the app spells with a sharp is F# (chroma 6).
-const FLAT_KEY_CHROMAS = new Set([1, 3, 5, 8, 10]);
-
-const LETTER_ORDER = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-// Semitone offset above the tonic for each major-scale degree number (1..7).
-const MAJOR_DEGREE_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
-// Safe chromatic fallbacks (used when a note cannot be spelled cleanly, e.g. the
-// leading tone of F# major is E#, which NOTE_NAMES cannot represent).
-const CHROMATIC_DEGREE_NAMES = ['1', '\u266d2', '2', '\u266d3', '3', '4', '\u266d5', '5', '\u266d6', '6', '\u266d7', '7'];
-const CHROMATIC_INTERVAL_NAMES = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
-
-/** Whether notes should be spelled with flats for the given (tonic) root note. */
-function preferFlatsForRoot(rootNote: string | null): boolean {
-  if (!rootNote) return false;
-  const chroma = NOTE_NAMES.indexOf(normalizeNoteName(rootNote));
-  return FLAT_KEY_CHROMAS.has(chroma);
-}
-
-/** Spell a chroma (0-11) using flats or sharps. */
-function spellChroma(chroma: number, useFlats: boolean): string {
-  return (useFlats ? NOTE_NAMES_FLAT : NOTE_NAMES)[chroma];
-}
-
-/**
- * Derive a scale-degree / interval label from the key-aware spelling of the
- * root and the target note. The interval NUMBER comes from the letter names
- * and the accidental from the semitone distance, so the overlay label always
- * agrees with the note name shown on the fretboard (rather than being computed
- * purely chromatically, which mislabels e.g. #4 as b5 or #5 as b6).
- */
-function getDegreeLabel(
-  rootSpelling: string,
-  noteSpelling: string,
-  chromaInterval: number,
-  mode: 'degrees' | 'intervals'
-): string {
-  const chromaticFallback = mode === 'intervals'
-    ? CHROMATIC_INTERVAL_NAMES[chromaInterval]
-    : CHROMATIC_DEGREE_NAMES[chromaInterval];
-
-  const rootLetterIdx = LETTER_ORDER.indexOf(rootSpelling[0]);
-  const noteLetterIdx = LETTER_ORDER.indexOf(noteSpelling[0]);
-  if (rootLetterIdx === -1 || noteLetterIdx === -1) return chromaticFallback;
-
-  const degreeNumber = ((noteLetterIdx - rootLetterIdx + 7) % 7) + 1; // 1..7
-  let alteration = chromaInterval - MAJOR_DEGREE_SEMITONES[degreeNumber - 1];
-  // Keep the accidental sane when the interval wraps across the octave.
-  if (alteration > 6) alteration -= 12;
-  if (alteration < -6) alteration += 12;
-
-  // Guard against enharmonic gaps: NOTE_NAMES/NOTE_NAMES_FLAT cannot express
-  // notes such as E#/Cb, so a mis-spelled note could yield a nonsensical label
-  // (e.g. 'b1'). If the letter-derived degree is degenerate (a non-unison mapped
-  // to degree 1, or a double accidental), use the plain chromatic name instead.
-  if ((degreeNumber === 1 && chromaInterval !== 0) || alteration < -1 || alteration > 1) {
-    return chromaticFallback;
-  }
-
-  if (mode === 'intervals') {
-    if (degreeNumber === 1 && alteration === 0) return 'R';
-    const acc = alteration > 0 ? '#'.repeat(alteration) : alteration < 0 ? 'b'.repeat(-alteration) : '';
-    return `${acc}${degreeNumber}`;
-  }
-  // Degrees mode uses unicode accidentals to match prior styling.
-  const acc = alteration > 0 ? '\u266f'.repeat(alteration) : alteration < 0 ? '\u266d'.repeat(-alteration) : '';
-  return `${acc}${degreeNumber}`;
-}
 
 const Fretboard: React.FC<FretboardProps> = ({ 
   onNoteClick, 
@@ -135,7 +53,6 @@ const Fretboard: React.FC<FretboardProps> = ({
 
   // Shared layout constants (Y geometry + landmark frets). X geometry is
   // derived from the visible window below via fretboardWindow.ts.
-  const STRING_SPACING = FB_CONST.STRING_SPACING;
   const PADDING_Y = FB_CONST.PADDING_Y;
   const PADDING_X = FB_CONST.PADDING_X;
   const DOT_FRETS = [3, 5, 7, 9, 12, 15, 17, 19, 21];
@@ -166,6 +83,9 @@ const Fretboard: React.FC<FretboardProps> = ({
   const NUT_WIDTH = win.nutWidth;
   const canvasWidth = win.canvasWidth;
   const canvasHeight = win.canvasHeight;
+  // Vertical string spacing comes from the window (grows when zoomed so larger,
+  // non-overlapping circles fit). Drives every Y computation + the reverse maps.
+  const STRING_SPACING = win.stringSpacing;
 
   // Theme colors
   // Palette folded into the design-system token layer (--fb-*, 92 plan §1.2).
@@ -184,9 +104,7 @@ const Fretboard: React.FC<FretboardProps> = ({
   // otherwise the root's key-signature fallback. Shared by the visible canvas
   // labels and the screen-reader description so both announce the same names.
   const spellChromaForContext = (chroma: number, fallbackName: string): string =>
-    chroma === -1
-      ? fallbackName
-      : (spellingTable && spellingTable[chroma]) || spellChroma(chroma, preferFlatsForRoot(rootNote));
+    spellChromaCtx(spellingTable, rootNote, chroma, fallbackName);
 
   // Observe container width
   useEffect(() => {
@@ -243,7 +161,10 @@ const Fretboard: React.FC<FretboardProps> = ({
       ctx.fillRect(nutX, nutTop, NUT_WIDTH, nutH);
     }
 
-    // Frets — single 2px wire (no shine / shadow passes)
+    // Frets — thin wire in the palette fret colour (previously left at the faint
+    // edge colour + 1px, which rendered the wires nearly invisible).
+    ctx.strokeStyle = colors.fret;
+    ctx.lineWidth = 1.5;
     const fretTop = PADDING_Y - 6;
     const fretBottom = PADDING_Y + STRING_SPACING * (stringCount - 1) + 6;
     for (let fret = Math.max(1, startFret); fret <= endFret; fret++) {
@@ -400,17 +321,17 @@ const Fretboard: React.FC<FretboardProps> = ({
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
       ctx.beginPath();
-      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.arc(x, y, win.noteRadius + 3, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.01)'; // nearly invisible fill to trigger shadow
       ctx.fill();
       ctx.restore();
     }
 
-    // Draw drop shadow for the note circle
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 4;
+    // Soft drop shadow gives the note markers a subtle, snappy lift.
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = 6;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    ctx.shadowOffsetY = 2;
 
     // The masked "identify this" note (a highlighted note whose name is hidden).
     const isMaskedTarget = highlighted && !showName;
@@ -419,37 +340,45 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
 
+    // Fill (casts the soft shadow set above).
     if (isMaskedTarget) {
-      // Distinct question target: a hollow ring, visually unlike a solid note.
       ctx.fillStyle = colors.noteTargetFill;
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = colors.noteTarget;
-      ctx.stroke();
+    } else if (isClicked) {
+      ctx.fillStyle = '#10b981';
+    } else if (isSecondary) {
+      ctx.fillStyle = resolvedTheme === 'dark' ? 'rgba(96,165,250,0.14)' : 'rgba(59,130,246,0.12)';
+    } else if (isRoot) {
+      ctx.fillStyle = colors.noteRoot;
+    } else if (highlighted) {
+      ctx.fillStyle = resolvedTheme === 'dark' ? '#eef2f8' : '#ffffff';
     } else {
-      if (isClicked) {
-        // Bright green/teal for clicked notes - stands out clearly
-        ctx.fillStyle = '#10b981';
-      } else if (isSecondary) {
-        ctx.fillStyle = resolvedTheme === 'dark' ? 'rgba(96, 165, 250, 0.25)' : 'rgba(59, 130, 246, 0.2)';
-      } else if (isRoot) {
-        ctx.fillStyle = colors.noteRoot;
-      } else if (highlighted) {
-        ctx.fillStyle = colors.noteHighlight;
-      } else {
-        ctx.fillStyle = colors.noteDefault;
-      }
-      ctx.fill();
+      ctx.fillStyle = colors.noteDefault;
     }
+    ctx.fill();
 
-    // Reset all shadow state after drawing the circle
+    // Reset shadow so the outlines below stay crisp (no double shadow).
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    // Colorblind-safe root cue: a concentric outline ring marks the tonic by
-    // SHAPE, so it reads as the root without relying on color alone.
+    // Outlines: question target, scale-note accent ring (a light "chip"),
+    // secondary ghost ring, and the colorblind-safe root ring (the root reads
+    // by SHAPE — a concentric outline — not by colour alone).
+    if (isMaskedTarget) {
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colors.noteTarget;
+      ctx.stroke();
+    } else if (highlighted && !isRoot && !isClicked) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = colors.noteHighlight;
+      ctx.stroke();
+    } else if (isSecondary) {
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = resolvedTheme === 'dark' ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)';
+      ctx.stroke();
+    }
+
     if (isRoot && !isMaskedTarget && !isClicked) {
       ctx.beginPath();
       ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
@@ -459,8 +388,16 @@ const Fretboard: React.FC<FretboardProps> = ({
     }
 
     // Draw note name or question mark
-    ctx.fillStyle = isMaskedTarget ? colors.noteTarget : highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
-    ctx.font = 'bold 12px Inter, system-ui, sans-serif';
+    ctx.fillStyle = isMaskedTarget
+      ? colors.noteTarget
+      : isClicked || isRoot
+      ? '#fff'
+      : highlighted
+      ? colors.noteHighlight
+      : isSecondary
+      ? (resolvedTheme === 'dark' ? 'rgba(147,197,253,0.92)' : 'rgba(37,99,235,0.8)')
+      : colors.textMuted;
+    ctx.font = `bold ${Math.max(12, Math.min(16, Math.round(win.noteRadius * 0.82)))}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -672,7 +609,7 @@ const Fretboard: React.FC<FretboardProps> = ({
             Root
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--fb-note-scale)' }} />
+            <span className="inline-block w-3.5 h-3.5 rounded-full border-2" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--fb-note-scale)' }} />
             Note
           </span>
           {hideNoteNames && (

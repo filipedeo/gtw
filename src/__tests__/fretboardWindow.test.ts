@@ -159,10 +159,29 @@ describe('fretboardWindow: window computation', () => {
 });
 
 describe('fretboardWindow: geometry sanity', () => {
-  it('canvasHeight is independent of the window', () => {
+  it('full board keeps the legacy 32px spacing and 13px radius', () => {
+    const full = computeWindow({ startFret: 0, endFret: 12, containerWidth: CW, stringCount: STRINGS, isMobile: false });
+    expect(full.stringSpacing).toBe(STRING_SPACING);
+    expect(full.noteRadius).toBe(13);
+    expect(full.canvasHeight).toBe(PADDING_Y * 2 + STRING_SPACING * (STRINGS - 1));
+  });
+
+  it('a zoomed board grows taller (more string spacing) than the full board', () => {
     const full = computeWindow({ startFret: 0, endFret: 12, containerWidth: CW, stringCount: STRINGS, isMobile: false });
     const zoom = computeWindow({ startFret: 5, endFret: 9, containerWidth: CW, stringCount: STRINGS, isMobile: false });
-    expect(full.canvasHeight).toBe(zoom.canvasHeight);
-    expect(full.canvasHeight).toBe(PADDING_Y * 2 + STRING_SPACING * (STRINGS - 1));
+    expect(zoom.stringSpacing).toBeGreaterThan(full.stringSpacing);
+    expect(zoom.canvasHeight).toBeGreaterThan(full.canvasHeight);
+  });
+
+  it('note circles never collide vertically: 2*noteRadius <= stringSpacing at every zoom', () => {
+    const cases = [
+      computeWindow({ startFret: 0, endFret: 12, containerWidth: CW, stringCount: STRINGS, isMobile: false }),
+      computeWindow({ startFret: 5, endFret: 9, containerWidth: CW, stringCount: STRINGS, isMobile: false }),
+      computeWindow({ startFret: 5, endFret: 7, containerWidth: 390, stringCount: STRINGS, isMobile: true }),
+      computeWindow({ startFret: 3, endFret: 8, containerWidth: CW, stringCount: 8, isMobile: false }),
+    ];
+    for (const win of cases) {
+      expect(win.noteRadius * 2).toBeLessThanOrEqual(win.stringSpacing);
+    }
   });
 });
