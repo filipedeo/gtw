@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAudioStore } from '../stores/audioStore';
 import { startMetronome, stopMetronome, initAudio, onMetronomeBeat } from '../lib/audioEngine';
 import { clampBpm, bpmFromTapTimes, recordTap, SUBDIVISIONS } from '../utils/metronome';
+import { useTempoRamp } from '../hooks/useTempoRamp';
 import { SegmentedControl } from './ui';
 
 const TIME_SIGNATURES: [number, number][] = [
@@ -60,6 +61,8 @@ const MetronomeControls: React.FC = React.memo(() => {
     setMetronomeActive,
     setMetronomeConfig,
   } = useAudioStore();
+
+  const ramp = useTempoRamp();
 
   const audioInitialized = useRef(false);
 
@@ -246,6 +249,74 @@ const MetronomeControls: React.FC = React.memo(() => {
         />
         Accent first beat
       </label>
+
+      {/* Auto-ramp */}
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-color)' }}>
+        <label className="flex items-center gap-2 text-sm phone-touch mb-3" style={{ color: 'var(--text-secondary)' }}>
+          <input
+            type="checkbox"
+            checked={ramp.enabled}
+            onChange={(e) => ramp.setEnabled(e.target.checked)}
+            className="rounded"
+          />
+          Auto-ramp
+        </label>
+        {ramp.enabled && (
+          <div className="grid grid-cols-3 gap-2">
+            <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Every N bars
+              <input
+                type="number"
+                min={1}
+                max={32}
+                value={ramp.everyBars}
+                onChange={(e) => ramp.setEveryBars(parseInt(e.target.value, 10))}
+                className="w-full px-2 py-1.5 rounded-lg text-sm tabular-nums"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                }}
+                aria-label="Ramp every N bars"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+              +BPM
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={ramp.step}
+                onChange={(e) => ramp.setStep(parseInt(e.target.value, 10))}
+                className="w-full px-2 py-1.5 rounded-lg text-sm tabular-nums"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                }}
+                aria-label="BPM added per ramp step"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+              Up to BPM
+              <input
+                type="number"
+                min={40}
+                max={300}
+                value={ramp.maxBpm}
+                onChange={(e) => ramp.setMaxBpm(parseInt(e.target.value, 10))}
+                className="w-full px-2 py-1.5 rounded-lg text-sm tabular-nums"
+                style={{
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                }}
+                aria-label="Maximum BPM for the ramp"
+              />
+            </label>
+          </div>
+        )}
+      </div>
     </div>
   );
 });

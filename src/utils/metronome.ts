@@ -79,3 +79,24 @@ export function clickIntervalSeconds(
   const beatUnitSeconds = denominator === 8 ? quarterSeconds / 2 : quarterSeconds;
   return beatUnitSeconds / clampSubdivision(subdivision);
 }
+
+// --- Tempo auto-ramp (quick win) ---
+
+/**
+ * Pure tempo/speed auto-ramp: every `everyBars` completed bars, add `step` BPM
+ * to the start tempo, never exceeding `maxBpm`. `completedBars` is the number
+ * of whole bars that have elapsed since the ramp started. A non-positive
+ * `everyBars` is guarded to 1 so the ramp never divides by zero. The result is
+ * always clamped to the valid BPM range and rounded.
+ */
+export function nextRampBpm(
+  startBpm: number,
+  step: number,
+  everyBars: number,
+  maxBpm: number,
+  completedBars: number
+): number {
+  const period = Math.max(1, everyBars);
+  const target = Math.min(maxBpm, startBpm + step * Math.floor(completedBars / period));
+  return clampBpm(target);
+}
