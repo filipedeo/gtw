@@ -6,6 +6,7 @@ import {
   findStandardTuningKey,
 } from '../types/guitar';
 import { getNoteAtPosition } from '../utils/fretboardCalculations';
+import { Note } from 'tonal';
 
 describe('Alternate tunings (A-7)', () => {
   it('registers DADGAD as a 6-string guitar tuning', () => {
@@ -65,5 +66,59 @@ describe('Custom tuning helpers (A-7)', () => {
     expect(getNoteAtPosition({ string: 0, fret: 0 }, t, 6)).toBe('C2');
     expect(getNoteAtPosition({ string: 0, fret: 12 }, t, 6)).toBe('C3');
     expect(getNoteAtPosition({ string: 5, fret: 1 }, t, 6)).toBe('F4');
+  });
+});
+
+describe('Additional alternate tunings (Open D, Eb standard, 8-string)', () => {
+  it('registers Open D and derives correct open + fretted notes', () => {
+    const t = STANDARD_TUNINGS['open-d-6'];
+    expect(t).toBeDefined();
+    expect(t.notes).toEqual(['D2', 'A2', 'D3', 'F#3', 'A3', 'D4']);
+    expect(t.notes).toHaveLength(6);
+    // Open strings return verbatim.
+    expect(getNoteAtPosition({ string: 0, fret: 0 }, t, 6)).toBe('D2');
+    expect(getNoteAtPosition({ string: 5, fret: 0 }, t, 6)).toBe('D4');
+    // 3rd string is F#3; +3 semitones = A3.
+    expect(getNoteAtPosition({ string: 3, fret: 3 }, t, 6)).toBe('A3');
+    // Low D + 12 = D3 (octave).
+    expect(getNoteAtPosition({ string: 0, fret: 12 }, t, 6)).toBe('D3');
+  });
+
+  it('registers Eb standard (half-step down) with flat spelling and derives notes', () => {
+    const t = STANDARD_TUNINGS['eb-standard-6'];
+    expect(t).toBeDefined();
+    expect(t.notes).toEqual(['Eb2', 'Ab2', 'Db3', 'Gb3', 'Bb3', 'Eb4']);
+    expect(t.notes).toHaveLength(6);
+    // Open strings return the tuning note verbatim (flats preserved).
+    expect(getNoteAtPosition({ string: 0, fret: 0 }, t, 6)).toBe('Eb2');
+    expect(getNoteAtPosition({ string: 5, fret: 0 }, t, 6)).toBe('Eb4');
+    // Every string sits one semitone below standard EADGBE.
+    // Eb2 + 1 = E2 (standard low E), Ab2 + 1 = A2, Bb3 + 1 = B3.
+    expect(getNoteAtPosition({ string: 0, fret: 1 }, t, 6)).toBe('E2');
+    expect(getNoteAtPosition({ string: 1, fret: 1 }, t, 6)).toBe('A2');
+    expect(getNoteAtPosition({ string: 4, fret: 1 }, t, 6)).toBe('B3');
+  });
+
+  it('registers Standard 8-string and derives notes across all eight strings', () => {
+    const t = STANDARD_TUNINGS['standard-8'];
+    expect(t).toBeDefined();
+    expect(t.notes).toEqual(['F#1', 'B1', 'E2', 'A2', 'D3', 'G3', 'B3', 'E4']);
+    expect(t.notes).toHaveLength(8);
+    // Low extended strings.
+    expect(getNoteAtPosition({ string: 0, fret: 0 }, t, 8)).toBe('F#1');
+    expect(getNoteAtPosition({ string: 1, fret: 0 }, t, 8)).toBe('B1');
+    // The top six strings mirror standard tuning.
+    expect(getNoteAtPosition({ string: 2, fret: 0 }, t, 8)).toBe('E2');
+    expect(getNoteAtPosition({ string: 7, fret: 0 }, t, 8)).toBe('E4');
+    // Fretted: F#1 + 12 = one octave up (same pitch class). Compare by MIDI so
+    // the assertion is robust to enharmonic spelling (tonal may return Gb2).
+    expect(Note.midi(getNoteAtPosition({ string: 0, fret: 12 }, t, 8)))
+      .toBe(Note.midi('F#2'));
+  });
+
+  it('findStandardTuningKey resolves the new presets', () => {
+    expect(findStandardTuningKey(STANDARD_TUNINGS['open-d-6'])).toBe('open-d-6');
+    expect(findStandardTuningKey(STANDARD_TUNINGS['eb-standard-6'])).toBe('eb-standard-6');
+    expect(findStandardTuningKey(STANDARD_TUNINGS['standard-8'])).toBe('standard-8');
   });
 });

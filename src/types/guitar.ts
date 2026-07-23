@@ -43,9 +43,21 @@ export const STANDARD_TUNINGS: Record<string, Tuning> = {
     name: 'Open G 6-String',
     notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4']
   },
+  'open-d-6': {
+    name: 'Open D 6-String',
+    notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4']
+  },
+  'eb-standard-6': {
+    name: 'Eb Standard 6-String',
+    notes: ['Eb2', 'Ab2', 'Db3', 'Gb3', 'Bb3', 'Eb4']
+  },
   'drop-a-7': {
     name: 'Drop A 7-String',
     notes: ['A1', 'E2', 'A2', 'D3', 'G3', 'B3', 'E4']
+  },
+  'standard-8': {
+    name: 'Standard 8-String',
+    notes: ['F#1', 'B1', 'E2', 'A2', 'D3', 'G3', 'B3', 'E4']
   },
   // Bass tunings
   'bass-standard-4': {
