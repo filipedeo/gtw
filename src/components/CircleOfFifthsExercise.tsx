@@ -12,6 +12,7 @@ import {
   relativeMinorOf,
   neighborKey,
 } from '../lib/circleOfFifths';
+import CircleOfFifthsWheel from './CircleOfFifthsWheel';
 
 interface CircleOfFifthsExerciseProps {
   exercise: Exercise;
@@ -29,6 +30,8 @@ interface Question {
   correct: string;
   options: string[];
   explanation: string;
+  /** The major key the question is about — highlighted on the wheel at reveal. */
+  subjectMajor: string;
 }
 
 const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
@@ -99,6 +102,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         q = {
           prompt: `How many sharps or flats are in the key of ${key.major} major?`,
           correct,
+          subjectMajor: key.major,
           options: pickOptions(correct, labels),
           explanation: notes.length
             ? `${key.major} major has ${correct}: ${notes.join(', ')}.`
@@ -112,6 +116,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         q = {
           prompt: `Which major key has ${label}?`,
           correct: key.major,
+          subjectMajor: key.major,
           options: pickOptions(key.major, majors),
           explanation: `${label} is the signature of ${key.major} major.`,
         };
@@ -123,6 +128,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         q = {
           prompt: `What is the relative minor of ${key.major} major?`,
           correct,
+          subjectMajor: key.major,
           options: pickOptions(correct, minors),
           explanation: `${key.major} major and ${correct} share the same key signature (${keySignatureLabel(
             key.major
@@ -136,6 +142,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         q = {
           prompt: `What is the relative major of ${key.relativeMinor} minor?`,
           correct: key.major,
+          subjectMajor: key.major,
           options: pickOptions(key.major, majors),
           explanation: `${minor} and ${key.major} major share the same key signature (${keySignatureLabel(
             key.major
@@ -156,6 +163,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         q = {
           prompt: `Moving ${move} around the circle of fifths from ${key.major}, what is the next key?`,
           correct,
+          subjectMajor: correct,
           options: pickOptions(correct, majors),
           explanation: `A perfect fifth ${
             direction === 'clockwise' ? 'above' : 'below'
@@ -362,21 +370,10 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
         </div>
       )}
 
-      {/* Circle of Fifths Reference */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Circle of Fifths Reference
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-          {keys.map((k) => (
-            <div key={k.major} className="flex justify-between gap-2">
-              <span style={{ color: 'var(--text-secondary)' }}>
-                <strong>{k.major}</strong> / {k.relativeMinor}m
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>{keySignatureLabel(k.major)}</span>
-            </div>
-          ))}
-        </div>
+      {/* Circle of Fifths — visual reference; highlights the answer's key on reveal (P4#6) */}
+      <div className="card">
+        <span className="eyebrow block mb-2">Circle of Fifths</span>
+        <CircleOfFifthsWheel highlightMajor={showFeedback ? question.subjectMajor : null} />
       </div>
     </div>
   );
