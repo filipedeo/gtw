@@ -31,7 +31,7 @@ const SLOTS: { major: string; minor: string; keys: KeyInfo[] }[] = Array.from(
   },
 );
 
-const CircleOfFifthsWheel: React.FC<CircleOfFifthsWheelProps> = ({ highlightMajor, size = 260 }) => {
+const CircleOfFifthsWheel: React.FC<CircleOfFifthsWheelProps> = ({ highlightMajor, size = 280 }) => {
   const cx = size / 2;
   const cy = size / 2;
   const majorR = size * 0.38;
@@ -47,11 +47,6 @@ const CircleOfFifthsWheel: React.FC<CircleOfFifthsWheelProps> = ({ highlightMajo
   const centerLabel = highlightMajor
     ? keySignatureLabel(highlightMajor)
     : 'Circle of Fifths';
-  const centerSub = highlightMajor
-    ? notes.length
-      ? notes.join(' · ')
-      : 'no accidentals'
-    : '';
 
   return (
     <div className="flex flex-col items-center">
@@ -115,30 +110,24 @@ const CircleOfFifthsWheel: React.FC<CircleOfFifthsWheelProps> = ({ highlightMajo
           {highlightMajor ? `${highlightMajor} major` : centerLabel}
         </text>
         {highlightMajor && (
-          <>
-            <text
-              x={cx}
-              y={cy + size * 0.035}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize={size * 0.04}
-              fill="var(--accent)"
-            >
-              {centerLabel}
-            </text>
-            <text
-              x={cx}
-              y={cy + size * 0.085}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize={size * 0.038}
-              fill="var(--fg-muted)"
-            >
-              {centerSub}
-            </text>
-          </>
+          <text
+            x={cx}
+            y={cy + size * 0.04}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={size * 0.042}
+            fontWeight={600}
+            fill="var(--accent)"
+          >
+            {centerLabel}
+          </text>
         )}
       </svg>
+      {highlightMajor && notes.length > 0 && (
+        <p className="mt-1 text-xs text-fg-muted text-center max-w-[18rem]">
+          {notes.join(' · ')}
+        </p>
+      )}
     </div>
   );
 };
