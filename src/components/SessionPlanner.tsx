@@ -16,23 +16,8 @@ interface PlanItem {
   completed: boolean;
 }
 
-/** Color palette for category chips/indicators. Falls back to cycling through the palette. */
-const CATEGORY_COLOR_MAP: Record<string, string> = {
-  'note-identification': 'var(--accent-primary)',
-  'modal-practice': '#8b5cf6',
-  'chord-voicing': 'var(--success)',
-  'ear-training': 'var(--warning)',
-  'caged-system': '#ec4899',
-  'interval-recognition': '#06b6d4',
-  'three-nps': '#f97316',
-  'pentatonic': '#14b8a6',
-};
-
-const FALLBACK_COLORS = ['#6366f1', '#a855f7', '#0ea5e9', '#84cc16', '#f43f5e', '#eab308'];
-
-function getCategoryColor(type: string, index: number): string {
-  return CATEGORY_COLOR_MAP[type] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-}
+// Category chips/indicators use a single accent+neutral family (no per-category
+// hues) so the planner reads as one palette, not a rainbow.
 
 const UNDO_TIMEOUT_MS = 5000;
 
@@ -66,10 +51,9 @@ const SessionPlanner: React.FC = () => {
     for (const ex of instrumentExercises) {
       seen.set(ex.type, (seen.get(ex.type) ?? 0) + 1);
     }
-    return Array.from(seen.entries()).map(([type], i) => ({
+    return Array.from(seen.entries()).map(([type]) => ({
       type,
       label: formatTypeLabel(type),
-      color: getCategoryColor(type, i),
     }));
   }, [instrumentExercises]);
 
@@ -311,10 +295,10 @@ const SessionPlanner: React.FC = () => {
               key={cat.type}
               className="px-2 py-1 phone-touch rounded-full text-xs font-medium transition-all"
               style={{
-                backgroundColor: enabled ? `${cat.color}20` : 'var(--bg-tertiary)',
-                color: enabled ? cat.color : 'var(--text-muted)',
-                border: `1px solid ${enabled ? cat.color : 'transparent'}`,
-                opacity: enabled ? 1 : 0.5,
+                backgroundColor: enabled ? 'var(--accent-subtle-bg)' : 'var(--surface-sunken)',
+                color: enabled ? 'var(--accent)' : 'var(--text-muted)',
+                border: `1px solid ${enabled ? 'var(--accent)' : 'transparent'}`,
+                opacity: enabled ? 1 : 0.6,
               }}
               onClick={() => toggleCategory(cat.type)}
               aria-pressed={enabled}
@@ -488,7 +472,7 @@ const SessionPlanner: React.FC = () => {
                   style={{
                     borderColor: item.completed
                       ? 'var(--success)'
-                      : CATEGORY_COLOR_MAP[item.category] || 'var(--border-color)',
+                      : 'var(--border-strong)',
                     backgroundColor: item.completed ? 'var(--success)' : 'transparent',
                   }}
                   onClick={(e) => {
@@ -510,7 +494,7 @@ const SessionPlanner: React.FC = () => {
                 <div
                   className="flex-shrink-0 w-1 h-8 rounded-full"
                   style={{
-                    backgroundColor: CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)',
+                    backgroundColor: item.completed ? 'var(--text-subtle)' : 'var(--accent)',
                   }}
                   aria-hidden="true"
                 />
@@ -535,8 +519,8 @@ const SessionPlanner: React.FC = () => {
                 <span
                   className="flex-shrink-0 text-xs font-mono px-1.5 py-0.5 rounded"
                   style={{
-                    backgroundColor: `${CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)'}20`,
-                    color: CATEGORY_COLOR_MAP[item.category] || 'var(--text-muted)',
+                    backgroundColor: 'var(--accent-subtle-bg)',
+                    color: 'var(--accent)',
                   }}
                 >
                   {item.timeMinutes}m
