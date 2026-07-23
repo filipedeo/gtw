@@ -15,7 +15,10 @@ export type ExerciseType =
   | 'bass-technique'
   | 'arpeggio'
   | 'chord-scale'
-  | 'circle-of-fifths';
+  | 'circle-of-fifths'
+  | 'note-speed'
+  | 'chord-library'
+  | 'rhythm';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

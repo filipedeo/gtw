@@ -24,6 +24,9 @@ const WalkingBassExercise = lazy(() => import('./WalkingBassExercise'));
 const BassPositionExercise = lazy(() => import('./BassPositionExercise'));
 const ChordScaleExercise = lazy(() => import('./ChordScaleExercise'));
 const CircleOfFifthsExercise = lazy(() => import('./CircleOfFifthsExercise'));
+const NoteSpeedExercise = lazy(() => import('./NoteSpeedExercise'));
+const ChordLibraryExercise = lazy(() => import('./ChordLibraryExercise'));
+const RhythmExercise = lazy(() => import('./RhythmExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const {
@@ -199,6 +202,12 @@ const ExerciseContainer: React.FC = () => {
         return <ChordScaleExercise exercise={currentExercise} />;
       case 'circle-of-fifths':
         return <CircleOfFifthsExercise exercise={currentExercise} />;
+      case 'note-speed':
+        return <NoteSpeedExercise exercise={currentExercise} />;
+      case 'chord-library':
+        return <ChordLibraryExercise exercise={currentExercise} />;
+      case 'rhythm':
+        return <RhythmExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">

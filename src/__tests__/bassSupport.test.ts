@@ -100,9 +100,9 @@ describe('Exercise filtering by instrument', () => {
     const guitarOnly = exercises.filter(ex =>
       ex.instruments && ex.instruments.length === 1 && ex.instruments[0] === 'guitar'
     );
-    // CAGED (12 + 5 transitions) + chord-voicing (7) + guitar arpeggios (6) = 30 guitar-only
-    expect(guitarOnly.length).toBe(30);
-    expect(guitarOnly.every(ex => ex.type === 'caged-system' || ex.type === 'chord-voicing' || ex.type === 'arpeggio')).toBe(true);
+    // CAGED (12 + 5 transitions) + chord-voicing (7) + guitar arpeggios (6) + chord-library (3) = 33 guitar-only
+    expect(guitarOnly.length).toBe(33);
+    expect(guitarOnly.every(ex => ex.type === 'caged-system' || ex.type === 'chord-voicing' || ex.type === 'arpeggio' || ex.type === 'chord-library')).toBe(true);
   });
 
   it('universal exercises are available for bass', async () => {
@@ -111,8 +111,8 @@ describe('Exercise filtering by instrument', () => {
       const instruments = ex.instruments ?? (['guitar', 'bass'] as Instrument[]);
       return instruments.includes('bass');
     });
-    // Total exercises minus guitar-only (30)
-    expect(forBass.length).toBe(exercises.length - 30);
+    // Total exercises minus guitar-only (33)
+    expect(forBass.length).toBe(exercises.length - 33);
   });
 
   it('all exercises are available for guitar', async () => {
