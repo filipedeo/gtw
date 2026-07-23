@@ -14,6 +14,8 @@ interface ProgressState {
   getNextReviews: () => ReviewItem[];
   updateReviewItem: (exerciseId: string, quality: number) => void;
   resetProgress: () => void;
+  exportData: () => string;
+  importData: (json: string) => { ok: boolean; error?: string };
 }
 
 const initialProgress: UserProgress = {
@@ -32,6 +34,33 @@ const initialSpacedRepetition: SpacedRepetitionData = {
   lastReviewDate: null,
 };
 
+// Current export schema version. Bump when the persisted shape changes so an
+// importer can detect (and, in future, migrate) older backups.
+export const PROGRESS_EXPORT_VERSION = 1;
+const PROGRESS_EXPORT_SCHEMA = 'gtw-progress';
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+// Structural validation of an imported UserProgress blob (dates arrive as
+// strings; the store parses them lazily on read, so we don't revive them here).
+function isValidProgress(p: unknown): p is UserProgress {
+  if (!isRecord(p)) return false;
+  return (
+    typeof p.totalExercisesCompleted === 'number' &&
+    typeof p.totalTimeSpent === 'number' &&
+    typeof p.currentStreak === 'number' &&
+    typeof p.longestStreak === 'number' &&
+    isRecord(p.exerciseProgress) &&
+    Array.isArray(p.weakAreas) &&
+    Array.isArray(p.strongAreas)
+  );
+}
+
+function isValidSpacedRepetition(s: unknown): s is SpacedRepetitionData {
+  return isRecord(s) && isRecord(s.items);
+}
 // SM-2 Algorithm implementation
 function calculateNextReview(item: ReviewItem, quality: number): ReviewItem {
   let { easeFactor, interval, repetitions } = item;
@@ -229,6 +258,42 @@ export const useProgressStore = create<ProgressState>()(
         progress: initialProgress,
         spacedRepetition: initialSpacedRepetition,
       }),
+
+      exportData: () => {
+        const { progress, spacedRepetition } = get();
+        return JSON.stringify(
+          {
+            schema: PROGRESS_EXPORT_SCHEMA,
+            version: PROGRESS_EXPORT_VERSION,
+            exportedAt: new Date().toISOString(),
+            progress,
+            spacedRepetition,
+          },
+          null,
+          2
+        );
+      },
+
+      importData: (json: string) => {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(json);
+        } catch {
+          return { ok: false, error: 'That file is not valid JSON.' };
+        }
+        if (!isRecord(parsed)) {
+          return { ok: false, error: 'That file is not a progress backup.' };
+        }
+        const { progress, spacedRepetition } = parsed;
+        if (!isValidProgress(progress) || !isValidSpacedRepetition(spacedRepetition)) {
+          return {
+            ok: false,
+            error: 'That file is not a recognized gtw progress export.',
+          };
+        }
+        set({ progress, spacedRepetition });
+        return { ok: true };
+      },
     }),
     {
       name: 'guitar-theory-progress',

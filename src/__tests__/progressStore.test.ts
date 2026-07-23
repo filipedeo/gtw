@@ -183,4 +183,62 @@ describe('progressStore', () => {
       expect(state.spacedRepetition.items).toEqual({});
     });
   });
+
+  describe('exportData / importData', () => {
+    it('exports a versioned JSON snapshot of progress', () => {
+      useProgressStore.getState().recordExerciseCompletion('ex-1', 0.9, 30);
+      const json = useProgressStore.getState().exportData();
+      const parsed = JSON.parse(json);
+      expect(parsed.schema).toBe('gtw-progress');
+      expect(parsed.version).toBe(1);
+      expect(typeof parsed.exportedAt).toBe('string');
+      expect(parsed.progress.totalExercisesCompleted).toBe(1);
+      expect(parsed.progress.exerciseProgress['ex-1']).toBeDefined();
+      expect(parsed.spacedRepetition.items).toEqual({});
+    });
+
+    it('round-trips: import restores an exported snapshot', () => {
+      useProgressStore.getState().recordExerciseCompletion('ex-1', 0.9, 30);
+      useProgressStore.getState().updateReviewItem('ex-1', 4);
+      const json = useProgressStore.getState().exportData();
+
+      // Wipe, then import the snapshot back.
+      useProgressStore.getState().resetProgress();
+      expect(useProgressStore.getState().progress.totalExercisesCompleted).toBe(0);
+
+      const result = useProgressStore.getState().importData(json);
+      expect(result.ok).toBe(true);
+      const state = useProgressStore.getState();
+      expect(state.progress.totalExercisesCompleted).toBe(1);
+      expect(state.progress.exerciseProgress['ex-1']).toBeDefined();
+      expect(state.spacedRepetition.items['ex-1']).toBeDefined();
+    });
+
+    it('replaces (not merges) current progress on import', () => {
+      useProgressStore.getState().recordExerciseCompletion('ex-1', 0.9, 30);
+      const json = useProgressStore.getState().exportData();
+      // Add a second exercise that is NOT in the snapshot.
+      useProgressStore.getState().recordExerciseCompletion('ex-2', 0.8, 20);
+      expect(Object.keys(useProgressStore.getState().progress.exerciseProgress)).toHaveLength(2);
+
+      useProgressStore.getState().importData(json);
+      const keys = Object.keys(useProgressStore.getState().progress.exerciseProgress);
+      expect(keys).toEqual(['ex-1']);
+    });
+
+    it('rejects non-JSON input without mutating state', () => {
+      useProgressStore.getState().recordExerciseCompletion('ex-1', 0.9, 30);
+      const result = useProgressStore.getState().importData('not json {');
+      expect(result.ok).toBe(false);
+      expect(result.error).toBeTruthy();
+      // State untouched.
+      expect(useProgressStore.getState().progress.totalExercisesCompleted).toBe(1);
+    });
+
+    it('rejects valid JSON that is not a progress export', () => {
+      const result = useProgressStore.getState().importData(JSON.stringify({ hello: 'world' }));
+      expect(result.ok).toBe(false);
+      expect(result.error).toBeTruthy();
+    });
+  });
 });

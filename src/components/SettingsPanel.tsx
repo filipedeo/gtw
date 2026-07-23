@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useProgressStore } from '../stores/progressStore';
 import { useThemeStore } from '../stores/themeStore';
@@ -7,6 +7,8 @@ import TuningPicker from './TuningPicker';
 
 const SettingsPanel: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     instrument,
     displayMode,
@@ -16,7 +18,7 @@ const SettingsPanel: React.FC = () => {
     toggleShowAllNotes,
   } = useGuitarStore();
 
-  const { resetProgress } = useProgressStore();
+  const { resetProgress, exportData, importData } = useProgressStore();
   const { theme, setTheme } = useThemeStore();
 
   const handleInstrumentChange = (inst: Instrument) => {
@@ -30,6 +32,37 @@ const SettingsPanel: React.FC = () => {
     } else {
       setShowResetConfirm(true);
     }
+  };
+
+  const handleExport = () => {
+    const json = exportData();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `gtw-progress-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Clear the input so re-selecting the same file still fires onChange.
+    e.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = importData(typeof reader.result === 'string' ? reader.result : '');
+      setImportMsg(
+        result.ok
+          ? { ok: true, text: 'Progress imported successfully.' }
+          : { ok: false, text: result.error ?? 'Import failed.' }
+      );
+    };
+    reader.onerror = () => setImportMsg({ ok: false, text: 'Could not read that file.' });
+    reader.readAsText(file);
   };
 
   return (
@@ -145,6 +178,48 @@ const SettingsPanel: React.FC = () => {
         <h4 className="font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
           Data Management
         </h4>
+
+        {/* Backup / restore */}
+        <div className="mb-4 space-y-2">
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="flex-1 phone-touch py-2 px-4 rounded-lg font-medium transition-colors text-sm"
+              style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+            >
+              Export progress
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 phone-touch py-2 px-4 rounded-lg font-medium transition-colors text-sm"
+              style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+            >
+              Import progress
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            aria-label="Import progress backup file"
+            onChange={handleImportFile}
+          />
+          {importMsg ? (
+            <p
+              className="text-xs"
+              role="status"
+              style={{ color: importMsg.ok ? 'var(--success)' : 'var(--error)' }}
+            >
+              {importMsg.text}
+            </p>
+          ) : (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Save a JSON backup of your progress, or restore one on another device.
+            </p>
+          )}
+        </div>
+
         {showResetConfirm ? (
           <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
             <p className="text-sm font-medium" style={{ color: 'var(--error)' }}>
