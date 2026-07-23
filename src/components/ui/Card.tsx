@@ -24,6 +24,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ref={ref}
       className={cn(
         'bg-surface-raised border border-line rounded-[var(--rad-lg)]',
+        'transition-[box-shadow,border-color,background-color] duration-[var(--dur-base)]',
         !flush && 'p-[var(--space-5)]',
         className,
       )}

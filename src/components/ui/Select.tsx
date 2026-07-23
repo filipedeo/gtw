@@ -18,9 +18,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         className={cn(
-          'appearance-none w-full cursor-pointer transition-colors',
+          'appearance-none w-full cursor-pointer',
+          'transition-[background-color,border-color,box-shadow] duration-[var(--dur-fast)] ease-[var(--ease-standard)]',
           'bg-surface text-fg-strong border border-line rounded-[var(--rad-md)]',
-          'pl-3 pr-9 hover:bg-surface-hover',
+          'pl-3 pr-9 hover:bg-surface-hover hover:border-line-strong',
           size === 'sm'
             ? 'min-h-[var(--target-compact)] text-[length:var(--fs-xs)]'
             : 'min-h-[var(--target-min)] text-[length:var(--fs-sm)]',

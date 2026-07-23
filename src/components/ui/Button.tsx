@@ -13,8 +13,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const BASE =
   'inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap ' +
-  'select-none cursor-pointer transition-colors rounded-[var(--rad-md)] ' +
-  'disabled:opacity-50 disabled:pointer-events-none';
+  'select-none cursor-pointer rounded-[var(--rad-md)] ' +
+  'transition-[background-color,border-color,color,box-shadow,transform] ' +
+  'duration-[var(--dur-fast)] ease-[var(--ease-standard)] active:translate-y-px ' +
+  'disabled:opacity-50 disabled:pointer-events-none disabled:active:translate-y-0';
 
 const SIZES: Record<ButtonSize, string> = {
   sm: 'px-3 min-h-[var(--target-compact)] text-[length:var(--fs-xs)]',
@@ -27,10 +29,13 @@ const ICON_SIZES: Record<ButtonSize, string> = {
 };
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-on-accent hover:bg-accent-hover active:bg-accent-active',
-  secondary: 'bg-surface text-fg-strong border border-line hover:bg-surface-hover',
-  ghost: 'bg-transparent text-fg hover:bg-surface-hover',
-  danger: 'bg-danger-bg text-danger border border-transparent hover:brightness-95',
+  primary:
+    'bg-accent text-on-accent shadow-[0_2px_10px_-3px_rgba(110,168,254,0.55)] ' +
+    'hover:bg-accent-hover active:bg-accent-active active:shadow-none',
+  secondary:
+    'bg-surface text-fg-strong border border-line hover:bg-surface-hover hover:border-line-strong',
+  ghost: 'bg-transparent text-fg hover:bg-surface-hover hover:text-fg-strong',
+  danger: 'bg-danger-bg text-danger border border-transparent hover:brightness-110',
 };
 
 /** Token-driven button primitive. Focus ring comes from the global :focus-visible. */
