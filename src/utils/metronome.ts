@@ -45,3 +45,37 @@ export function recordTap(times: number[], now: number): number[] {
   const next = [...base, now];
   return next.length > MAX_TAP_SAMPLES ? next.slice(next.length - MAX_TAP_SAMPLES) : next;
 }
+
+// --- Subdivisions (clicks per beat) ---
+
+/** A subdivision is how many evenly-spaced clicks sound within one beat. */
+export type Subdivision = 1 | 2 | 3 | 4;
+
+// UI options: label + clicks-per-beat. Quarter = the beat itself (no subdivision).
+export const SUBDIVISIONS: { value: Subdivision; label: string }[] = [
+  { value: 1, label: 'Quarter' },
+  { value: 2, label: 'Eighths' },
+  { value: 3, label: 'Triplets' },
+  { value: 4, label: 'Sixteenths' },
+];
+
+/** Clamp an arbitrary value to a supported subdivision (defaults to 1). */
+export function clampSubdivision(n: number): Subdivision {
+  return n === 2 || n === 3 || n === 4 ? n : 1;
+}
+
+/**
+ * Seconds between consecutive metronome clicks for the given bpm, time-signature
+ * denominator, and subdivision. The beat unit is a quarter note in /4-style
+ * signatures and an eighth note in /8 signatures (matching how the beat counter
+ * is advanced), then divided evenly by the subdivision.
+ */
+export function clickIntervalSeconds(
+  bpm: number,
+  denominator: number,
+  subdivision: number
+): number {
+  const quarterSeconds = 60 / clampBpm(bpm);
+  const beatUnitSeconds = denominator === 8 ? quarterSeconds / 2 : quarterSeconds;
+  return beatUnitSeconds / clampSubdivision(subdivision);
+}

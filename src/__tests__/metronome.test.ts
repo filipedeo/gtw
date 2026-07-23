@@ -7,6 +7,9 @@ import {
   MAX_BPM,
   MAX_TAP_SAMPLES,
   TAP_RESET_MS,
+  clampSubdivision,
+  clickIntervalSeconds,
+  SUBDIVISIONS,
 } from '../utils/metronome';
 
 describe('clampBpm', () => {
@@ -86,5 +89,56 @@ describe('recordTap', () => {
     expect(times).toHaveLength(MAX_TAP_SAMPLES);
     // The oldest taps are dropped; the last one is the most recent.
     expect(times[times.length - 1]).toBe((MAX_TAP_SAMPLES + 2) * 500);
+  });
+});
+
+describe('clampSubdivision', () => {
+  it('accepts the supported subdivisions', () => {
+    expect(clampSubdivision(1)).toBe(1);
+    expect(clampSubdivision(2)).toBe(2);
+    expect(clampSubdivision(3)).toBe(3);
+    expect(clampSubdivision(4)).toBe(4);
+  });
+
+  it('falls back to 1 for unsupported values', () => {
+    expect(clampSubdivision(0)).toBe(1);
+    expect(clampSubdivision(5)).toBe(1);
+    expect(clampSubdivision(-2)).toBe(1);
+    expect(clampSubdivision(2.5)).toBe(1);
+    expect(clampSubdivision(NaN)).toBe(1);
+  });
+});
+
+describe('SUBDIVISIONS', () => {
+  it('offers quarter/eighths/triplets/sixteenths', () => {
+    expect(SUBDIVISIONS.map((s) => s.value)).toEqual([1, 2, 3, 4]);
+    expect(SUBDIVISIONS.every((s) => typeof s.label === 'string' && s.label.length > 0)).toBe(true);
+  });
+});
+
+describe('clickIntervalSeconds', () => {
+  it('returns the quarter-note duration with no subdivision in 4/4', () => {
+    // 120 BPM -> 0.5s per quarter note.
+    expect(clickIntervalSeconds(120, 4, 1)).toBeCloseTo(0.5, 6);
+  });
+
+  it('halves the interval for eighths and quarters it for sixteenths', () => {
+    expect(clickIntervalSeconds(120, 4, 2)).toBeCloseTo(0.25, 6);
+    expect(clickIntervalSeconds(120, 4, 4)).toBeCloseTo(0.125, 6);
+  });
+
+  it('divides the beat into three for triplets', () => {
+    expect(clickIntervalSeconds(120, 4, 3)).toBeCloseTo(0.5 / 3, 6);
+  });
+
+  it('uses an eighth-note beat unit for /8 signatures', () => {
+    // In 6/8 the beat counter counts eighths, so the base unit is half a quarter.
+    expect(clickIntervalSeconds(120, 8, 1)).toBeCloseTo(0.25, 6);
+    expect(clickIntervalSeconds(120, 8, 2)).toBeCloseTo(0.125, 6);
+  });
+
+  it('clamps out-of-range bpm before computing', () => {
+    // BPM clamps to 40 (min): 60/40 = 1.5s per quarter.
+    expect(clickIntervalSeconds(10, 4, 1)).toBeCloseTo(1.5, 6);
   });
 });

@@ -35,6 +35,7 @@ const defaultMetronomeConfig: MetronomeConfig = {
   timeSignature: [4, 4],
   volume: 0.7,
   accentFirst: true,
+  subdivision: 1,
 };
 
 export const useAudioStore = create<AudioStoreState>((set) => ({

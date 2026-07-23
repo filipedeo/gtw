@@ -1,6 +1,7 @@
 import * as Tone from 'tone';
 import { DroneConfig, MetronomeConfig, PlaybackOptions } from '../types/audio';
 import { useAudioStore } from '../stores/audioStore';
+import { clickIntervalSeconds, clampSubdivision } from '../utils/metronome';
 
 let synth: Tone.PolySynth | null = null;
 let droneSynth: Tone.Synth | null = null;
@@ -236,18 +237,34 @@ export async function startMetronome(config: MetronomeConfig): Promise<void> {
     
     metronomeSynth.volume.value = Tone.gainToDb(config.volume) - 6;
     
-    // Derive subdivision from bottom number of time signature
-    const subdivision = config.timeSignature[1] === 8 ? '8n' : '4n';
+    // Beat unit follows the time-signature denominator; each beat is split into
+    // `subdiv` evenly-spaced clicks (1 = plain quarter, 2 = eighths, 3 = triplets,
+    // 4 = sixteenths). We drive the loop at the click rate and derive the beat.
+    const beatsPerBar = config.timeSignature[0];
+    const subdiv = clampSubdivision(config.subdivision);
+    const interval = clickIntervalSeconds(
+      config.bpm,
+      config.timeSignature[1],
+      subdiv
+    );
+    const ticksPerBar = beatsPerBar * subdiv;
 
-    let beat = 0;
+    let tick = 0;
     metronomeLoop = new Tone.Loop((time) => {
       if (!metronomeSynth) return;
-      const currentBeat = beat;
-      const isAccent = config.accentFirst && currentBeat === 0;
-      metronomeSynth.triggerAttackRelease(isAccent ? 'C3' : 'G3', '32n', time);
-      scheduleBeatDraw(currentBeat, isAccent, time);
-      beat = (beat + 1) % config.timeSignature[0];
-    }, subdivision);
+      const isBeat = tick % subdiv === 0;
+      const currentBeat = Math.floor(tick / subdiv) % beatsPerBar;
+      if (isBeat) {
+        // Downbeat / main beat: full-volume click, accent the first beat.
+        const isAccent = config.accentFirst && currentBeat === 0;
+        metronomeSynth.triggerAttackRelease(isAccent ? 'C3' : 'G3', '32n', time);
+        scheduleBeatDraw(currentBeat, isAccent, time);
+      } else {
+        // Off-beat subdivision click: quieter and higher so it reads as a "tick".
+        metronomeSynth.triggerAttackRelease('G4', '64n', time, 0.35);
+      }
+      tick = (tick + 1) % ticksPerBar;
+    }, interval);
     
     metronomeLoop.start(0);
     // Only start the shared Transport if it isn't already running (Jam Mode may

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAudioStore } from '../stores/audioStore';
 import { startMetronome, stopMetronome, initAudio, onMetronomeBeat } from '../lib/audioEngine';
-import { clampBpm, bpmFromTapTimes, recordTap } from '../utils/metronome';
+import { clampBpm, bpmFromTapTimes, recordTap, SUBDIVISIONS } from '../utils/metronome';
 
 const TIME_SIGNATURES: [number, number][] = [
   [4, 4],
@@ -225,6 +225,33 @@ const MetronomeControls: React.FC = React.memo(() => {
                 }}
               >
                 {key}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Subdivision */}
+      <div className="mb-3">
+        <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+          Subdivision
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {SUBDIVISIONS.map((sub) => {
+            const isActive = metronomeConfig.subdivision === sub.value;
+            return (
+              <button
+                key={sub.value}
+                onClick={() => setMetronomeConfig({ subdivision: sub.value })}
+                aria-pressed={isActive}
+                className="px-3 py-2 phone-touch rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: isActive ? 'var(--accent-primary)' : 'var(--bg-primary)',
+                  color: isActive ? 'white' : 'var(--text-primary)',
+                  border: `1px solid ${isActive ? 'var(--accent-primary)' : 'var(--border-color)'}`,
+                }}
+              >
+                {sub.label}
               </button>
             );
           })}

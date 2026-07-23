@@ -13,6 +13,7 @@ const defaultMetronomeConfig = {
   timeSignature: [4, 4] as [number, number],
   volume: 0.7,
   accentFirst: true,
+  subdivision: 1 as const,
 };
 
 const initialState = {
