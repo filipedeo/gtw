@@ -13,7 +13,8 @@ export type ExerciseType =
   | 'jam-mode'
   | 'bass-technique'
   | 'arpeggio'
-  | 'chord-scale';
+  | 'chord-scale'
+  | 'circle-of-fifths';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

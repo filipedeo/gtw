@@ -637,6 +637,53 @@ const exerciseData: Exercise[] = [
     fretboardRequired: true,
   },
 
+  // ============ CIRCLE OF FIFTHS ============
+  {
+    id: 'circle-of-fifths-1',
+    type: 'circle-of-fifths',
+    title: 'Circle of Fifths - Sharp Keys',
+    description: 'Learn key signatures and relative minors for C and the sharp keys.',
+    difficulty: 1,
+    instructions: [
+      'You will be asked about key signatures and relative minors',
+      'Order of sharps: F C G D A E B ("Father Charles Goes Down And Ends Battle")',
+      'A major key and its relative minor share the same key signature',
+      'The relative minor starts on the 6th degree of the major scale',
+    ],
+    audioRequired: false,
+    fretboardRequired: false,
+  },
+  {
+    id: 'circle-of-fifths-2',
+    type: 'circle-of-fifths',
+    title: 'Circle of Fifths - Sharps & Flats',
+    description: 'Master key signatures and relative keys across both sharp and flat keys.',
+    difficulty: 2,
+    instructions: [
+      'Now includes flat keys as well as sharps',
+      'Order of flats: B E A D G C F (the order of sharps reversed)',
+      'Each step clockwise adds a sharp; each step counter-clockwise adds a flat',
+      'Answer with the correct key, its signature, or its relative key',
+    ],
+    audioRequired: false,
+    fretboardRequired: false,
+  },
+  {
+    id: 'circle-of-fifths-3',
+    type: 'circle-of-fifths',
+    title: 'Circle of Fifths - Full Circle',
+    description: 'All 15 keys, relative majors and minors, and fifth relationships.',
+    difficulty: 3,
+    instructions: [
+      'Covers all 15 keys, including the enharmonic keys at the bottom of the circle',
+      'Includes fifth relationships: name the next key clockwise or counter-clockwise',
+      'Moving clockwise around the circle goes up a perfect fifth (adds a sharp)',
+      'Use the reference panel to check yourself as you learn',
+    ],
+    audioRequired: false,
+    fretboardRequired: false,
+  },
+
   // ============ CHORD VOICINGS ============
   {
     id: 'chord-1',
@@ -1537,6 +1584,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   'arpeggio': 'Arpeggios',
   'bass-technique': 'Bass Technique',
   'chord-scale': 'Chord-Scale Theory',
+  'circle-of-fifths': 'Circle of Fifths',
 };
 
 export function formatTypeLabel(type: string): string {
