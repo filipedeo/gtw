@@ -251,10 +251,11 @@
   /* --fb-note-target-fill inherits var(--surface) (dark #0e1620) */
   --fb-note-ghost: rgba(159, 176, 195, 0.24);
 
-  /* Elevation (dark) — soft, diffuse; depth comes from layering + these shadows. */
-  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px -4px rgba(0, 0, 0, 0.45);
-  --elev-2: 0 8px 24px -12px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
-  --elev-3: 0 18px 50px -20px rgba(0, 0, 0, 0.7), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
+  /* Elevation (dark) — soft, diffuse; a hairline inset top highlight adds a
+     subtle "lit-from-above" sheen on raised surfaces. */
+  --elev-1: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px -4px rgba(0, 0, 0, 0.45);
+  --elev-2: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --elev-3: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 50px -20px rgba(0, 0, 0, 0.7), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
 }
 
 /* Base styles */
@@ -275,7 +276,7 @@ body {
 .app-shell {
   background-color: var(--surface-app);
   background-image: radial-gradient(1100px 520px at 50% -240px, var(--app-glow), transparent 72%);
-  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 /* Monospace uppercase eyebrow / kicker — editorial section labels. */
@@ -444,23 +445,33 @@ input[type="checkbox"] {
   accent-color: var(--accent-primary);
 }
 
-/* Custom scrollbar */
+/* Accent text selection */
+::selection {
+  background-color: var(--accent-subtle-bg);
+  color: var(--text-strong);
+}
+
+/* Custom scrollbar — subtle, hairline-toned */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--bg-tertiary);
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--text-muted);
+  background-color: var(--border-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-secondary);
+  background-color: var(--text-subtle);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* Fretboard container */
