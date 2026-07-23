@@ -432,6 +432,16 @@ const Fretboard: React.FC<FretboardProps> = ({
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
+    // Colorblind-safe root cue: a concentric outline ring marks the tonic by
+    // SHAPE, so it reads as the root without relying on color alone.
+    if (isRoot && !isMaskedTarget && !isClicked) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.92)' : 'rgba(17,24,39,0.92)';
+      ctx.stroke();
+    }
+
     // Draw note name or question mark
     ctx.fillStyle = isMaskedTarget ? colors.noteTarget : highlighted || isRoot || isClicked ? '#fff' : isSecondary ? (resolvedTheme === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)') : colors.textMuted;
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
