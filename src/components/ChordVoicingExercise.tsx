@@ -7,6 +7,8 @@ import { playChord, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import ActiveRecallPanel from './ActiveRecallPanel';
+import { useActiveRecall } from '../hooks/useActiveRecall';
 import CollapsibleSection from './CollapsibleSection';
 
 interface ChordVoicingExerciseProps {
@@ -320,6 +322,7 @@ function positionsToNotes(
 
 const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise }) => {
   const { setHighlightedPositions, setSecondaryHighlightedPositions, clearHighlights, setRootNote, stringCount } = useGuitarStore();
+  const recall = useActiveRecall({ exerciseId: exercise.id, exerciseType: exercise.type });
   const openStringMidi = OPEN_STRING_MIDI[stringCount] || OPEN_STRING_MIDI[6];
   const { isActive } = useExerciseStore();
 
@@ -628,7 +631,12 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
 
       {/* Fretboard */}
       <div className="card p-4">
-        <Fretboard interactive={true} />
+        <Fretboard
+          interactive={true}
+          hideNoteNames={recall.hideNames}
+          revealedPositions={recall.revealed}
+          onNoteClick={recall.active ? recall.onFretClick : undefined}
+        />
       </div>
 
       {/* Play Button */}
@@ -663,6 +671,7 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       </CollapsibleSection>
 
       {/* Self-Assessment */}
+      <ActiveRecallPanel recall={recall} />
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );

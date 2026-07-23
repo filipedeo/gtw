@@ -10,6 +10,8 @@ import { normalizeNoteName } from '../types/guitar';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import ActiveRecallPanel from './ActiveRecallPanel';
+import { useActiveRecall } from '../hooks/useActiveRecall';
 import CollapsibleSection from './CollapsibleSection';
 import ScaleNotesDisplay from './ScaleNotesDisplay';
 
@@ -43,6 +45,7 @@ const MODE_CATEGORIES = [
 
 const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise }) => {
   const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, clearHighlights } = useGuitarStore();
+  const recall = useActiveRecall({ exerciseId: exercise.id, exerciseType: exercise.type });
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
 
@@ -226,7 +229,12 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
 
       {/* Embedded Fretboard */}
       <div className="card p-4">
-        <Fretboard interactive={true} />
+        <Fretboard
+          interactive={true}
+          hideNoteNames={recall.hideNames}
+          revealedPositions={recall.revealed}
+          onNoteClick={recall.active ? recall.onFretClick : undefined}
+        />
       </div>
 
       {/* Display Options */}
@@ -266,6 +274,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
       </CollapsibleSection>
 
       {/* Self-Assessment */}
+      <ActiveRecallPanel recall={recall} />
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );

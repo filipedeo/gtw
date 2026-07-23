@@ -10,6 +10,8 @@ import { startDrone, stopDrone, playNote, initAudio } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import ActiveRecallPanel from './ActiveRecallPanel';
+import { useActiveRecall } from '../hooks/useActiveRecall';
 import CollapsibleSection from './CollapsibleSection';
 
 interface ArpeggioExerciseProps {
@@ -364,6 +366,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
     setRootNote,
     clearHighlights,
   } = useGuitarStore();
+  const recall = useActiveRecall({ exerciseId: exercise.id, exerciseType: exercise.type });
   const isGuitar = instrument === 'guitar';
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
@@ -769,7 +772,12 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
 
       {/* Fretboard */}
       <div className="card p-4">
-        <Fretboard interactive={true} />
+        <Fretboard
+          interactive={true}
+          hideNoteNames={recall.hideNames}
+          revealedPositions={recall.revealed}
+          onNoteClick={recall.active ? recall.onFretClick : undefined}
+        />
       </div>
 
       {/* Audio Controls */}
@@ -819,6 +827,7 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
       </CollapsibleSection>
 
       {/* Self-Assessment */}
+      <ActiveRecallPanel recall={recall} />
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );

@@ -11,6 +11,8 @@ import { JAM_PROGRESSIONS } from '../data/jamProgressions';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import ActiveRecallPanel from './ActiveRecallPanel';
+import { useActiveRecall } from '../hooks/useActiveRecall';
 import CollapsibleSection from './CollapsibleSection';
 import ScaleNotesDisplay from './ScaleNotesDisplay';
 
@@ -112,6 +114,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
     setScaleContext,
     clearHighlights,
   } = useGuitarStore();
+  const recall = useActiveRecall({ exerciseId: exercise.id, exerciseType: exercise.type });
   const { isActive } = useExerciseStore();
 
   const [selectedKey, setSelectedKey] = useState('C');
@@ -467,7 +470,12 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
 
       {/* Fretboard */}
       <div className="card p-4">
-        <Fretboard interactive={true} />
+        <Fretboard
+          interactive={true}
+          hideNoteNames={recall.hideNames}
+          revealedPositions={recall.revealed}
+          onNoteClick={recall.active ? recall.onFretClick : undefined}
+        />
       </div>
 
       {/* Practice Tips */}
@@ -486,6 +494,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
       </CollapsibleSection>
 
       {/* Self-Assessment */}
+      <ActiveRecallPanel recall={recall} />
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );

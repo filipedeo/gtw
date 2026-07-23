@@ -9,6 +9,8 @@ import { CAGED_SHAPES, KEYS } from '../lib/cagedPatterns';
 import Fretboard from './Fretboard';
 import DisplayModeToggle from './DisplayModeToggle';
 import PracticeRating from './PracticeRating';
+import ActiveRecallPanel from './ActiveRecallPanel';
+import { useActiveRecall } from '../hooks/useActiveRecall';
 import { PlayIcon, StopIcon, MusicIcon } from './icons';
 import CollapsibleSection from './CollapsibleSection';
 
@@ -26,6 +28,7 @@ interface CAGEDExerciseProps {
 
 const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
   const { stringCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, clearHighlights } = useGuitarStore();
+  const recall = useActiveRecall({ exerciseId: exercise.id, exerciseType: exercise.type });
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
   
@@ -337,7 +340,12 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
 
       {/* Embedded Fretboard */}
       <div className="card p-4">
-        <Fretboard interactive={true} />
+        <Fretboard
+          interactive={true}
+          hideNoteNames={recall.hideNames}
+          revealedPositions={recall.revealed}
+          onNoteClick={recall.active ? recall.onFretClick : undefined}
+        />
       </div>
 
       {/* Audio Controls */}
@@ -368,6 +376,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       </CollapsibleSection>
 
       {/* Self-Assessment */}
+      <ActiveRecallPanel recall={recall} />
       <PracticeRating exerciseId={exercise.id} exerciseType={exercise.type} />
     </div>
   );
