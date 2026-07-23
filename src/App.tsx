@@ -47,7 +47,7 @@ function App() {
   const { instrument, stringCount, setStringCount, setInstrument } = useGuitarStore()
   const { currentExercise } = useExerciseStore()
   const { setTheme, theme } = useThemeStore()
-  const { isDesktop } = useBreakpoint()
+  const { isDesktop, isMobile } = useBreakpoint()
 
   // Show the top-level board only when the active exercise does not embed its
   // own (de-dup). No current exercise or an unknown type falls back to showing
@@ -144,7 +144,7 @@ function App() {
 
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
-            <div className="hidden lg:flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-1.5">
             {/* Drone toggle — desktop only */}
             <Button
               variant={sidePanel === 'audio' ? 'primary' : 'secondary'}
@@ -170,7 +170,7 @@ function App() {
               variant="secondary"
               iconOnly
               onClick={() => setShowDrawer(true)}
-              className="lg:hidden"
+              className="md:hidden"
               aria-label="Open menu"
               aria-haspopup="dialog"
             >
@@ -182,16 +182,17 @@ function App() {
 
       {/* Tools Toolbar — always mounted so tuner mic + metronome survive */}
       <ToolsToolbar
-        activeTab={!isDesktop ? activeToolsTab : undefined}
-        onTabChange={!isDesktop ? setActiveToolsTab : undefined}
-        hideTabButtons={!isDesktop}
+        activeTab={isMobile ? activeToolsTab : undefined}
+        onTabChange={isMobile ? setActiveToolsTab : undefined}
+        hideTabButtons={isMobile}
       />
 
       {/* Main Content */}
       <main className="max-w-[1800px] mx-auto px-4 py-6">
+        <div className="xl:max-w-[1280px] xl:mx-auto">
         {/* Fretboard - Full Width — desktop only, and only when the active exercise doesn't embed its own */}
         {isDesktop && showTopFretboard && (
-          <div className="card mb-6">
+          <div className="card mb-6 sticky top-16 z-30">
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col gap-0.5">
                 <span className="eyebrow">Reference</span>
@@ -209,15 +210,14 @@ function App() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] lg:grid-cols-3 gap-6">
           {/* Left Column - Exercise */}
           <div className="lg:col-span-2 space-y-6">
             <ExerciseContainer />
           </div>
 
-          {/* Right Column — desktop only */}
-          {isDesktop && (
-            <div className="space-y-6">
+          {/* Right Column — md+ secondary (Progress/info; side panels md+) */}
+            <div className="space-y-6 hidden md:block">
               {/* Side Panel: Settings or Audio (replaces right column content when open) */}
               {sidePanel === 'settings' && (
                 <Card
@@ -307,12 +307,12 @@ function App() {
                 </>
               )}
             </div>
-          )}
+        </div>
         </div>
       </main>
 
       {/* Mobile Drawer */}
-      {!isDesktop && (
+      {isMobile && (
         <MobileDrawer
           isOpen={showDrawer}
           onClose={() => setShowDrawer(false)}
