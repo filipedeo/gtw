@@ -7,7 +7,7 @@ import { getNoteAtPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio } from '../lib/audioEngine';
 import { readFretboardColors } from '../constants/fretboardTheme';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import { NOTE_NAMES_FLAT } from '../lib/theoryEngine';
+import { NOTE_NAMES_FLAT, getKeySpelledNotes } from '../lib/theoryEngine';
 
 interface FretboardProps {
   onNoteClick?: (position: FretPosition, note: string) => void;
@@ -19,15 +19,16 @@ interface FretboardProps {
 /**
  * Note-name spelling helpers.
  *
- * The Fretboard only receives the root note (via the store); it does NOT know
- * the active scale/mode. Notes are therefore spelled according to the tonic's
- * key convention: flat keys use flats, sharp keys use sharps. This keeps the
- * fretboard spelling consistent with the app's scale text for the common cases.
+ * When an active key/scale context is available (threaded via the store as
+ * `scaleContext`), notes are spelled with the exact key-signature spelling for
+ * that key/mode (computed in the theory engine via tonal). This yields the
+ * correct accidentals for every key, including the edge cases that a fixed
+ * sharp/flat table cannot represent (E#/B# in sharp keys, Fb/Cb in flat keys).
  *
- * Limitation: without the active scale/mode we cannot always choose the exact
- * modal spelling (e.g. a diminished 7th spelled bb7, or a flat-flavoured mode
- * such as Dorian built on a sharp-preferring tonic like G). Such notes fall
- * back to the tonic's key spelling.
+ * When there is NO scale context (e.g. note-identification, or the shared board
+ * with no active exercise), the helpers below provide a conservative fallback:
+ * notes are spelled according to the tonic's key convention — flat keys use
+ * flats, sharp keys use sharps — matching the app's historical behavior.
  */
 
 // Chromas of the keys the app spells with flats: Db(1), Eb(3), F(5), Ab(8), Bb(10).
@@ -121,6 +122,7 @@ const Fretboard: React.FC<FretboardProps> = ({
     secondaryHighlightedPositions,
     maskedPositions,
     rootNote,
+    scaleContext,
     showAllNotes
   } = useGuitarStore();
   
@@ -155,6 +157,23 @@ const Fretboard: React.FC<FretboardProps> = ({
   // Theme colors
   // Palette folded into the design-system token layer (--fb-*, 92 plan §1.2).
   const colors = useMemo(() => readFretboardColors(resolvedTheme), [resolvedTheme]);
+
+  // Chroma -> note-name spelling table derived from the active key/scale context
+  // (via tonal), so accidentals are spelled correctly for the key (e.g. Bb in F
+  // major, E# in F# major, Cb in Gb major). Null when there is no scale context;
+  // in that case drawNote falls back to spelling by the root's key signature.
+  const spellingTable = useMemo(
+    () => (scaleContext ? getKeySpelledNotes(scaleContext.root, scaleContext.name) : null),
+    [scaleContext]
+  );
+
+  // Spell a chroma (0-11) using the active key/scale context when available,
+  // otherwise the root's key-signature fallback. Shared by the visible canvas
+  // labels and the screen-reader description so both announce the same names.
+  const spellChromaForContext = (chroma: number, fallbackName: string): string =>
+    chroma === -1
+      ? fallbackName
+      : (spellingTable && spellingTable[chroma]) || spellChroma(chroma, preferFlatsForRoot(rootNote));
 
   // Observe container width
   useEffect(() => {
@@ -320,7 +339,7 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
       }
     }
-  }, [stringCount, tuning, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, maskedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, hoverPosition]);
+  }, [stringCount, tuning, effectiveFretCount, highlightedPositions, secondaryHighlightedPositions, maskedPositions, showAllNotes, canvasWidth, canvasHeight, colors, hideNoteNames, revealedPositions, resolvedTheme, clickedPosition, displayMode, rootNote, spellingTable, hoverPosition]);
 
   const drawNote = (
     ctx: CanvasRenderingContext2D,
@@ -345,9 +364,10 @@ const Fretboard: React.FC<FretboardProps> = ({
     // Normalized (sharp) pitch class — used for root comparison and interval math.
     const noteName = normalizeNoteName(note.replace(/\d/, ''));
     const chroma = NOTE_NAMES.indexOf(noteName);
-    // Spell the note for display according to the active key (flats in flat keys).
-    const useFlats = preferFlatsForRoot(rootNote);
-    const displayNoteName = chroma !== -1 ? spellChroma(chroma, useFlats) : noteName;
+    // Spell the note for display. With an active key/scale context, use its exact
+    // key-signature spelling (e.g. Bb, E#, Cb); otherwise fall back to spelling by
+    // the root's key signature (flats in flat keys).
+    const displayNoteName = spellChromaForContext(chroma, noteName);
     const isRoot = rootNote && noteName === normalizeNoteName(rootNote);
 
     // Reset shadow offsets to prevent leak from nut drawing or prior draw calls
@@ -426,7 +446,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       if ((displayMode === 'intervals' || displayMode === 'degrees') && rootNote && chroma !== -1) {
         const rootChroma = NOTE_NAMES.indexOf(normalizeNoteName(rootNote));
         if (rootChroma !== -1) {
-          const rootSpelling = spellChroma(rootChroma, useFlats);
+          const rootSpelling = spellChromaForContext(rootChroma, noteName);
           const chromaInterval = (chroma - rootChroma + 12) % 12;
           displayText = getDegreeLabel(rootSpelling, displayNoteName, chromaInterval, displayMode);
         }
@@ -576,7 +596,13 @@ const Fretboard: React.FC<FretboardProps> = ({
         }
         const note = getNoteAtPosition(pos, tuning, stringCount);
         const noteName = normalizeNoteName(note.replace(/\d/, ''));
-        return `${noteName} on string ${stringLabel}, fret ${pos.fret}`;
+        // Use the same scale-aware spelling as the visible labels so screen
+        // readers announce the correct note names (e.g. Bb, E#, Cb) instead of
+        // a fixed sharp table, falling back to the key-signature spelling when
+        // there is no active scale context.
+        const chroma = NOTE_NAMES.indexOf(noteName);
+        const spelled = spellChromaForContext(chroma, noteName);
+        return `${spelled} on string ${stringLabel}, fret ${pos.fret}`;
       });
     const parts: string[] = [];
     if (highlightedPositions.length > 0) {

@@ -86,7 +86,7 @@ const EXERCISE_PAIRING_MAP: Record<string, ChordScalePairing> = {
 const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => {
-  const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, clearHighlights } = useGuitarStore();
+  const { stringCount, tuning, fretCount, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, clearHighlights } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
   const { isActive } = useExerciseStore();
 
@@ -130,12 +130,13 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
         }
         
         setRootNote(normalizedKey);
+        setScaleContext({ root: selectedKey, name: selectedScale });
       }
     } catch (e) {
       console.error('Error getting scale notes:', e);
     }
   }, [selectedScale, selectedKey, showFullFretboard, isActive, stringCount, tuning, pairing,
-      maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
+      maxFret, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext]);
 
   // Update drone when key changes
   useEffect(() => {

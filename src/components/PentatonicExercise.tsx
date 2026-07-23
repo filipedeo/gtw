@@ -236,6 +236,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
     clearHighlights,
   } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
@@ -320,6 +321,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
     const pentPositions = getPentatonicBox(selectedKey, scaleType, selectedBox, tuning, stringCount);
     setRootNote(normalizeNoteName(selectedKey));
+    setScaleContext({ root: selectedKey, name: scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic' });
 
     if (showAllShapes) {
       // Collect all boxes: current box = primary, other 4 = secondary
@@ -364,7 +366,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
     }
   }, [isActive, selectedKey, scaleType, selectedBox, showFullScale, showAllShapes, tuning, stringCount,
       selectedTargetMode, exercise.id,
-      setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote]);
+      setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext]);
 
   useEffect(() => { updateFretboard(); }, [updateFretboard]);
 

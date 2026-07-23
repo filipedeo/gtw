@@ -87,6 +87,7 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
     clearHighlights,
   } = useGuitarStore();
   const { droneConfig, setDroneConfig, isDroneActive, setDroneActive } = useAudioStore();
@@ -113,10 +114,11 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
 
     setHighlightedPositions(positions);
     setRootNote(normalizeNoteName(selectedKey));
+    setScaleContext({ root: selectedKey, name: selectedMode.name });
     setSecondaryHighlightedPositions([]);
   }, [
     isActive, selectedKey, selectedMode, tuning, stringCount, startFret,
-    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote,
+    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext,
   ]);
 
   useEffect(() => {

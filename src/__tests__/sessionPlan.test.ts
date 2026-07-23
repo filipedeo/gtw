@@ -3,6 +3,7 @@ import {
   distributeMinutes,
   maxExercisesForDuration,
   MIN_MINUTES_PER_EXERCISE,
+  clampSessionIndex,
 } from '../utils/sessionPlan';
 
 describe('sessionPlan duration math', () => {
@@ -87,5 +88,29 @@ describe('sessionPlan duration math', () => {
         expect(m).toBeGreaterThanOrEqual(MIN_MINUTES_PER_EXERCISE);
       }
     });
+  });
+});
+
+describe('clampSessionIndex', () => {
+  it('returns 0 for an empty plan regardless of index', () => {
+    expect(clampSessionIndex(0, 0)).toBe(0);
+    expect(clampSessionIndex(5, 0)).toBe(0);
+    expect(clampSessionIndex(-2, 0)).toBe(0);
+  });
+
+  it('clamps indices below 0 up to 0', () => {
+    expect(clampSessionIndex(-1, 5)).toBe(0);
+    expect(clampSessionIndex(-100, 5)).toBe(0);
+  });
+
+  it('clamps indices above the last valid position to the final index', () => {
+    expect(clampSessionIndex(5, 5)).toBe(4);
+    expect(clampSessionIndex(999, 3)).toBe(2);
+  });
+
+  it('passes through in-range indices unchanged', () => {
+    expect(clampSessionIndex(0, 5)).toBe(0);
+    expect(clampSessionIndex(2, 5)).toBe(2);
+    expect(clampSessionIndex(4, 5)).toBe(4);
   });
 });

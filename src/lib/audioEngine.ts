@@ -15,6 +15,48 @@ let isInitialized = false;
 let droneCleanupTimeout: ReturnType<typeof setTimeout> | null = null;
 let pendingPlaybackTimeouts: ReturnType<typeof setTimeout>[] = [];
 
+// --- Metronome beat notifications (for visual beat indicators) ---
+// Listeners receive the 0-based beat within the bar and whether it is the
+// accented downbeat. Kept independent of any store so subscribers can react to
+// real audio beats without persistence or re-render coupling.
+type MetronomeBeatListener = (beat: number, isAccent: boolean) => void;
+const metronomeBeatListeners = new Set<MetronomeBeatListener>();
+
+/** Subscribe to metronome beats. Returns an unsubscribe function. */
+export function onMetronomeBeat(listener: MetronomeBeatListener): () => void {
+  metronomeBeatListeners.add(listener);
+  return () => {
+    metronomeBeatListeners.delete(listener);
+  };
+}
+
+function emitMetronomeBeat(beat: number, isAccent: boolean): void {
+  metronomeBeatListeners.forEach((listener) => {
+    try {
+      listener(beat, isAccent);
+    } catch (e) {
+      console.error('Metronome beat listener failed:', e);
+    }
+  });
+}
+
+// Align the visual beat notification to the audio `time` using Tone.Draw (runs
+// on an animation frame at `time`), so UI pulses land with the click rather
+// than ahead of it (the Loop callback fires early by the scheduler lookahead).
+// Falls back to an immediate emit if Draw is unavailable.
+function scheduleBeatDraw(beat: number, isAccent: boolean, time: number): void {
+  try {
+    const draw = typeof Tone.getDraw === 'function' ? Tone.getDraw() : null;
+    if (draw) {
+      draw.schedule(() => emitMetronomeBeat(beat, isAccent), time);
+      return;
+    }
+  } catch {
+    // fall through to immediate emit
+  }
+  emitMetronomeBeat(beat, isAccent);
+}
+
 export async function initAudio(): Promise<void> {
   if (isInitialized) return;
   
@@ -200,8 +242,10 @@ export async function startMetronome(config: MetronomeConfig): Promise<void> {
     let beat = 0;
     metronomeLoop = new Tone.Loop((time) => {
       if (!metronomeSynth) return;
-      const isAccent = config.accentFirst && beat === 0;
+      const currentBeat = beat;
+      const isAccent = config.accentFirst && currentBeat === 0;
       metronomeSynth.triggerAttackRelease(isAccent ? 'C3' : 'G3', '32n', time);
+      scheduleBeatDraw(currentBeat, isAccent, time);
       beat = (beat + 1) % config.timeSignature[0];
     }, subdivision);
     

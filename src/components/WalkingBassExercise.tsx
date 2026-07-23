@@ -109,6 +109,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
     setHighlightedPositions,
     setSecondaryHighlightedPositions,
     setRootNote,
+    setScaleContext,
     clearHighlights,
   } = useGuitarStore();
   const { isActive } = useExerciseStore();
@@ -160,6 +161,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
         const scalePositions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
         setHighlightedPositions(scalePositions);
         setRootNote(normalizedKey);
+        setScaleContext({ root: selectedKey, name: progression.suggestedScale });
 
         // Secondary: walking line chord tones
         const walkingPositions = getScalePositions(walkingLineNoteNames, tuning, stringCount, maxFret);
@@ -172,7 +174,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
     selectedKey, selectedProgressionIndex, showFullFretboard,
     isActive, stringCount, tuning, maxFret, progression,
     walkingLineNoteNames,
-    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote,
+    setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext,
   ]);
 
   const stopPlayback = useCallback(() => {

@@ -4,7 +4,7 @@ import { useExerciseStore } from '../stores/exerciseStore';
 import { useGuitarStore } from '../stores/guitarStore';
 import { getExercises, formatTypeLabel } from '../api/exercises';
 import { Exercise } from '../types/exercise';
-import { distributeMinutes, maxExercisesForDuration } from '../utils/sessionPlan';
+import { distributeMinutes, maxExercisesForDuration, clampSessionIndex } from '../utils/sessionPlan';
 
 type TimePreset = '15' | '30' | '60';
 
@@ -41,6 +41,8 @@ const SessionPlanner: React.FC = () => {
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [plan, setPlan] = useState<PlanItem[]>([]);
   const [sessionActive, setSessionActive] = useState(false);
+  // Position of the exercise currently being practiced within an active session.
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [removedItem, setRemovedItem] = useState<{ item: PlanItem; index: number } | null>(null);
   const [undoTimerId, setUndoTimerId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
@@ -79,6 +81,7 @@ const SessionPlanner: React.FC = () => {
     setPlan([]);
     setSelectedTime(null);
     setSessionActive(false);
+    setCurrentIndex(0);
   }, [allCategories]);
 
   // Load exercises on mount
@@ -169,6 +172,7 @@ const SessionPlanner: React.FC = () => {
 
       setPlan(items);
       setSessionActive(false);
+      setCurrentIndex(0);
       dismissUndo();
     },
     [enabledCategories, pickExerciseForCategory]
@@ -213,6 +217,8 @@ const SessionPlanner: React.FC = () => {
     const removed = plan[index];
     setRemovedItem({ item: removed, index });
     setPlan((prev) => prev.filter((_, i) => i !== index));
+    // Keep the session pointer on the same item when an earlier one is removed.
+    setCurrentIndex((ci) => (index < ci ? ci - 1 : ci));
 
     const timerId = setTimeout(() => {
       setRemovedItem(null);
@@ -230,6 +236,8 @@ const SessionPlanner: React.FC = () => {
       newPlan.splice(removedItem.index, 0, removedItem.item);
       return newPlan;
     });
+    // Shift the session pointer back if the item is restored at/before it.
+    setCurrentIndex((ci) => (removedItem.index <= ci ? ci + 1 : ci));
     setRemovedItem(null);
     setUndoTimerId(null);
   };
@@ -249,6 +257,7 @@ const SessionPlanner: React.FC = () => {
 
   const handleStartSession = () => {
     setSessionActive(true);
+    setCurrentIndex(0);
     if (plan.length > 0) {
       handleNavigateToExercise(plan[0].exercise);
     }
@@ -256,6 +265,36 @@ const SessionPlanner: React.FC = () => {
 
   const completedCount = plan.filter((item) => item.completed).length;
   const totalTime = plan.reduce((sum, item) => sum + item.timeMinutes, 0);
+
+  // --- Driven session tracker (N-of-M position + advance control) ---
+  const safeIndex = clampSessionIndex(currentIndex, plan.length);
+  const currentItem = plan.length > 0 ? plan[safeIndex] : null;
+  const allCompleted = plan.length > 0 && plan.every((item) => item.completed);
+
+  // Jump to a specific item in the session (updates the pointer + navigates).
+  const goToPlanIndex = (index: number) => {
+    if (index < 0 || index >= plan.length) return;
+    setCurrentIndex(index);
+    handleNavigateToExercise(plan[index].exercise);
+  };
+
+  // Advance control: mark the current exercise done and move to the next one.
+  const advanceSession = () => {
+    setPlan((prev) => prev.map((it, i) => (i === safeIndex ? { ...it, completed: true } : it)));
+    if (safeIndex < plan.length - 1) {
+      goToPlanIndex(safeIndex + 1);
+    }
+  };
+
+  const goToPreviousInSession = () => {
+    if (safeIndex > 0) goToPlanIndex(safeIndex - 1);
+  };
+
+  // Clicking a plan row makes it the current session item (while a session runs).
+  const handleItemClick = (index: number) => {
+    if (sessionActive) setCurrentIndex(index);
+    handleNavigateToExercise(plan[index].exercise);
+  };
 
   return (
     <div className="card">
@@ -343,6 +382,61 @@ const SessionPlanner: React.FC = () => {
             />
           </div>
 
+          {/* Active session tracker */}
+          {sessionActive && currentItem && (
+            <div
+              className="mb-3 p-3 rounded-lg"
+              style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}
+            >
+              {allCompleted ? (
+                <div className="text-center">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
+                    Session complete! &#127881;
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                    All {plan.length} exercises done.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--accent-primary)' }}>
+                      Now practicing
+                    </span>
+                    <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                      Exercise {safeIndex + 1} of {plan.length}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                    {currentItem.exercise.title}
+                  </p>
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+                    {currentItem.categoryLabel} &middot; {currentItem.timeMinutes} min
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={goToPreviousInSession}
+                      disabled={safeIndex === 0}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
+                      aria-label="Go to previous exercise in session"
+                    >
+                      &#8592; Prev
+                    </button>
+                    <button
+                      onClick={advanceSession}
+                      className="flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                      style={{ backgroundColor: 'var(--accent-primary)', color: 'white' }}
+                      aria-label={safeIndex === plan.length - 1 ? 'Finish session' : 'Complete and go to next exercise'}
+                    >
+                      {safeIndex === plan.length - 1 ? 'Finish \u2713' : 'Next \u2192'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Undo banner */}
           {removedItem && (
             <div
@@ -382,8 +476,9 @@ const SessionPlanner: React.FC = () => {
                     : 'var(--bg-tertiary)',
                   opacity: item.completed ? 0.7 : 1,
                   borderBottom: index < plan.length - 1 ? '1px solid var(--border-color)' : 'none',
+                  boxShadow: sessionActive && index === safeIndex ? '0 0 0 2px var(--accent-primary)' : 'none',
                 }}
-                onClick={() => handleNavigateToExercise(item.exercise)}
+                onClick={() => handleItemClick(index)}
                 role="button"
                 aria-label={`${item.exercise.title} - ${item.timeMinutes} minutes${item.completed ? ' (completed)' : ''}. Click to open exercise.`}
               >
