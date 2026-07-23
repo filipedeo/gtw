@@ -3,10 +3,13 @@ import { Exercise } from '../types/exercise';
 import { FretPosition, NOTE_NAMES, normalizeNoteName, areNotesEqual } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExercise } from '../hooks/useExercise';
+import { usePlayAlong } from '../hooks/usePlayAlong';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
+import { matchesTarget } from '../lib/playAlong';
 import Fretboard from './Fretboard';
-import { VolumeIcon, CheckIcon, XIcon } from './icons';
+import { SegmentedControl } from './ui';
+import { VolumeIcon, CheckIcon, XIcon, MicIcon } from './icons';
 
 interface NoteIdentificationExerciseProps {
   exercise: Exercise;
@@ -28,6 +31,14 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [revealedPositions, setRevealedPositions] = useState<FretPosition[]>([]);
+
+  // "Play it (mic)" play-along mode: listen to the user's guitar and accept a
+  // sustained in-tune match of the hidden target note as the correct answer,
+  // routed through the same handleAnswer flow as a button pick.
+  const [micMode, setMicMode] = useState<'off' | 'on'>('off');
+  const { listening, error: micError, latest, start: startMic, stop: stopMic } = usePlayAlong();
+  // Count consecutive matching pitch frames; >=3 sustained frames => a hit.
+  const matchStreakRef = useRef(0);
 
   // Keep a ref to handleAnswer so keyboard handler always uses latest version
   const handleAnswerRef = useRef<(answer: string) => void>(() => {});
@@ -192,6 +203,41 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
   // Keep ref in sync with latest handleAnswer
   handleAnswerRef.current = handleAnswer;
 
+  // Open / close the mic when the play-along toggle flips. The hook releases
+  // the AudioContext on unmount, so we only react to the user's intent here.
+  useEffect(() => {
+    if (micMode === 'on') {
+      startMic();
+    } else {
+      stopMic();
+    }
+  }, [micMode, startMic, stopMic]);
+
+  // Treat a sustained, in-tune match of the hidden target note as a correct
+  // pick. Each new pitch frame re-runs this effect; we count consecutive
+  // matches and route a hit through the existing handleAnswer flow once three
+  // frames in a row agree (~150 ms sustained at the autocorrelation cadence).
+  useEffect(() => {
+    if (micMode !== 'on' || selectedAnswer !== null || !isActive || !correctNote) {
+      matchStreakRef.current = 0;
+      return;
+    }
+
+    if (matchesTarget(latest, correctNote)) {
+      matchStreakRef.current += 1;
+      if (matchStreakRef.current >= 3) {
+        matchStreakRef.current = 0;
+        handleAnswerRef.current(correctNote);
+      }
+    } else {
+      matchStreakRef.current = 0;
+    }
+  }, [latest, micMode, selectedAnswer, isActive, correctNote]);
+
+  // Mic play-along is only "live" when toggled on and the mic opened cleanly;
+  // a denied mic falls back to the unchanged multiple-choice flow.
+  const micActive = micMode === 'on' && !micError;
+
   return (
     <div className="space-y-6">
       {/* Score Display */}
@@ -239,6 +285,40 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
         </div>
       </div>
 
+      {/* Play it (mic) — play-along toggle */}
+      <div className="flex justify-center">
+        <SegmentedControl
+          ariaLabel="Answer mode"
+          value={micMode}
+          onChange={(v) => setMicMode(v)}
+          options={[
+            { value: 'off', label: 'Choose' },
+            { value: 'on', label: <span className="inline-flex items-center gap-1.5"><MicIcon size={16} /> Play it (mic)</span> },
+          ]}
+        />
+      </div>
+
+      {micError && (
+        <p className="text-center text-sm text-danger" role="alert">
+          {micError} Staying in multiple-choice mode.
+        </p>
+      )}
+
+      {micActive && (
+        <div className="card p-4 text-center">
+          <p className="text-sm font-medium flex items-center justify-center gap-2 text-fg-strong">
+            <MicIcon size={18} />
+            {listening ? 'Listening — play the highlighted note on your guitar' : 'Starting microphone…'}
+          </p>
+          {latest && (
+            <p className="text-xs mt-1 tabular-nums text-fg-muted">
+              Hearing {latest.noteName} ({latest.cents > 0 ? '+' : ''}{latest.cents}¢)
+            </p>
+          )}
+        </div>
+      )}
+
+      {!micActive && (<>
       {/* Answer Options */}
       <div 
         className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto"
@@ -292,6 +372,7 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
         <span aria-hidden="true">Tip: Press 1, 2, 3, or 4 to quickly select an answer</span>
         <span className="sr-only">Use number keys 1 through 4 to select answers</span>
       </p>
+      </>)}
 
       {/* Feedback */}
       {showFeedback && (
