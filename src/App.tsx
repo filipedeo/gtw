@@ -4,6 +4,7 @@ import ExerciseContainer from './components/ExerciseContainer'
 import ErrorBoundary from './components/ErrorBoundary'
 import AudioControls from './components/AudioControls'
 import ProgressDashboard from './components/ProgressDashboard'
+import SessionPlanner from './components/SessionPlanner'
 import SettingsPanel from './components/SettingsPanel'
 import ThemeToggle from './components/ThemeToggle'
 import PracticeTimer from './components/PracticeTimer'
@@ -209,6 +210,10 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] lg:grid-cols-3 gap-6">
           {/* Left Column - Exercise */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session planner promoted to a primary entry point (tablet + desktop).
+                !isMobile gates it to md+ so exactly ONE instance exists at any
+                width — phone (<768) gets it in the drawer instead. */}
+            {!isMobile && <SessionPlanner />}
             <ExerciseContainer />
           </div>
 
@@ -274,7 +279,7 @@ function App() {
               {/* Default right column content (when no panel open) */}
               {!sidePanel && (
                 <>
-                  <ProgressDashboard />
+                  <ProgressDashboard showSessionPlanner={false} />
 
                   {currentExercise && (
                     <Card>

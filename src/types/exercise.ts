@@ -5,6 +5,7 @@ export type ExerciseType =
   | 'modal-practice'
   | 'interval-recognition'
   | 'chord-voicing'
+  | 'ear-advanced'
   | 'ear-training'
   | 'caged-system'
   | 'three-nps'
@@ -13,7 +14,11 @@ export type ExerciseType =
   | 'jam-mode'
   | 'bass-technique'
   | 'arpeggio'
-  | 'chord-scale';
+  | 'chord-scale'
+  | 'circle-of-fifths'
+  | 'note-speed'
+  | 'chord-library'
+  | 'rhythm';
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

@@ -3,6 +3,8 @@ import { useProgressStore } from '../stores/progressStore';
 import { useExerciseStore } from '../stores/exerciseStore';
 import SessionPlanner from './SessionPlanner';
 import { FlameIcon } from './icons';
+import PracticePlanCard from './PracticePlanCard';
+import ReviewSessionCard from './ReviewSessionCard';
 
 const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo(({ showSessionPlanner = true }) => {
   const { progress, getNextReviews } = useProgressStore();
@@ -29,6 +31,8 @@ const ProgressDashboard: React.FC<{ showSessionPlanner?: boolean }> = React.memo
 
   return (
     <>
+    <PracticePlanCard />
+    <ReviewSessionCard />
     {showSessionPlanner && <SessionPlanner />}
 
     <div className="card">

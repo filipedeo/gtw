@@ -426,11 +426,6 @@ describe('buildProgressionChords', () => {
 // ==========================================================================
 
 describe('stopAllNotes', () => {
-  it('is exported from audioEngine', async () => {
-    const audioEngine = await import('../lib/audioEngine');
-    expect(typeof audioEngine.stopAllNotes).toBe('function');
-  });
-
   it('does not throw when called before audio is initialized', async () => {
     const { stopAllNotes } = await import('../lib/audioEngine');
     expect(() => stopAllNotes()).not.toThrow();

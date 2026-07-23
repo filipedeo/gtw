@@ -15,6 +15,7 @@ const CAGEDExercise = lazy(() => import('./CAGEDExercise'));
 const IntervalRecognitionExercise = lazy(() => import('./IntervalRecognitionExercise'));
 const ChordVoicingExercise = lazy(() => import('./ChordVoicingExercise'));
 const EarTrainingExercise = lazy(() => import('./EarTrainingExercise'));
+const AdvancedEarTrainingExercise = lazy(() => import('./AdvancedEarTrainingExercise'));
 const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
 const ChordProgressionExercise = lazy(() => import('./ChordProgressionExercise'));
@@ -23,6 +24,10 @@ const ArpeggioExercise = lazy(() => import('./ArpeggioExercise'));
 const WalkingBassExercise = lazy(() => import('./WalkingBassExercise'));
 const BassPositionExercise = lazy(() => import('./BassPositionExercise'));
 const ChordScaleExercise = lazy(() => import('./ChordScaleExercise'));
+const CircleOfFifthsExercise = lazy(() => import('./CircleOfFifthsExercise'));
+const NoteSpeedExercise = lazy(() => import('./NoteSpeedExercise'));
+const ChordLibraryExercise = lazy(() => import('./ChordLibraryExercise'));
+const RhythmExercise = lazy(() => import('./RhythmExercise'));
 
 const ExerciseContainer: React.FC = () => {
   const {
@@ -179,6 +184,8 @@ const ExerciseContainer: React.FC = () => {
         return <ChordVoicingExercise exercise={currentExercise} />;
       case 'ear-training':
         return <EarTrainingExercise exercise={currentExercise} />;
+      case 'ear-advanced':
+        return <AdvancedEarTrainingExercise exercise={currentExercise} />;
       case 'three-nps':
         return <ThreeNPSExercise exercise={currentExercise} />;
       case 'pentatonic':
@@ -194,6 +201,14 @@ const ExerciseContainer: React.FC = () => {
         return <BassPositionExercise exercise={currentExercise} />;
       case 'chord-scale':
         return <ChordScaleExercise exercise={currentExercise} />;
+      case 'circle-of-fifths':
+        return <CircleOfFifthsExercise exercise={currentExercise} />;
+      case 'note-speed':
+        return <NoteSpeedExercise exercise={currentExercise} />;
+      case 'chord-library':
+        return <ChordLibraryExercise exercise={currentExercise} />;
+      case 'rhythm':
+        return <RhythmExercise exercise={currentExercise} />;
       default:
         return (
           <div className="text-center py-12">

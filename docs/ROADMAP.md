@@ -116,6 +116,16 @@ plus a few **high-fit content additions** and **targeted visual-clarity fixes**.
    Fret numbers/inlays and the phone "?" target ring are low-contrast; nudge
    contrast for legibility.
 
+6. **Answer-feedback visualization** *(value: high / effort: med)* — SEQUENCED LAST
+   On both correct and incorrect answers, show a visual representation of the
+   relevant notes/structure, not just text. For circle-of-fifths: render the
+   key's notes / the scale / the position on the circle. Generalize the pattern
+   to other quizzes (intervals, note-ID, etc.) so every answer reveal teaches
+   the underlying structure visually. Reuse the fretboard/circle render where it
+   fits. NOTE (user 2026-07-23): tackle this only AFTER all in-progress tracks
+   finish AND after the Track B visual overhaul lands, so it's built on the
+   modernized components rather than retrofitted twice.
+
 ## Quick wins (small, scope-fitting)
 
 - JSON progress export/import (safety net for localStorage-only data).

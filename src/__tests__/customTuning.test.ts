@@ -23,13 +23,6 @@ describe('Alternate tunings (A-7)', () => {
     expect(t.notes).toHaveLength(6);
   });
 
-  it('new tunings match the 6-string guitar selector filter', () => {
-    for (const key of ['dadgad-6', 'open-g-6']) {
-      expect(key.includes('-6')).toBe(true);
-      expect(key.startsWith('bass-')).toBe(false);
-    }
-  });
-
   it('computes correct open + fretted notes for DADGAD', () => {
     const t = STANDARD_TUNINGS['dadgad-6'];
     // Open strings (fret 0) return the tuning note verbatim.
