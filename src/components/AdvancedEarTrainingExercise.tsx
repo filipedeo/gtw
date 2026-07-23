@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
+import { useChallengeMode } from '../hooks/useChallengeMode';
+import ChallengeBanner from './ChallengeBanner';
 import { playNote, playChord, initAudio, stopAllNotes } from '../lib/audioEngine';
 import {
   AdvancedEarQuestion,
@@ -24,6 +26,8 @@ const AdvancedEarTrainingExercise: React.FC<AdvancedEarTrainingExerciseProps> = 
     exerciseType: exercise.type,
     totalQuestions: TOTAL_QUESTIONS,
   });
+  const [challengeEnabled, setChallengeEnabled] = useState(false);
+  const challenge = useChallengeMode({ exerciseId: exercise.id });
 
   const subMode = useMemo<AdvancedEarSubMode>(
     () => subModeFromExerciseId(exercise.id),
@@ -126,6 +130,7 @@ const AdvancedEarTrainingExercise: React.FC<AdvancedEarTrainingExerciseProps> = 
       setIsCorrect(correct);
       setShowFeedback(true);
       recordAnswer(correct);
+      if (challengeEnabled) challenge.onScored(correct);
 
       // Reinforce by replaying.
       handlePlayAgain();
@@ -137,7 +142,7 @@ const AdvancedEarTrainingExercise: React.FC<AdvancedEarTrainingExerciseProps> = 
       }, 2500);
       timeoutsRef.current.push(nextTimer);
     },
-    [selectedAnswer, isActive, question, recordAnswer, score.total, handlePlayAgain, generateQuestion]
+    [selectedAnswer, isActive, question, recordAnswer, score.total, handlePlayAgain, generateQuestion, challengeEnabled, challenge.onScored]
   );
 
   handleAnswerRef.current = handleAnswer;
@@ -193,6 +198,29 @@ const AdvancedEarTrainingExercise: React.FC<AdvancedEarTrainingExerciseProps> = 
           )}
         </div>
       </div>
+
+      {/* Challenge mode toggle */}
+      <div className="flex justify-end">
+        <Chip
+          selected={challengeEnabled}
+          onClick={() => setChallengeEnabled(!challengeEnabled)}
+        >
+          Challenge
+        </Chip>
+      </div>
+
+      {challengeEnabled && (
+        <ChallengeBanner
+          active={challenge.active}
+          timeLeft={challenge.timeLeft}
+          answered={challenge.answered}
+          score={challenge.score}
+          personalBest={challenge.personalBest}
+          isNewBest={challenge.isNewBest}
+          onStart={challenge.start}
+          onStop={challenge.stop}
+        />
+      )}
 
       {/* Interval direction controls (interval sub-mode only) */}
       {subMode === 'interval' && (

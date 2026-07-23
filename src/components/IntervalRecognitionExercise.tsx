@@ -3,11 +3,14 @@ import { Exercise } from '../types/exercise';
 import { FretPosition } from '../types/guitar';
 import { useGuitarStore } from '../stores/guitarStore';
 import { useExercise } from '../hooks/useExercise';
+import { useChallengeMode } from '../hooks/useChallengeMode';
 import { getNoteAtPosition, getRandomPosition } from '../utils/fretboardCalculations';
 import { playNote, initAudio, stopAllNotes } from '../lib/audioEngine';
 import Fretboard from './Fretboard';
 import { VolumeIcon, CheckIcon, XIcon } from './icons';
 import DisplayModeToggle from './DisplayModeToggle';
+import ChallengeBanner from './ChallengeBanner';
+import { Chip } from './ui';
 
 interface IntervalRecognitionExerciseProps {
   exercise: Exercise;
@@ -67,6 +70,8 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
     exerciseType: exercise.type,
     totalQuestions: 10,
   });
+  const [challengeEnabled, setChallengeEnabled] = useState(false);
+  const challenge = useChallengeMode({ exerciseId: exercise.id });
   
   const [rootPosition, setRootPosition] = useState<FretPosition | null>(null);
   const [targetPosition, setTargetPosition] = useState<FretPosition | null>(null);
@@ -248,6 +253,7 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
 
     // Record answer using the hook (handles scoring, completion, and progress tracking)
     recordAnswer(correct);
+    if (challengeEnabled) challenge.onScored(correct);
 
     // Play the interval again
     handlePlayAgain();
@@ -259,7 +265,7 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
       }
     }, 2500);
     timeoutsRef.current.push(nextTimer);
-  }, [selectedAnswer, isActive, correctInterval, score.total, recordAnswer, handlePlayAgain, generateQuestion]);
+  }, [selectedAnswer, isActive, correctInterval, score.total, recordAnswer, handlePlayAgain, generateQuestion, challengeEnabled, challenge.onScored]);
 
   // Keep ref in sync with latest handleAnswer
   handleAnswerRef.current = handleAnswer;
@@ -280,6 +286,29 @@ const IntervalRecognitionExercise: React.FC<IntervalRecognitionExerciseProps> = 
           )}
         </div>
       </div>
+
+      {/* Challenge mode toggle */}
+      <div className="flex justify-end">
+        <Chip
+          selected={challengeEnabled}
+          onClick={() => setChallengeEnabled(!challengeEnabled)}
+        >
+          Challenge
+        </Chip>
+      </div>
+
+      {challengeEnabled && (
+        <ChallengeBanner
+          active={challenge.active}
+          timeLeft={challenge.timeLeft}
+          answered={challenge.answered}
+          score={challenge.score}
+          personalBest={challenge.personalBest}
+          isNewBest={challenge.isNewBest}
+          onStart={challenge.start}
+          onStop={challenge.stop}
+        />
+      )}
 
       <div className="flex justify-end mb-2">
         <DisplayModeToggle compact />

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Exercise } from '../types/exercise';
 import { useExercise } from '../hooks/useExercise';
+import { useChallengeMode } from '../hooks/useChallengeMode';
+import ChallengeBanner from './ChallengeBanner';
+import { Chip } from './ui';
 import {
   CIRCLE_OF_FIFTHS,
   KeyInfo,
@@ -64,6 +67,8 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
     exerciseType: exercise.type,
     totalQuestions: 10,
   });
+  const [challengeEnabled, setChallengeEnabled] = useState(false);
+  const challenge = useChallengeMode({ exerciseId: exercise.id });
 
   const [question, setQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -194,6 +199,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
       setIsCorrect(correct);
       setShowFeedback(true);
       recordAnswer(correct);
+      if (challengeEnabled) challenge.onScored(correct);
 
       const nextTimer = setTimeout(() => {
         if (isMountedRef.current && score.total + 1 < 10) {
@@ -202,7 +208,7 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
       }, 2500);
       timeoutsRef.current.push(nextTimer);
     },
-    [selectedAnswer, isActive, question, recordAnswer, score.total, generateQuestion]
+    [selectedAnswer, isActive, question, recordAnswer, score.total, generateQuestion, challengeEnabled, challenge.onScored]
   );
 
   handleAnswerRef.current = handleAnswer;
@@ -248,6 +254,29 @@ const CircleOfFifthsExercise: React.FC<CircleOfFifthsExerciseProps> = ({ exercis
           )}
         </div>
       </div>
+
+      {/* Challenge mode toggle */}
+      <div className="flex justify-end">
+        <Chip
+          selected={challengeEnabled}
+          onClick={() => setChallengeEnabled(!challengeEnabled)}
+        >
+          Challenge
+        </Chip>
+      </div>
+
+      {challengeEnabled && (
+        <ChallengeBanner
+          active={challenge.active}
+          timeLeft={challenge.timeLeft}
+          answered={challenge.answered}
+          score={challenge.score}
+          personalBest={challenge.personalBest}
+          isNewBest={challenge.isNewBest}
+          onStart={challenge.start}
+          onStop={challenge.stop}
+        />
+      )}
 
       {/* Question */}
       <div className="card p-6 text-center">
