@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 import { UserProgress, ExerciseProgress, ReviewItem, SpacedRepetitionData } from '../types/progress';
 import { formatTypeLabel } from '../api/exercises';
 
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
 interface ProgressState {
   // User progress
   progress: UserProgress;
@@ -16,6 +18,13 @@ interface ProgressState {
   resetProgress: () => void;
   exportData: () => string;
   importData: (json: string) => { ok: boolean; error?: string };
+
+  // Learning-journey state (persisted alongside progress; kept OUT of the
+  // UserProgress export schema so exportData/importData stay unchanged).
+  lastExerciseId: string | null;
+  goal: SkillLevel | null;
+  setLastExercise: (id: string) => void;
+  setGoal: (goal: SkillLevel | null) => void;
 }
 
 const initialProgress: UserProgress = {
@@ -137,6 +146,10 @@ export const useProgressStore = create<ProgressState>()(
     (set, get) => ({
       progress: initialProgress,
       spacedRepetition: initialSpacedRepetition,
+      lastExerciseId: null,
+      goal: null,
+      setLastExercise: (id) => set({ lastExerciseId: id }),
+      setGoal: (goal) => set({ goal }),
       
       recordExerciseCompletion: (exerciseId, score, timeSpent, exerciseType) => set((state) => {
         const existing = state.progress.exerciseProgress[exerciseId];

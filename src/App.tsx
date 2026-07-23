@@ -5,6 +5,8 @@ import ErrorBoundary from './components/ErrorBoundary'
 import AudioControls from './components/AudioControls'
 import ProgressDashboard from './components/ProgressDashboard'
 import SessionPlanner from './components/SessionPlanner'
+import GoalPicker from './components/GoalPicker'
+import LearningPathCard from './components/LearningPathCard'
 import SettingsPanel from './components/SettingsPanel'
 import ThemeToggle from './components/ThemeToggle'
 import PracticeTimer from './components/PracticeTimer'
@@ -213,6 +215,8 @@ function App() {
             {/* Session planner promoted to a primary entry point (tablet + desktop).
                 !isMobile gates it to md+ so exactly ONE instance exists at any
                 width — phone (<768) gets it in the drawer instead. */}
+            <GoalPicker />
+            <LearningPathCard />
             {!isMobile && <SessionPlanner />}
             <ExerciseContainer />
           </div>

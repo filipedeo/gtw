@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { useExerciseStore } from '../stores/exerciseStore';
 import { useGuitarStore } from '../stores/guitarStore';
+import { useProgressStore } from '../stores/progressStore';
 import { getExercises, formatTypeLabel } from '../api/exercises';
 import { useSwipe } from '../hooks/useSwipe';
 import LoadingSpinner from './LoadingSpinner';
@@ -69,7 +70,9 @@ const ExerciseContainer: React.FC = () => {
   const filteredExercises = useMemo(() =>
     selectedCategory === 'all'
       ? instrumentExercises
-      : instrumentExercises.filter(ex => ex.type === selectedCategory),
+      : instrumentExercises
+          .filter(ex => ex.type === selectedCategory)
+          .sort((a, b) => a.difficulty - b.difficulty),
     [instrumentExercises, selectedCategory]
   );
 
@@ -88,7 +91,10 @@ const ExerciseContainer: React.FC = () => {
         const data = await getExercises();
         setExercises(data);
         if (data.length > 0) {
-          if (!useExerciseStore.getState().currentExercise) setCurrentExercise(data[0]);
+          if (!useExerciseStore.getState().currentExercise) {
+            const lastId = useProgressStore.getState().lastExerciseId;
+            setCurrentExercise((lastId && data.find(e => e.id === lastId)) || data[0]);
+          }
         }
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : 'Failed to load exercises');
@@ -98,6 +104,11 @@ const ExerciseContainer: React.FC = () => {
     };
     loadExercises();
   }, [setExercises, setCurrentExercise]);
+
+  // Remember the last-viewed exercise so the next visit resumes it (P1#1).
+  useEffect(() => {
+    if (currentExercise) useProgressStore.getState().setLastExercise(currentExercise.id);
+  }, [currentExercise]);
 
   // Retry loading exercises
   const handleRetryLoad = () => {
