@@ -393,7 +393,7 @@ const Fretboard: React.FC<FretboardProps> = ({
       : isClicked || isRoot
       ? '#fff'
       : highlighted
-      ? colors.noteHighlight
+      ? (resolvedTheme === 'dark' ? '#1d4ed8' : colors.noteHighlight)
       : isSecondary
       ? (resolvedTheme === 'dark' ? 'rgba(147,197,253,0.92)' : 'rgba(37,99,235,0.8)')
       : colors.textMuted;
