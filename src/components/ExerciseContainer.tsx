@@ -14,6 +14,7 @@ const CAGEDExercise = lazy(() => import('./CAGEDExercise'));
 const IntervalRecognitionExercise = lazy(() => import('./IntervalRecognitionExercise'));
 const ChordVoicingExercise = lazy(() => import('./ChordVoicingExercise'));
 const EarTrainingExercise = lazy(() => import('./EarTrainingExercise'));
+const AdvancedEarTrainingExercise = lazy(() => import('./AdvancedEarTrainingExercise'));
 const ThreeNPSExercise = lazy(() => import('./ThreeNPSExercise'));
 const PentatonicExercise = lazy(() => import('./PentatonicExercise'));
 const ChordProgressionExercise = lazy(() => import('./ChordProgressionExercise'));
@@ -179,6 +180,8 @@ const ExerciseContainer: React.FC = () => {
         return <ChordVoicingExercise exercise={currentExercise} />;
       case 'ear-training':
         return <EarTrainingExercise exercise={currentExercise} />;
+      case 'ear-advanced':
+        return <AdvancedEarTrainingExercise exercise={currentExercise} />;
       case 'three-nps':
         return <ThreeNPSExercise exercise={currentExercise} />;
       case 'pentatonic':

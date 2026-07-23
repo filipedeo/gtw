@@ -5,6 +5,7 @@ export type ExerciseType =
   | 'modal-practice'
   | 'interval-recognition'
   | 'chord-voicing'
+  | 'ear-advanced'
   | 'ear-training'
   | 'caged-system'
   | 'three-nps'
