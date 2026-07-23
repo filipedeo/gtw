@@ -4,6 +4,7 @@ import ExerciseContainer from './components/ExerciseContainer'
 import ErrorBoundary from './components/ErrorBoundary'
 import AudioControls from './components/AudioControls'
 import ProgressDashboard from './components/ProgressDashboard'
+import SessionPlanner from './components/SessionPlanner'
 import SettingsPanel from './components/SettingsPanel'
 import ThemeToggle from './components/ThemeToggle'
 import PracticeTimer from './components/PracticeTimer'
@@ -212,6 +213,9 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Exercise */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session planner promoted to a primary entry point (desktop);
+                mobile keeps it in the drawer to stay content-first) */}
+            {isDesktop && <SessionPlanner />}
             <ExerciseContainer />
           </div>
 
@@ -278,7 +282,7 @@ function App() {
               {/* Default right column content (when no panel open) */}
               {!sidePanel && (
                 <>
-                  <ProgressDashboard />
+                  <ProgressDashboard showSessionPlanner={false} />
 
                   {currentExercise && (
                     <Card>
