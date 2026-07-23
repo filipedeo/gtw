@@ -245,11 +245,11 @@ const ExerciseContainer: React.FC = () => {
   return (
     <div ref={containerRef} className="card" data-exercise-container>
       {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-line">
+      <div className="flex gap-2 mb-4 pb-4 border-b border-line overflow-x-auto sm:flex-wrap sm:overflow-x-visible">
         <Chip
           selected={selectedCategory === 'all'}
           onClick={() => setSelectedCategory('all')}
-          className="phone-touch"
+          className="phone-touch shrink-0"
         >
           All ({instrumentExercises.length})
         </Chip>
@@ -258,7 +258,7 @@ const ExerciseContainer: React.FC = () => {
             key={cat.type}
             selected={selectedCategory === cat.type}
             onClick={() => setSelectedCategory(cat.type)}
-            className="phone-touch"
+            className="phone-touch shrink-0"
           >
             {cat.label} ({cat.count})
           </Chip>
