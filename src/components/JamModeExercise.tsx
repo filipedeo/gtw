@@ -108,7 +108,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
         const scalePositions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
         setHighlightedPositions(scalePositions);
         setRootNote(normalizedKey);
-        setScaleContext({ root: normalizedKey, name: progression.suggestedScale });
+        setScaleContext({ root: selectedKey, name: progression.suggestedScale });
 
         // Secondary: chord tones of current chord
         const chords = buildProgressionChords(selectedKey, progression.degrees);

@@ -86,7 +86,7 @@ const ModalPracticeExercise: React.FC<ModalPracticeExerciseProps> = ({ exercise 
           setSecondaryHighlightedPositions([]);
         }
         setRootNote(normalizedKey);
-        setScaleContext({ root: normalizedKey, name: selectedMode });
+        setScaleContext({ root: selectedKey, name: selectedMode });
       }
     } catch (e) {
       console.error('Error getting mode notes:', e);

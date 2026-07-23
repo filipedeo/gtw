@@ -161,7 +161,7 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
         const scalePositions = getScalePositions(scaleNotes, tuning, stringCount, maxFret);
         setHighlightedPositions(scalePositions);
         setRootNote(normalizedKey);
-        setScaleContext({ root: normalizedKey, name: progression.suggestedScale });
+        setScaleContext({ root: selectedKey, name: progression.suggestedScale });
 
         // Secondary: walking line chord tones
         const walkingPositions = getScalePositions(walkingLineNoteNames, tuning, stringCount, maxFret);

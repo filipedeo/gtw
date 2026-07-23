@@ -170,6 +170,11 @@ function keyPrefersFlats(root: string, scaleNotes: string[]): boolean {
   return false;
 }
 
+/** True if a note name carries a double accidental (## or bb), e.g. "C##". */
+function hasDoubleAccidental(note: string): boolean {
+  return note.includes('##') || note.includes('bb');
+}
+
 /**
  * Build a pitch-class -> note-name spelling table for a given key/scale context.
  *
@@ -182,8 +187,24 @@ function keyPrefersFlats(root: string, scaleNotes: string[]): boolean {
  * scale cannot be resolved (callers should fall back to their default spelling).
  */
 export function getKeySpelledNotes(root: string, scaleName: string): string[] | null {
-  const scale = Scale.get(`${root} ${scaleName}`);
+  let scale = Scale.get(`${root} ${scaleName}`);
   if (scale.empty || scale.notes.length === 0) return null;
+
+  // A flat-named key can reach us already normalized to its sharp enharmonic
+  // (e.g. Bb -> A#). tonal then derives a scale full of double sharps
+  // ("A# B# C## D# E# F## G##"). Detect that and re-derive from the enharmonic
+  // root so standard keys never produce double accidentals.
+  let effectiveRoot = root;
+  if (scale.notes.some(hasDoubleAccidental)) {
+    const enharmonicRoot = Note.enharmonic(root);
+    if (enharmonicRoot && enharmonicRoot !== root) {
+      const alt = Scale.get(`${enharmonicRoot} ${scaleName}`);
+      if (!alt.empty && alt.notes.length > 0 && !alt.notes.some(hasDoubleAccidental)) {
+        scale = alt;
+        effectiveRoot = enharmonicRoot;
+      }
+    }
+  }
 
   const table: (string | undefined)[] = new Array(12).fill(undefined);
   for (const n of scale.notes) {
@@ -194,7 +215,7 @@ export function getKeySpelledNotes(root: string, scaleName: string): string[] | 
     }
   }
 
-  const fallback = keyPrefersFlats(root, scale.notes) ? NOTE_NAMES_FLAT : NOTE_NAMES;
+  const fallback = keyPrefersFlats(effectiveRoot, scale.notes) ? NOTE_NAMES_FLAT : NOTE_NAMES;
   for (let c = 0; c < 12; c++) {
     if (table[c] === undefined) table[c] = fallback[c];
   }

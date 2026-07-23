@@ -114,7 +114,7 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
 
     setHighlightedPositions(positions);
     setRootNote(normalizeNoteName(selectedKey));
-    setScaleContext({ root: normalizeNoteName(selectedKey), name: selectedMode.name });
+    setScaleContext({ root: selectedKey, name: selectedMode.name });
     setSecondaryHighlightedPositions([]);
   }, [
     isActive, selectedKey, selectedMode, tuning, stringCount, startFret,

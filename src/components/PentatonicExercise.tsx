@@ -321,7 +321,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
     const pentPositions = getPentatonicBox(selectedKey, scaleType, selectedBox, tuning, stringCount);
     setRootNote(normalizeNoteName(selectedKey));
-    setScaleContext({ root: normalizeNoteName(selectedKey), name: scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic' });
+    setScaleContext({ root: selectedKey, name: scaleType === 'minor' ? 'minor pentatonic' : 'major pentatonic' });
 
     if (showAllShapes) {
       // Collect all boxes: current box = primary, other 4 = secondary

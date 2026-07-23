@@ -492,6 +492,85 @@ describe('getKeySpelledNotes (key/scale-aware enharmonic spelling)', () => {
     expect(t[1]).toBe('C#');
   });
 
+  // --- Flat-named root keys (A-2 regression) ---
+  // These must spell with flats and never produce double accidentals. tonal
+  // yields double sharps when a flat root is handed in as its sharp enharmonic
+  // (e.g. Bb -> A# gives "A# B# C## D# E# F## G##").
+  const hasNoDoubleAccidentals = (table: string[]) =>
+    table.every((n) => !n.includes('##') && !n.includes('bb'));
+
+  it('spells Bb major as Bb C D Eb F G A with no double accidentals', () => {
+    const t = getKeySpelledNotes('Bb', 'major')!;
+    expect(t[10]).toBe('Bb');
+    expect(t[0]).toBe('C');
+    expect(t[2]).toBe('D');
+    expect(t[3]).toBe('Eb');
+    expect(t[5]).toBe('F');
+    expect(t[7]).toBe('G');
+    expect(t[9]).toBe('A');
+    expect(hasNoDoubleAccidentals(t)).toBe(true);
+  });
+
+  it('spells Eb major as Eb F G Ab Bb C D with no double accidentals', () => {
+    const t = getKeySpelledNotes('Eb', 'major')!;
+    expect(t[3]).toBe('Eb');
+    expect(t[5]).toBe('F');
+    expect(t[7]).toBe('G');
+    expect(t[8]).toBe('Ab');
+    expect(t[10]).toBe('Bb');
+    expect(t[0]).toBe('C');
+    expect(t[2]).toBe('D');
+    expect(hasNoDoubleAccidentals(t)).toBe(true);
+  });
+
+  it('spells Ab major as Ab Bb C Db Eb F G with no double accidentals', () => {
+    const t = getKeySpelledNotes('Ab', 'major')!;
+    expect(t[8]).toBe('Ab');
+    expect(t[10]).toBe('Bb');
+    expect(t[0]).toBe('C');
+    expect(t[1]).toBe('Db');
+    expect(t[3]).toBe('Eb');
+    expect(t[5]).toBe('F');
+    expect(t[7]).toBe('G');
+    expect(hasNoDoubleAccidentals(t)).toBe(true);
+  });
+
+  it('spells Db major as Db Eb F Gb Ab Bb C with no double accidentals', () => {
+    const t = getKeySpelledNotes('Db', 'major')!;
+    expect(t[1]).toBe('Db');
+    expect(t[3]).toBe('Eb');
+    expect(t[5]).toBe('F');
+    expect(t[6]).toBe('Gb');
+    expect(t[8]).toBe('Ab');
+    expect(t[10]).toBe('Bb');
+    expect(t[0]).toBe('C');
+    expect(hasNoDoubleAccidentals(t)).toBe(true);
+  });
+
+  it('spells the four flat keys correctly in Ionian mode too (as exercises request)', () => {
+    expect(getKeySpelledNotes('Bb', 'ionian')![10]).toBe('Bb');
+    expect(getKeySpelledNotes('Eb', 'ionian')![3]).toBe('Eb');
+    expect(getKeySpelledNotes('Ab', 'ionian')![8]).toBe('Ab');
+    expect(getKeySpelledNotes('Db', 'ionian')![1]).toBe('Db');
+    for (const root of ['Bb', 'Eb', 'Ab', 'Db']) {
+      expect(hasNoDoubleAccidentals(getKeySpelledNotes(root, 'ionian')!)).toBe(true);
+    }
+  });
+
+  it('re-derives a flat spelling when a flat root arrives as its sharp enharmonic', () => {
+    // Defensive engine guard: Scale.get("A# major") alone yields "A# B# C## ...".
+    const cases: Array<[string, string, number]> = [
+      ['A#', 'Bb', 10],
+      ['D#', 'Eb', 3],
+      ['G#', 'Ab', 8],
+    ];
+    for (const [sharpRoot, expectedFlat, chroma] of cases) {
+      const t = getKeySpelledNotes(sharpRoot, 'major')!;
+      expect(hasNoDoubleAccidentals(t)).toBe(true);
+      expect(t[chroma]).toBe(expectedFlat);
+    }
+  });
+
   it('returns null for an unresolvable scale so callers can fall back', () => {
     expect(getKeySpelledNotes('C', 'not-a-real-scale')).toBeNull();
   });

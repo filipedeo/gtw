@@ -142,7 +142,7 @@ const ThreeNPSExercise: React.FC<ThreeNPSExerciseProps> = ({ exercise }) => {
 
     setHighlightedPositions(positions);
     setRootNote(normalizeNoteName(selectedKey));
-    setScaleContext({ root: normalizeNoteName(selectedKey), name: selectedMode.name });
+    setScaleContext({ root: selectedKey, name: selectedMode.name });
 
     // For the "All 7 Modes" exercise, show the next adjacent pattern as secondary
     if (exercise.id === 'three-nps-3') {

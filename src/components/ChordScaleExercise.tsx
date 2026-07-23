@@ -130,7 +130,7 @@ const ChordScaleExercise: React.FC<ChordScaleExerciseProps> = ({ exercise }) => 
         }
         
         setRootNote(normalizedKey);
-        setScaleContext({ root: normalizedKey, name: selectedScale });
+        setScaleContext({ root: selectedKey, name: selectedScale });
       }
     } catch (e) {
       console.error('Error getting scale notes:', e);

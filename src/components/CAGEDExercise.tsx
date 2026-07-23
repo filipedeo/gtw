@@ -170,7 +170,7 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
     }
 
     setRootNote(showRoots ? normalizeNoteName(selectedKey) : null);
-    setScaleContext({ root: normalizeNoteName(selectedKey), name: scaleType });
+    setScaleContext({ root: selectedKey, name: scaleType });
   }, [selectedShape, selectedKey, scaleType, showChord, showScale, showRoots, showAllShapes, isActive, setHighlightedPositions, setSecondaryHighlightedPositions, setRootNote, setScaleContext, stringOffset, stringCount]);
 
   // Cleanup
