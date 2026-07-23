@@ -273,10 +273,9 @@ const BassPositionExercise: React.FC<BassPositionExerciseProps> = ({ exercise })
       {/* Pattern Info */}
       <CollapsibleSection title="Pattern Info" defaultOpen={true}>
         <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+          className="p-4 rounded-lg bg-accent-subtle"
         >
-          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+          <h4 className="font-medium mb-2 text-accent">
             {selectedMode.displayName} ({selectedKey}) - 2 Notes Per String
           </h4>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>

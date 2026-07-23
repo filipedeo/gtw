@@ -396,8 +396,8 @@ const WalkingBassExercise: React.FC<WalkingBassExerciseProps> = ({ exercise }) =
       </div>
 
       {/* Walking Line Display — grouped in rows of 4 bars */}
-      <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-        <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+      <div className="p-4 rounded-lg bg-accent-subtle">
+        <h4 className="font-medium mb-2 text-accent">
           Walking Line
         </h4>
         <div className="space-y-1.5">

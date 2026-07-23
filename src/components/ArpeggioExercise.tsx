@@ -724,8 +724,8 @@ const ArpeggioExercise: React.FC<ArpeggioExerciseProps> = ({ exercise }) => {
 
       {/* Chord Tones Info */}
       <CollapsibleSection title="Chord Tones" defaultOpen={true}>
-        <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+        <div className="p-4 rounded-lg bg-accent-subtle">
+          <h4 className="font-medium mb-2 text-accent">
             {selectedKey}{chordSymbol} Arpeggio
           </h4>
           <div className="flex flex-wrap gap-3">

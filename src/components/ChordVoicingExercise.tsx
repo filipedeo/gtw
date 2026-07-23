@@ -565,10 +565,9 @@ const ChordVoicingExercise: React.FC<ChordVoicingExerciseProps> = ({ exercise })
       {/* Chord Info */}
       <CollapsibleSection title="Chord Info" defaultOpen={true}>
         <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+          className="p-4 rounded-lg bg-accent-subtle"
         >
-          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+          <h4 className="font-medium mb-2 text-accent">
             {selectedKey} {voicingName} - {currentInversion?.name}
           </h4>
           <div className="flex gap-2 text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>

@@ -587,8 +587,8 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
 
       {/* Shape Info */}
       <CollapsibleSection title="Shape Info" defaultOpen={true}>
-        <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+        <div className="p-4 rounded-lg bg-accent-subtle">
+          <h4 className="font-medium mb-2 text-accent">
             {isModeCentric
               ? `Shape ${selectedBox + 1} — ${selectedKey} ${selectedModeDisplayName}`
               : `Shape ${selectedBox + 1} — ${selectedKey} ${scaleType === 'minor' ? 'Minor' : 'Major'} Pentatonic`}
@@ -626,7 +626,7 @@ const PentatonicExercise: React.FC<PentatonicExerciseProps> = ({ exercise }) => 
       {isModeCentric && extNames.length > 0 && (
         <CollapsibleSection title="Extension Notes" defaultOpen={true}>
           <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--accent-primary)' }}>
-            <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+            <h4 className="font-medium mb-2 text-accent">
               Extension Notes for {selectedKey} {selectedModeDisplayName}
             </h4>
             <div className="text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>

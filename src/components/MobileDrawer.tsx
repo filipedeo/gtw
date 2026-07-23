@@ -99,7 +99,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
         <div className="p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h2 className="text-lg font-bold text-fg-strong">
               Menu
             </h2>
             <Button
@@ -114,7 +114,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Tools section */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Tools
             </h3>
             <div className="flex gap-2">
@@ -137,7 +137,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Fretboard section */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Fretboard
             </h3>
             <div className="card p-3">
@@ -145,7 +145,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
                 <Fretboard />
               </ErrorBoundary>
               {isMobile && (
-                <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-xs mt-2 text-center text-fg-muted">
                   Rotate to landscape for a larger view
                 </p>
               )}
@@ -154,7 +154,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Session Planner */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Session Planner
             </h3>
             <ErrorBoundary>
@@ -164,7 +164,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Progress */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Progress
             </h3>
             <ErrorBoundary>
@@ -175,14 +175,14 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
           {/* Exercise Info */}
           {currentExercise && (
             <section className="mb-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
                 Exercise Info
               </h3>
               <div className="card p-3">
-                <p className="font-semibold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>
+                <p className="font-semibold text-sm mb-1 text-fg-strong">
                   {currentExercise.title}
                 </p>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-sm text-fg">
                   {currentExercise.description}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -204,7 +204,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Audio Controls */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Drone & Volume
             </h3>
             <div className="card p-3">
@@ -214,7 +214,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Settings */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Settings
             </h3>
             <div className="card p-3">
@@ -224,7 +224,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose, onSelectTo
 
           {/* Instrument & string toggle */}
           <section className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 text-fg-muted">
               Instrument
             </h3>
             <div className="flex gap-2">

@@ -160,7 +160,7 @@ const ExerciseContainer: React.FC = () => {
     if (!currentExercise) {
       return (
         <div className="text-center py-12">
-          <p style={{ color: 'var(--text-muted)' }}>Select an exercise to begin</p>
+          <p className="text-fg-muted">Select an exercise to begin</p>
         </div>
       );
     }
@@ -197,10 +197,10 @@ const ExerciseContainer: React.FC = () => {
         return (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">🚧</div>
-            <p style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-fg">
               Exercise type "{currentExercise.type}" coming soon!
             </p>
-            <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-sm mt-2 text-fg-muted">
               This exercise is being developed. Try Note Identification or Modal Practice for now.
             </p>
           </div>
@@ -222,16 +222,12 @@ const ExerciseContainer: React.FC = () => {
     return (
       <div className="card">
         <div className="text-center py-12">
-          <div 
-            className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'var(--error)', color: 'white', fontSize: '1.5rem', fontWeight: 'bold' }}
+          <div
+            className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center bg-danger text-white text-2xl font-bold"
           >
             !
           </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Failed to Load Exercises
-          </h3>
-          <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+          <p className="mb-4 text-fg">
             {loadError}
           </p>
           <button onClick={handleRetryLoad} className="btn-primary">
@@ -275,7 +271,7 @@ const ExerciseContainer: React.FC = () => {
           >
             ← Prev
           </button>
-          <span className="text-sm px-4" style={{ color: 'var(--text-muted)' }}>
+          <span className="text-sm px-4 text-fg-muted tabular-nums">
             {filteredExercises.length > 0 ? filteredIndex + 1 : 0} / {filteredExercises.length}
           </span>
           <button
@@ -292,11 +288,6 @@ const ExerciseContainer: React.FC = () => {
           value={filteredIndex >= 0 ? filteredIndex : ''}
           onChange={(e) => goToFilteredExercise(parseInt(e.target.value))} aria-label="Select exercise"
           className="w-full sm:w-auto min-w-0 px-3 py-2 rounded-lg text-sm sm:max-w-[300px]"
-          style={{ 
-            backgroundColor: 'var(--bg-primary)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-color)'
-          }}
         >
           {filteredExercises.map((ex, idx) => (
             <option key={ex.id} value={idx}>
@@ -311,10 +302,10 @@ const ExerciseContainer: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-xl font-bold text-fg-strong">
                 {currentExercise.title}
               </h2>
-              <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>
+              <p className="mt-1 text-fg">
                 {currentExercise.description}
               </p>
             </div>
@@ -322,24 +313,18 @@ const ExerciseContainer: React.FC = () => {
               {[1, 2, 3, 4, 5].map(level => (
                 <span
                   key={level}
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: level <= currentExercise.difficulty 
-                      ? 'var(--accent-primary)' 
-                      : 'var(--bg-tertiary)'
-                  }}
+                  className={`w-2 h-2 rounded-full ${level <= currentExercise.difficulty ? 'bg-accent' : 'bg-surface-sunken'}`}
                 />
               ))}
             </div>
           </div>
-          
+
           {/* Instructions (collapsible) */}
           {currentExercise.instructions && currentExercise.instructions.length > 0 && (
             <div className="mt-4">
               <button
                 onClick={() => setShowInstructions(!showInstructions)}
-                className="flex items-center gap-2 text-sm font-medium min-h-[var(--target-min)]"
-                style={{ color: 'var(--accent-primary)' }}
+                className="flex items-center gap-2 text-sm font-medium min-h-[var(--target-min)] text-accent"
               >
                 <span>{showInstructions ? '▼' : '▶'}</span>
                 <span>Instructions</span>
@@ -347,10 +332,9 @@ const ExerciseContainer: React.FC = () => {
               
               {showInstructions && (
                 <div 
-                  className="mt-2 p-4 rounded-lg animate-fade-in"
-                  style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                  className="mt-2 p-4 rounded-lg animate-fade-in bg-accent-subtle"
                 >
-                  <ul className="list-disc list-inside text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
+                  <ul className="list-disc list-inside text-sm space-y-1 text-fg">
                     {currentExercise.instructions.map((instruction, idx) => (
                       <li key={idx}>{instruction}</li>
                     ))}

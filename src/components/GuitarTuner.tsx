@@ -151,10 +151,7 @@ const GuitarTuner: React.FC = () => {
       </div>
 
       {micError && (
-        <div
-          className="mb-3 p-3 rounded-lg text-sm"
-          style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: 'var(--error)' }}
-        >
+        <div className="mb-3 p-3 rounded-lg text-sm bg-danger-bg text-danger">
           {micError}
         </div>
       )}

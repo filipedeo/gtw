@@ -107,7 +107,7 @@ function App() {
               </span>
               <div className="hidden md:flex flex-col gap-0.5 leading-none">
                 <span className="eyebrow">Practice</span>
-                <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                <h1 className="text-xl font-bold tracking-tight text-fg-strong">
                   Guitar Theory
                 </h1>
               </div>
@@ -195,11 +195,11 @@ function App() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col gap-0.5">
                 <span className="eyebrow">Reference</span>
-                <h2 className="text-lg font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <h2 className="text-lg font-semibold leading-tight text-fg-strong">
                   Fretboard
                 </h2>
               </div>
-              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+              <div className="flex items-center gap-2 text-sm text-fg-muted">
                 <span>Click any note to hear it</span>
               </div>
             </div>

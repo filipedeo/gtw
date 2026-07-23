@@ -282,10 +282,9 @@ const CAGEDExercise: React.FC<CAGEDExerciseProps> = ({ exercise }) => {
       {/* Shape Info */}
       <CollapsibleSection title="Shape Info" defaultOpen={true}>
         <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+          className="p-4 rounded-lg bg-accent-subtle"
         >
-          <h4 className="font-medium mb-2" style={{ color: 'var(--accent-primary)' }}>
+          <h4 className="font-medium mb-2 text-accent">
             {shapeData.name} - {selectedKey} {scaleType === 'major' ? 'Major' : 'Minor'}
           </h4>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
