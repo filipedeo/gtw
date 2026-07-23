@@ -67,8 +67,8 @@ const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes:
   // Determine timer color based on state
   const getTimerColor = (): string => {
     if (targetReached) return 'var(--success)';
-    if (isRunning) return 'var(--accent-primary)';
-    return 'var(--text-secondary)';
+    if (isRunning) return 'var(--accent)';
+    return 'var(--text)';
   };
 
   return (
@@ -78,10 +78,10 @@ const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes:
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-mono cursor-pointer transition-all min-w-[44px] min-h-[44px]"
         style={{
           backgroundColor: targetReached
-            ? 'rgba(16, 185, 129, 0.15)'
+            ? 'var(--success-bg)'
             : isRunning
-              ? 'rgba(59, 130, 246, 0.1)'
-              : 'var(--bg-tertiary)',
+              ? 'var(--accent-subtle-bg)'
+              : 'var(--surface-sunken)',
           color: getTimerColor(),
           border: `1px solid ${targetReached ? 'var(--success)' : 'transparent'}`,
         }}
@@ -115,7 +115,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes:
           className="absolute bottom-0 left-0 h-0.5 rounded-full transition-all"
           style={{
             width: `${progressPercent}%`,
-            backgroundColor: targetReached ? 'var(--success)' : 'var(--accent-primary)',
+            backgroundColor: targetReached ? 'var(--success)' : 'var(--accent)',
           }}
           role="progressbar"
           aria-valuenow={elapsedSeconds}
@@ -129,7 +129,7 @@ const PracticeTimer: React.FC<PracticeTimerProps> = React.memo(({ targetMinutes:
       <button
         className="text-xs px-2 py-1.5 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         style={{
-          backgroundColor: 'var(--bg-tertiary)',
+          backgroundColor: 'var(--surface-sunken)',
           color: 'var(--text-muted)',
         }}
         onClick={() => setShowTargetPicker(!showTargetPicker)}

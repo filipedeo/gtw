@@ -195,13 +195,13 @@ const NoteIdentificationExercise: React.FC<NoteIdentificationExerciseProps> = ({
     <div className="space-y-6">
       {/* Score Display */}
       <div className="flex justify-between items-center">
-        <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <div className="text-sm text-fg tabular-nums">
           Question {questionNumber} of 10
         </div>
-        <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+        <div className="text-sm font-medium text-fg-strong tabular-nums">
           Score: {score.correct}/{score.total}
           {score.total > 0 && (
-            <span style={{ color: 'var(--text-muted)' }} className="ml-2">
+            <span className="ml-2 text-fg-muted" >
               ({scorePercentage}%)
             </span>
           )}

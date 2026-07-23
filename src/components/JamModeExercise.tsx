@@ -291,7 +291,7 @@ const JamModeExercise: React.FC<JamModeExerciseProps> = ({ exercise }) => {
             <label className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
               Tempo
             </label>
-            <span className="text-sm font-mono" style={{ color: 'var(--accent-primary)' }}>
+            <span className="text-sm font-mono tabular-nums text-accent">
               {bpm} BPM
             </span>
           </div>
