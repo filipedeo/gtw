@@ -29,6 +29,8 @@
   --color-accent-active: var(--accent-active);
   --color-accent-subtle: var(--accent-subtle-bg);
   --color-on-accent: var(--on-accent);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-secondary-subtle: var(--accent-secondary-subtle-bg);
 
   /* Semantic (foreground + tint) */
   --color-success: var(--success);
@@ -95,6 +97,11 @@
   --warning-bg: #fffbeb;
   --danger: #dc2626;
   --danger-bg: #fef2f2;
+  /* Secondary accent (emphasis / active hints — used sparingly). */
+  --accent-secondary: #059669;
+  --accent-secondary-subtle-bg: #ecfdf5;
+  /* Ambient depth glow behind the app shell (near-invisible in light). */
+  --app-glow: transparent;
   /* --text-muted, --accent-hover, --success, --warning and --focus-ring reuse
      the legacy vars above. Legacy --success/--warning already equal the plan's
      LIGHT values; their dark foreground variants (#34d399 / #fbbf24) are
@@ -145,9 +152,9 @@
   /* §1.5 Radius scale — named --rad-* to avoid colliding with Tailwind's
      reserved --radius-* theme vars (which drive the rounded-* utilities). */
   --rad-sm: 6px;
-  --rad-md: 8px;
-  --rad-lg: 12px;
-  --rad-xl: 16px;
+  --rad-md: 9px;
+  --rad-lg: 14px;
+  --rad-xl: 18px;
   --rad-full: 9999px;
 
   /* §1.5 Elevation ramp (light) */
@@ -184,74 +191,103 @@
 }
 
 .dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #e2e8f0;
-  --text-muted: #94a3b8; /* Improved contrast from #64748b */
-  --border-color: #475569;
-  --accent-primary: #60a5fa;
-  --accent-hover: #93c5fd;
-  --card-bg: #1e293b;
-  --card-border: #475569;
-  --fretboard-wood: #2d1810;
-  --fretboard-wood-dark: #1a0f0a;
-  --fret-color: #94a3b8;
-  --string-color: #94a3b8;
-  --dot-color: #475569;
-  --focus-ring: rgba(96, 165, 250, 0.4);
+  /* Legacy vars (consumed by out-of-scope components + shared .card/.btn/form
+     rules). Remapped onto the layered-dark palette so the whole app cascades. */
+  --bg-primary: #0e1620;
+  --bg-secondary: #070b11;
+  --bg-tertiary: #16212e;
+  --text-primary: #e6edf3;
+  --text-secondary: #b9c6d3;
+  --text-muted: #7a8ba0; /* muted tier (kept a touch above --text-subtle for AA) */
+  --border-color: #1e2a38;
+  --accent-primary: #6ea8fe;
+  --accent-hover: #8bbcff;
+  --card-bg: #121c28;
+  --card-border: #1e2a38;
+  --fretboard-wood: #0e1620;
+  --fretboard-wood-dark: #0a121c;
+  --fret-color: #33455a;
+  --string-color: #8595a8;
+  --dot-color: #24313f;
+  --focus-ring: rgba(110, 168, 254, 0.45);
 
-  /* Design-system tokens — 92 plan §1 (dark) */
-  --surface-app: #0f172a;
-  --surface: #1e293b;
-  --surface-raised: #26344a;
-  --surface-sunken: #172033;
-  --surface-hover: #334155;
-  --border-subtle: #334155;
-  --border-strong: #475569;
-  --text-strong: #f8fafc;
-  --text: #e2e8f0;
-  --text-subtle: #64748b;
-  --accent: #60a5fa;
-  --accent-active: #bfdbfe;
-  --accent-subtle-bg: rgba(96, 165, 250, 0.16);
-  --on-accent: #0b1220;
-  --success-bg: rgba(52, 211, 153, 0.14);
+  /* Design-system tokens (dark) — layered palette: app → sunken → panel → raised. */
+  --surface-app: #070b11;
+  --surface: #0e1620;
+  --surface-raised: #121c28;
+  --surface-sunken: #0a121c;
+  --surface-hover: #172232;
+  --border-subtle: #1e2a38;
+  --border-strong: #2a3a4d;
+  --text-strong: #e6edf3;
+  --text: #9fb0c3;
+  --text-subtle: #6b7c90;
+  --accent: #6ea8fe;
+  --accent-active: #b6d3ff;
+  --accent-subtle-bg: rgba(110, 168, 254, 0.14);
+  --on-accent: #06111f;
+  --success-bg: rgba(126, 231, 135, 0.13);
   --warning-bg: rgba(251, 191, 36, 0.14);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.14);
+  --danger: #f0787b;
+  --danger-bg: rgba(240, 120, 123, 0.14);
+  /* Secondary accent = mint. Decorative emphasis only (never a white-on-fill). */
+  --accent-secondary: #7ee787;
+  --accent-secondary-subtle-bg: rgba(126, 231, 135, 0.14);
+  /* Ambient blue depth glow behind the app shell. */
+  --app-glow: rgba(110, 168, 254, 0.06);
 
-  /* Fretboard palette (dark) */
-  --fb-surface: #1a2232;
-  --fb-edge: #0f1626;
-  --fb-fret: #5b6675;
-  --fb-string: #aab4c2;
-  --fb-inlay: #3c4759;
-  --fb-fret-number: #9aa6b6;
-  --fb-note-root: #f87171;
-  --fb-note-scale: #60a5fa;
+  /* Fretboard palette (dark) — harmonised with the layered panels. */
+  --fb-surface: #0b131d;
+  --fb-edge: #060b12;
+  --fb-fret: #33455a;
+  --fb-string: #8595a8;
+  --fb-inlay: #24313f;
+  --fb-fret-number: #7f8fa3;
+  --fb-note-root: #f0787b;
+  --fb-note-scale: #6ea8fe;
   --fb-note-chord: #38bdf8;
   --fb-note-characteristic: #fbbf24;
-  --fb-note-target: #93c5fd;
-  /* --fb-note-target-fill inherits var(--surface) (dark #1e293b) */
-  --fb-note-ghost: rgba(148, 163, 184, 0.30);
+  --fb-note-target: #9cc4ff;
+  /* --fb-note-target-fill inherits var(--surface) (dark #0e1620) */
+  --fb-note-ghost: rgba(159, 176, 195, 0.24);
 
-  /* Elevation (dark: ~1.6x alpha on black; pair with --surface-raised + hairline) */
-  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.16);
-  --elev-2: 0 4px 8px -2px rgba(0, 0, 0, 0.16), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
-  --elev-3: 0 12px 24px -6px rgba(0, 0, 0, 0.26), 0 4px 8px -4px rgba(0, 0, 0, 0.13);
+  /* Elevation (dark) — soft, diffuse; a hairline inset top highlight adds a
+     subtle "lit-from-above" sheen on raised surfaces. */
+  --elev-1: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px -4px rgba(0, 0, 0, 0.45);
+  --elev-2: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --elev-3: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 50px -20px rgba(0, 0, 0, 0.7), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
 }
 
 /* Base styles */
 html {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background-color: var(--bg-secondary);
+  background-color: var(--surface-app);
   color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
+}
+
+/* App shell — layered background with a subtle ambient depth glow (dark only). */
+.app-shell {
+  background-color: var(--surface-app);
+  background-image: radial-gradient(1100px 520px at 50% -240px, var(--app-glow), transparent 72%);
+  background-repeat: no-repeat;
+}
+
+/* Monospace uppercase eyebrow / kicker — editorial section labels. */
+.eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-2xs);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
 }
 
 /* Focus-visible indicators for keyboard navigation */
@@ -329,11 +365,11 @@ a:focus-visible,
 /* Card styles */
 .card {
   background-color: var(--card-bg);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: var(--rad-lg);
+  box-shadow: var(--elev-1);
   border: 1px solid var(--card-border);
   padding: 1.5rem;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: background-color 0.3s, border-color 0.3s, box-shadow 0.2s ease;
 }
 
 /* Form elements */
@@ -341,7 +377,7 @@ select, input[type="text"], input[type="number"] {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
+  border-radius: var(--rad-md);
   padding: 0.5rem 0.75rem;
   min-height: 44px;
   max-width: 100%;
@@ -370,6 +406,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
   background: var(--accent-primary);
+  box-shadow: 0 0 0 4px rgba(110, 168, 254, 0.15);
   border-radius: 50%;
   cursor: pointer;
   transition: transform 0.2s;
@@ -408,23 +445,33 @@ input[type="checkbox"] {
   accent-color: var(--accent-primary);
 }
 
-/* Custom scrollbar */
+/* Accent text selection */
+::selection {
+  background-color: var(--accent-subtle-bg);
+  color: var(--text-strong);
+}
+
+/* Custom scrollbar — subtle, hairline-toned */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--bg-tertiary);
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--text-muted);
+  background-color: var(--border-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-secondary);
+  background-color: var(--text-subtle);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* Fretboard container */

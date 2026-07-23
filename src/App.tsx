@@ -93,18 +93,24 @@ function App() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-surface-app">
+    <div className="min-h-screen app-shell">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-surface border-b border-line">
+      <header
+        className="sticky top-0 z-40 border-b border-line backdrop-blur-md"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--surface) 80%, transparent)' }}
+      >
         <div className="max-w-[1800px] mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span className="inline-flex items-center justify-center w-9 h-9 rounded-[var(--rad-md)] bg-accent-subtle text-accent">
                 <MusicIcon size={20} />
               </span>
-              <h1 className="hidden md:block text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                Guitar Theory
-              </h1>
+              <div className="hidden md:flex flex-col gap-0.5 leading-none">
+                <span className="eyebrow">Practice</span>
+                <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                  Guitar Theory
+                </h1>
+              </div>
             </div>
             <PracticeTimer />
             <MetronomeIndicator />
@@ -187,9 +193,12 @@ function App() {
         {isDesktop && showTopFretboard && (
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-                Fretboard
-              </h2>
+              <div className="flex flex-col gap-0.5">
+                <span className="eyebrow">Reference</span>
+                <h2 className="text-lg font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                  Fretboard
+                </h2>
+              </div>
               <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 <span>Click any note to hear it</span>
               </div>
@@ -218,9 +227,12 @@ function App() {
                   aria-label="Settings"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-fg-strong">
-                      Settings
-                    </h2>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="eyebrow">Configure</span>
+                      <h2 className="text-lg font-bold leading-tight text-fg-strong">
+                        Settings
+                      </h2>
+                    </div>
                     <Button
                       variant="ghost"
                       iconOnly
@@ -243,9 +255,12 @@ function App() {
                   aria-label="Drone and Volume Controls"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-bold text-fg-strong">
-                      Drone & Volume
-                    </h2>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="eyebrow">Audio</span>
+                      <h2 className="text-lg font-bold leading-tight text-fg-strong">
+                        Drone & Volume
+                      </h2>
+                    </div>
                     <Button
                       variant="ghost"
                       iconOnly
@@ -267,6 +282,7 @@ function App() {
 
                   {currentExercise && (
                     <Card>
+                      <span className="eyebrow block mb-1">About</span>
                       <h3 className="font-semibold mb-2 text-fg-strong">
                         Exercise Info
                       </h3>
