@@ -335,7 +335,7 @@ const ExerciseContainer: React.FC = () => {
                 <div 
                   className="mt-2 p-4 rounded-lg animate-fade-in bg-accent-subtle"
                 >
-                  <ul className="list-disc list-inside text-sm space-y-1 text-fg">
+                  <ul className="list-disc list-inside text-sm space-y-1 text-fg max-w-[66ch]">
                     {currentExercise.instructions.map((instruction, idx) => (
                       <li key={idx}>{instruction}</li>
                     ))}

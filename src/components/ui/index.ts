@@ -6,5 +6,7 @@ export { Chip } from './Chip';
 export type { ChipProps } from './Chip';
 export { Select } from './Select';
 export type { SelectProps } from './Select';
+export { SegmentedControl } from './SegmentedControl';
+export type { SegmentedControlProps, SegmentedOption } from './SegmentedControl';
 export { CollapsibleSection } from './CollapsibleSection';
 export type { CollapsibleSectionProps } from './CollapsibleSection';

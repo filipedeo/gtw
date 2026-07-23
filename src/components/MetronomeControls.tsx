@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAudioStore } from '../stores/audioStore';
 import { startMetronome, stopMetronome, initAudio, onMetronomeBeat } from '../lib/audioEngine';
 import { clampBpm, bpmFromTapTimes, recordTap, SUBDIVISIONS } from '../utils/metronome';
+import { SegmentedControl } from './ui';
 
 const TIME_SIGNATURES: [number, number][] = [
   [4, 4],
@@ -206,56 +207,33 @@ const MetronomeControls: React.FC = React.memo(() => {
 
       {/* Time Signature */}
       <div className="mb-3">
-        <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+        <label className="block text-sm mb-2 text-fg">
           Time Signature
         </label>
-        <div className="flex gap-2 flex-wrap">
-          {TIME_SIGNATURES.map((ts) => {
-            const key = tsKey(ts);
-            const isActive = currentTs === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setMetronomeConfig({ timeSignature: ts })}
-                className="px-3 py-2 phone-touch rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: isActive ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                  color: isActive ? 'white' : 'var(--text-primary)',
-                  border: `1px solid ${isActive ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                }}
-              >
-                {key}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedControl
+          ariaLabel="Time signature"
+          compact
+          value={currentTs}
+          onChange={(key) => {
+            const ts = TIME_SIGNATURES.find((t) => tsKey(t) === key);
+            if (ts) setMetronomeConfig({ timeSignature: ts });
+          }}
+          options={TIME_SIGNATURES.map((ts) => ({ value: tsKey(ts), label: tsKey(ts) }))}
+        />
       </div>
 
       {/* Subdivision */}
       <div className="mb-3">
-        <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+        <label className="block text-sm mb-2 text-fg">
           Subdivision
         </label>
-        <div className="flex gap-2 flex-wrap">
-          {SUBDIVISIONS.map((sub) => {
-            const isActive = metronomeConfig.subdivision === sub.value;
-            return (
-              <button
-                key={sub.value}
-                onClick={() => setMetronomeConfig({ subdivision: sub.value })}
-                aria-pressed={isActive}
-                className="px-3 py-2 phone-touch rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: isActive ? 'var(--accent-primary)' : 'var(--bg-primary)',
-                  color: isActive ? 'white' : 'var(--text-primary)',
-                  border: `1px solid ${isActive ? 'var(--accent-primary)' : 'var(--border-color)'}`,
-                }}
-              >
-                {sub.label}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedControl
+          ariaLabel="Subdivision"
+          compact
+          value={metronomeConfig.subdivision}
+          onChange={(v) => setMetronomeConfig({ subdivision: v })}
+          options={SUBDIVISIONS.map((sub) => ({ value: sub.value, label: sub.label }))}
+        />
       </div>
 
       {/* Accent first beat */}

@@ -323,16 +323,12 @@ const ChordProgressionExercise: React.FC<ChordProgressionExerciseProps> = ({ exe
       {/* Feedback */}
       {showFeedback && (
         <div
-          className="text-center p-4 rounded-lg animate-fade-in"
-          style={{
-            backgroundColor: isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          }}
+          className={`text-center p-4 rounded-lg animate-fade-in ${isCorrect ? 'bg-success-bg' : 'bg-danger-bg'}`}
           role="alert"
           aria-live="assertive"
         >
           <p
-            className="font-medium text-lg flex items-center gap-2"
-            style={{ color: isCorrect ? 'var(--success)' : 'var(--error)' }}
+            className={`font-medium text-lg flex items-center gap-2 ${isCorrect ? 'text-success' : 'text-danger'}`}
           >
             <span aria-hidden="true">{isCorrect ? <CheckIcon size={20} /> : <XIcon size={20} />}</span>
             {isCorrect ? ' Correct!' : ` Incorrect. The answer was ${correctAnswer}`}

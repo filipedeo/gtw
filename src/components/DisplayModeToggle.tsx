@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGuitarStore } from '../stores/guitarStore';
 import { DisplayMode } from '../types/guitar';
+import { SegmentedControl } from './ui';
 
 interface DisplayModeToggleProps {
   compact?: boolean;
@@ -16,27 +17,20 @@ const DisplayModeToggle: React.FC<DisplayModeToggleProps> = React.memo(({ compac
   ];
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       {!compact && (
-        <span className="text-xs mr-1" style={{ color: 'var(--text-muted)' }}>Display:</span>
+        <span className="text-xs text-fg-muted">Display:</span>
       )}
-      {modes.map((mode) => (
-        <button
-          key={mode.value}
-          onClick={() => setDisplayMode(mode.value)}
-          className={`inline-flex items-center justify-center min-h-[var(--target-min)] min-w-[var(--target-min)] px-2 py-1 rounded text-xs font-medium transition-all ${
-            displayMode === mode.value ? 'btn-primary' : ''
-          }`}
-          style={displayMode !== mode.value ? {
-            backgroundColor: 'var(--bg-tertiary)',
-            color: 'var(--text-secondary)',
-          } : { padding: '0.25rem 0.5rem' }}
-          aria-pressed={displayMode === mode.value}
-          title={`Show ${mode.label.toLowerCase()}`}
-        >
-          {compact ? mode.shortLabel : mode.label}
-        </button>
-      ))}
+      <SegmentedControl
+        ariaLabel="Display mode"
+        compact={compact}
+        value={displayMode}
+        onChange={setDisplayMode}
+        options={modes.map((mode) => ({
+          value: mode.value,
+          label: compact ? mode.shortLabel : mode.label,
+        }))}
+      />
     </div>
   );
 });

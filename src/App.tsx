@@ -15,7 +15,7 @@ import { useBreakpoint } from './hooks/useBreakpoint'
 import { useGuitarStore } from './stores/guitarStore'
 import { useExerciseStore } from './stores/exerciseStore'
 import { useThemeStore } from './stores/themeStore'
-import { Button, Card } from './components/ui'
+import { Button, Card, SegmentedControl } from './components/ui'
 import { MusicIcon, VolumeIcon, SettingsIcon, MenuIcon, XIcon } from './components/icons'
 
 type SidePanel = 'settings' | 'audio' | null
@@ -114,31 +114,27 @@ function App() {
             </div>
             <PracticeTimer />
             <MetronomeIndicator />
-            {/* Instrument badge — desktop only */}
-            <div className="hidden lg:flex items-center gap-1">
-              <button
-                onClick={() => {
-                  if (instrument === 'guitar') {
-                    setStringCount(stringCount === 6 ? 7 : 6);
-                  } else {
-                    const bassOptions = [4, 5, 6] as const;
-                    const idx = bassOptions.indexOf(stringCount as 4 | 5 | 6);
-                    setStringCount(bassOptions[(idx + 1) % bassOptions.length]);
-                  }
-                }}
-                className="text-xs px-2 py-1 rounded-l-full font-mono cursor-pointer transition-colors bg-accent text-on-accent hover:bg-accent-hover"
-                title="Click to change string count"
-                aria-label={`Currently ${stringCount}-string ${instrument}. Click to change.`}
-              >
-                {stringCount}s
-              </button>
-              <button
-                onClick={() => setInstrument(instrument === 'guitar' ? 'bass' : 'guitar')}
-                className="text-xs px-2 py-1 rounded-r-full font-mono cursor-pointer transition-colors bg-surface-hover text-fg-muted hover:bg-surface-sunken hover:text-fg"
-                title={`Switch to ${instrument === 'guitar' ? 'bass' : 'guitar'}`}
-              >
-                {instrument === 'guitar' ? '→ Bass' : '→ Guitar'}
-              </button>
+            {/* Instrument + string count — desktop only */}
+            <div className="hidden lg:flex items-center gap-2">
+              <SegmentedControl
+                ariaLabel="Instrument"
+                compact
+                value={instrument}
+                onChange={(v) => setInstrument(v)}
+                options={[
+                  { value: 'guitar', label: 'Guitar' },
+                  { value: 'bass', label: 'Bass' },
+                ]}
+              />
+              <SegmentedControl
+                ariaLabel="String count"
+                compact
+                value={stringCount}
+                onChange={(v) => setStringCount(v as 4 | 5 | 6 | 7 | 8)}
+                options={instrument === 'guitar'
+                  ? [{ value: 6, label: '6' }, { value: 7, label: '7' }]
+                  : [{ value: 4, label: '4' }, { value: 5, label: '5' }, { value: 6, label: '6' }]}
+              />
             </div>
           </div>
 
